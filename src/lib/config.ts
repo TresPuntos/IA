@@ -10,6 +10,7 @@ export interface ChatConfig {
   systemPrompt: string;
   
   // Model Parameters
+  model: 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4-turbo' | 'gpt-4o' | 'gpt-4o-mini';
   temperature: number;
   topP: number;
   maxTokens: number;
@@ -26,6 +27,7 @@ export const defaultConfig: ChatConfig = {
   chatStatus: 'active',
   tone: 'friendly',
   systemPrompt: 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente. Proporciona recomendaciones basadas en el catálogo disponible.',
+  model: 'gpt-4o-mini',
   temperature: 0.7,
   topP: 0.9,
   maxTokens: 2048,
@@ -36,16 +38,17 @@ export const defaultConfig: ChatConfig = {
 // Función para obtener configuración actual del DOM
 export const getCurrentConfig = (): ChatConfig => {
   // Intentar obtener valores de los inputs del dashboard
-  const siteIdInput = document.getElementById('test-site-id') as HTMLInputElement;
-  const siteNameInput = document.getElementById('site-name') as HTMLInputElement;
-  const chatStatusSelect = document.getElementById('chat-status') as HTMLSelectElement;
+  const siteIdInput = document.getElementById('siteId') as HTMLInputElement;
+  const siteNameInput = document.getElementById('siteName') as HTMLInputElement;
+  const chatStatusSelect = document.getElementById('chatStatus') as HTMLSelectElement;
   const toneSelect = document.getElementById('tone') as HTMLSelectElement;
-  const systemPromptTextarea = document.getElementById('system-prompt') as HTMLTextAreaElement;
+  const systemPromptTextarea = document.getElementById('systemPrompt') as HTMLTextAreaElement;
+  const modelSelect = document.getElementById('model') as HTMLSelectElement;
   const temperatureSlider = document.getElementById('temperature') as HTMLInputElement;
-  const topPSlider = document.getElementById('top-p') as HTMLInputElement;
-  const maxTokensSlider = document.getElementById('max-tokens') as HTMLInputElement;
+  const topPSlider = document.getElementById('topP') as HTMLInputElement;
+  const maxTokensSlider = document.getElementById('maxTokens') as HTMLInputElement;
   const languageSelect = document.getElementById('language') as HTMLSelectElement;
-  const versionTagInput = document.getElementById('version-tag') as HTMLInputElement;
+  const versionTagInput = document.getElementById('versionTag') as HTMLInputElement;
 
   return {
     siteId: siteIdInput?.value || defaultConfig.siteId,
@@ -53,6 +56,7 @@ export const getCurrentConfig = (): ChatConfig => {
     chatStatus: (chatStatusSelect?.value as any) || defaultConfig.chatStatus,
     tone: (toneSelect?.value as any) || defaultConfig.tone,
     systemPrompt: systemPromptTextarea?.value || defaultConfig.systemPrompt,
+    model: (modelSelect?.value as any) || defaultConfig.model,
     temperature: parseFloat(temperatureSlider?.value || '0.7'),
     topP: parseFloat(topPSlider?.value || '0.9'),
     maxTokens: parseInt(maxTokensSlider?.value || '2048'),

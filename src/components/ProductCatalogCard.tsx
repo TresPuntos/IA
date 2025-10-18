@@ -3,13 +3,16 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Upload, Link as LinkIcon, CheckCircle2, XCircle, Clock, RefreshCw, AlertCircle } from "lucide-react";
+import { Upload, Link as LinkIcon, CheckCircle2, XCircle, Clock, RefreshCw, AlertCircle, Trash2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { 
   getCatalogStats, 
   uploadProductsFromCSV, 
   connectWooCommerce,
   getUpdateHistory,
+  clearCSVProducts,
+  clearWooCommerceProducts,
+  clearCatalog,
   type CatalogStats,
   type CatalogUpdate 
 } from "../lib/productCatalog";
@@ -27,6 +30,7 @@ export function ProductCatalogCard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [woocommerceUrl, setWooCommerceUrl] = useState('');
   const [consumerKey, setConsumerKey] = useState('');
   const [consumerSecret, setConsumerSecret] = useState('');
@@ -97,6 +101,67 @@ export function ProductCatalogCard() {
       toast.error('Error inesperado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     } finally {
       setIsConnecting(false);
+    }
+  };
+
+  const handleDeleteCSVProducts = async () => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar todos los productos cargados desde CSV?')) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      const result = await clearCSVProducts();
+      
+      if (result.success) {
+        toast.success(`${result.deletedCount} productos CSV eliminados`);
+        await loadData(); // Recargar datos
+      } else {
+        toast.error(result.error || 'Error al eliminar productos CSV');
+      }
+    } catch (error) {
+      toast.error('Error inesperado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteWooCommerceProducts = async () => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar todos los productos de WooCommerce?')) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      const result = await clearWooCommerceProducts();
+      
+      if (result.success) {
+        toast.success(`${result.deletedCount} productos WooCommerce eliminados`);
+        await loadData(); // Recargar datos
+      } else {
+        toast.error(result.error || 'Error al eliminar productos WooCommerce');
+      }
+    } catch (error) {
+      toast.error('Error inesperado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteAllProducts = async () => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar TODOS los productos del catálogo?')) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      await clearCatalog();
+      toast.success('Todos los productos eliminados');
+      await loadData(); // Recargar datos
+    } catch (error) {
+      toast.error('Error inesperado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -269,6 +334,47 @@ export function ProductCatalogCard() {
                   <div className="text-xs text-muted-foreground space-y-1">
                     <div>CSV: {stats.csv_products} productos</div>
                     <div>WooCommerce: {stats.woocommerce_products} productos</div>
+                  </div>
+                  
+                  {/* Botones de eliminación */}
+                  <div className="pt-2 space-y-2">
+                    <div className="text-xs font-medium text-muted-foreground">Gestionar productos:</div>
+                    <div className="flex gap-1 flex-wrap">
+                      {stats.csv_products > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDeleteCSVProducts}
+                          disabled={isDeleting}
+                          className="text-xs h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          CSV ({stats.csv_products})
+                        </Button>
+                      )}
+                      {stats.woocommerce_products > 0 && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={handleDeleteWooCommerceProducts}
+                          disabled={isDeleting}
+                          className="text-xs h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-3 w-3 mr-1" />
+                          WooCommerce ({stats.woocommerce_products})
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleDeleteAllProducts}
+                        disabled={isDeleting}
+                        className="text-xs h-7 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3 w-3 mr-1" />
+                        Todos
+                      </Button>
+                    </div>
                   </div>
                 </div>
               )}

@@ -43,6 +43,7 @@ export const callSupabaseChat = async (
       body: {
         message,
         systemPrompt: systemPrompt || config.systemPrompt,
+        model: config.model,
         temperature: config.temperature,
         topP: config.topP,
         maxTokens: config.maxTokens,

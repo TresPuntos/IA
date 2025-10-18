@@ -18,7 +18,7 @@ import { FutureFeaturesCard } from "./components/FutureFeaturesCard";
 import { VersionTestingCard } from "./components/VersionTestingCard";
 import { ActionsPanel } from "./components/ActionsPanel";
 import { testChat } from "./lib/chat";
-import { loadConfig, saveConfig, resetConfig } from "./lib/configStorage";
+import { loadConfig, saveConfig, resetConfig, applyConfigToDOM } from "./lib/configStorage";
 import { initializeTheme } from "./lib/theme";
 
 type PageType = 'overview' | 'settings' | 'documents' | 'catalog' | 'tests' | 'usage';
@@ -35,17 +35,8 @@ export default function App() {
     
     const savedConfig = loadConfig();
     if (savedConfig) {
-      // Aplicar configuración guardada a los elementos del DOM
-      Object.entries(savedConfig).forEach(([key, value]) => {
-        const element = document.getElementById(key) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-        if (element) {
-          if (element.type === 'checkbox') {
-            (element as HTMLInputElement).checked = value as boolean;
-          } else {
-            element.value = value as string;
-          }
-        }
-      });
+      // Aplicar configuración guardada usando la función especializada
+      applyConfigToDOM(savedConfig);
     }
   }, []);
 
@@ -54,13 +45,13 @@ export default function App() {
       siteId: (document.getElementById('siteId') as HTMLInputElement)?.value || '',
       siteName: (document.getElementById('siteName') as HTMLInputElement)?.value || '',
       chatStatus: (document.getElementById('chatStatus') as HTMLSelectElement)?.value || 'active',
+      model: (document.getElementById('model') as HTMLSelectElement)?.value || 'gpt-4o-mini',
       temperature: parseFloat((document.getElementById('temperature') as HTMLInputElement)?.value || '0.7'),
       topP: parseFloat((document.getElementById('topP') as HTMLInputElement)?.value || '0.9'),
       maxTokens: parseInt((document.getElementById('maxTokens') as HTMLInputElement)?.value || '2048'),
       language: (document.getElementById('language') as HTMLSelectElement)?.value || 'es',
       tone: (document.getElementById('tone') as HTMLSelectElement)?.value || 'friendly',
       systemPrompt: (document.getElementById('systemPrompt') as HTMLTextAreaElement)?.value || '',
-      welcomeMessage: (document.getElementById('welcomeMessage') as HTMLTextAreaElement)?.value || '',
       versionTag: (document.getElementById('versionTag') as HTMLInputElement)?.value || 'v0.0'
     };
     
@@ -87,13 +78,13 @@ export default function App() {
       siteId: (document.getElementById('siteId') as HTMLInputElement)?.value || '',
       siteName: (document.getElementById('siteName') as HTMLInputElement)?.value || '',
       chatStatus: (document.getElementById('chatStatus') as HTMLSelectElement)?.value || 'active',
+      model: (document.getElementById('model') as HTMLSelectElement)?.value || 'gpt-4o-mini',
       temperature: parseFloat((document.getElementById('temperature') as HTMLInputElement)?.value || '0.7'),
       topP: parseFloat((document.getElementById('topP') as HTMLInputElement)?.value || '0.9'),
       maxTokens: parseInt((document.getElementById('maxTokens') as HTMLInputElement)?.value || '2048'),
       language: (document.getElementById('language') as HTMLSelectElement)?.value || 'es',
       tone: (document.getElementById('tone') as HTMLSelectElement)?.value || 'friendly',
       systemPrompt: (document.getElementById('systemPrompt') as HTMLTextAreaElement)?.value || '',
-      welcomeMessage: (document.getElementById('welcomeMessage') as HTMLTextAreaElement)?.value || '',
       versionTag: (document.getElementById('versionTag') as HTMLInputElement)?.value || 'v0.0'
     };
     
@@ -105,17 +96,8 @@ export default function App() {
       versionTag: config.versionTag + '_copy'
     };
     
-    // Aplicar la configuración duplicada al DOM
-    Object.entries(duplicatedConfig).forEach(([key, value]) => {
-      const element = document.getElementById(key) as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement;
-      if (element) {
-        if (element.type === 'checkbox') {
-          (element as HTMLInputElement).checked = value as boolean;
-        } else {
-          element.value = value as string;
-        }
-      }
-    });
+    // Aplicar la configuración duplicada usando la función especializada
+    applyConfigToDOM(duplicatedConfig);
     
     setChatResponse("✅ Configuración duplicada exitosamente");
   };
@@ -129,33 +111,49 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95">
       <ConfigHeader />
       
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="container mx-auto px-4 py-6 max-w-7xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-center">
           {/* Primera fila */}
-          <SiteInfoCard />
-          <ModelParamsCard />
+          <div className="max-w-[500px]">
+            <SiteInfoCard />
+          </div>
+          <div className="max-w-[500px]">
+            <ModelParamsCard />
+          </div>
           
           {/* Segunda fila */}
-          <ToneStyleCard />
-          <DocumentationCard />
+          <div className="max-w-[500px]">
+            <ToneStyleCard />
+          </div>
+          <div className="max-w-[500px]">
+            <DocumentationCard />
+          </div>
           
           {/* Tercera fila */}
-          <ProductCatalogCard />
-          <FutureFeaturesCard />
+          <div className="max-w-[500px]">
+            <ProductCatalogCard />
+          </div>
+          <div className="max-w-[500px]">
+            <FutureFeaturesCard />
+          </div>
           
           {/* Cuarta fila */}
-          <VersionTestingCard 
-            isLoading={isLoading}
-            chatResponse={chatResponse}
-            onTestChat={handleTestChat}
-          />
-          <ActionsPanel 
-            onSaveConfig={handleSaveConfig}
-            onTestChat={handleTestChat}
-            onDuplicate={handleDuplicate}
-            onReset={handleReset}
-            isLoading={isLoading}
-          />
+          <div className="max-w-[500px]">
+            <VersionTestingCard 
+              isLoading={isLoading}
+              chatResponse={chatResponse}
+              onTestChat={handleTestChat}
+            />
+          </div>
+          <div className="max-w-[500px]">
+            <ActionsPanel 
+              onSaveConfig={handleSaveConfig}
+              onTestChat={handleTestChat}
+              onDuplicate={handleDuplicate}
+              onReset={handleReset}
+              isLoading={isLoading}
+            />
+          </div>
         </div>
       </div>
       <Toaster />

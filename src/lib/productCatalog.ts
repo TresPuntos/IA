@@ -292,6 +292,62 @@ export const clearCatalog = async (): Promise<void> => {
   }
 };
 
+// Eliminar solo productos de CSV
+export const clearCSVProducts = async (): Promise<{ success: boolean; deletedCount?: number; error?: string }> => {
+  try {
+    const { data, error } = await supabase
+      .from('product_catalog')
+      .delete()
+      .eq('source', 'csv')
+      .select('id');
+
+    if (error) {
+      return {
+        success: false,
+        error: `Error al eliminar productos CSV: ${error.message}`
+      };
+    }
+
+    return {
+      success: true,
+      deletedCount: data?.length || 0
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    };
+  }
+};
+
+// Eliminar solo productos de WooCommerce
+export const clearWooCommerceProducts = async (): Promise<{ success: boolean; deletedCount?: number; error?: string }> => {
+  try {
+    const { data, error } = await supabase
+      .from('product_catalog')
+      .delete()
+      .eq('source', 'woocommerce')
+      .select('id');
+
+    if (error) {
+      return {
+        success: false,
+        error: `Error al eliminar productos WooCommerce: ${error.message}`
+      };
+    }
+
+    return {
+      success: true,
+      deletedCount: data?.length || 0
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    };
+  }
+};
+
 // Obtener historial de actualizaciones
 export const getUpdateHistory = async (): Promise<CatalogUpdate[]> => {
   const { data, error } = await supabase

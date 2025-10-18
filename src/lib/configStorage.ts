@@ -28,22 +28,24 @@ export const loadConfig = (): ChatConfig | null => {
 
 // Aplicar configuración cargada a los inputs del DOM
 export const applyConfigToDOM = (config: ChatConfig): void => {
-  const siteIdInput = document.getElementById('test-site-id') as HTMLInputElement;
-  const siteNameInput = document.getElementById('site-name') as HTMLInputElement;
-  const chatStatusSelect = document.getElementById('chat-status') as HTMLSelectElement;
+  const siteIdInput = document.getElementById('siteId') as HTMLInputElement;
+  const siteNameInput = document.getElementById('siteName') as HTMLInputElement;
+  const chatStatusSelect = document.getElementById('chatStatus') as HTMLSelectElement;
   const toneSelect = document.getElementById('tone') as HTMLSelectElement;
-  const systemPromptTextarea = document.getElementById('system-prompt') as HTMLTextAreaElement;
+  const systemPromptTextarea = document.getElementById('systemPrompt') as HTMLTextAreaElement;
+  const modelSelect = document.getElementById('model') as HTMLSelectElement;
   const temperatureSlider = document.getElementById('temperature') as HTMLInputElement;
-  const topPSlider = document.getElementById('top-p') as HTMLInputElement;
-  const maxTokensSlider = document.getElementById('max-tokens') as HTMLInputElement;
+  const topPSlider = document.getElementById('topP') as HTMLInputElement;
+  const maxTokensSlider = document.getElementById('maxTokens') as HTMLInputElement;
   const languageSelect = document.getElementById('language') as HTMLSelectElement;
-  const versionTagInput = document.getElementById('version-tag') as HTMLInputElement;
+  const versionTagInput = document.getElementById('versionTag') as HTMLInputElement;
 
   if (siteIdInput) siteIdInput.value = config.siteId;
   if (siteNameInput) siteNameInput.value = config.siteName;
   if (chatStatusSelect) chatStatusSelect.value = config.chatStatus;
   if (toneSelect) toneSelect.value = config.tone;
   if (systemPromptTextarea) systemPromptTextarea.value = config.systemPrompt;
+  if (modelSelect) modelSelect.value = config.model;
   if (temperatureSlider) temperatureSlider.value = config.temperature.toString();
   if (topPSlider) topPSlider.value = config.topP.toString();
   if (maxTokensSlider) maxTokensSlider.value = config.maxTokens.toString();

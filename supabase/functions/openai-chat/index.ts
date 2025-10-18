@@ -10,6 +10,7 @@ const corsHeaders = {
 interface ChatRequest {
   message: string;
   systemPrompt?: string;
+  model?: string;
   temperature?: number;
   topP?: number;
   maxTokens?: number;
@@ -57,7 +58,7 @@ serve(async (req) => {
     }
 
     // Parse request body
-    const { message, systemPrompt, temperature = 0.7, topP = 0.9, maxTokens = 2048, language = 'es', tone = 'friendly' }: ChatRequest = await req.json()
+    const { message, systemPrompt, model = 'gpt-4o-mini', temperature = 0.7, topP = 0.9, maxTokens = 2048, language = 'es', tone = 'friendly' }: ChatRequest = await req.json()
 
     if (!message) {
       return new Response(
@@ -130,7 +131,7 @@ INSTRUCCIONES:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
+        model: model,
         messages: [
           {
             role: 'system',
