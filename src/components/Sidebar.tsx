@@ -23,72 +23,67 @@ import {
 interface SidebarProps {
   isOpen: boolean;
   onToggle: () => void;
+  currentPage: string;
+  onPageChange: (page: string) => void;
 }
 
-export function Sidebar({ isOpen, onToggle }: SidebarProps) {
+export function Sidebar({ isOpen, onToggle, currentPage, onPageChange }: SidebarProps) {
   const menuItems = [
     { 
       id: 'site-info', 
       label: 'Información del Sitio', 
       icon: Home, 
-      badge: null,
-      active: true 
+      badge: null
     },
     { 
       id: 'tone-style', 
       label: 'Tono y Personalidad', 
       icon: MessageSquare, 
-      badge: null,
-      active: false 
+      badge: null
     },
     { 
       id: 'product-catalog', 
       label: 'Catálogo de Productos', 
       icon: Database, 
-      badge: '20',
-      active: false 
+      badge: '20'
     },
     { 
       id: 'documentation', 
       label: 'Documentación', 
       icon: FileText, 
-      badge: '3',
-      active: false 
+      badge: '3'
     },
     { 
       id: 'model-params', 
       label: 'Parámetros del Modelo', 
       icon: Sliders, 
-      badge: null,
-      active: false 
+      badge: null
     },
     { 
       id: 'version-testing', 
       label: 'Versión y Pruebas', 
       icon: TestTube, 
-      badge: 'v0.1',
-      active: false 
+      badge: 'v0.1'
     },
     { 
       id: 'future-features', 
       label: 'Funciones Futuras', 
       icon: Zap, 
-      badge: 'Beta',
-      active: false 
+      badge: 'Beta'
     },
     { 
       id: 'actions', 
       label: 'Acciones Principales', 
       icon: Settings, 
-      badge: null,
-      active: false 
+      badge: null
     },
   ];
 
-  const scrollToSection = (sectionId: string) => {
-    const element = document.getElementById(sectionId);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const handlePageChange = (pageId: string) => {
+    onPageChange(pageId);
+    // Cerrar sidebar en móvil después de seleccionar
+    if (window.innerWidth < 1024) {
+      onToggle();
     }
   };
 
@@ -156,15 +151,15 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 <Button
                   variant="ghost"
                   className={`w-full justify-between h-12 text-left px-3 py-2 rounded-lg transition-all duration-200 ${
-                    item.active 
+                    currentPage === item.id
                       ? 'bg-blue-600 text-white shadow-lg' 
                       : 'text-slate-300 hover:bg-slate-800 hover:text-white'
                   }`}
-                  onClick={() => scrollToSection(item.id)}
+                  onClick={() => handlePageChange(item.id)}
                 >
                   <div className="flex items-center gap-3">
                     <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
-                      item.active 
+                      currentPage === item.id
                         ? 'bg-blue-500' 
                         : 'bg-slate-700 group-hover:bg-slate-600'
                     }`}>
