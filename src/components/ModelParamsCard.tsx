@@ -7,16 +7,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 export function ModelParamsCard() {
   return (
-    <Card className="shadow-lg border-border/50">
-      <CardHeader>
-        <CardTitle>Parámetros del Modelo</CardTitle>
-        <CardDescription>Ajusta el comportamiento de la IA</CardDescription>
+    <Card className="premium-card">
+      <CardHeader className="pb-3">
+        <CardTitle className="text-lg">Parámetros del Modelo</CardTitle>
+        <CardDescription className="text-sm">Ajusta el comportamiento de la IA</CardDescription>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-3">
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="temperature">Temperature</Label>
-            <span className="text-muted-foreground">0.7</span>
+            <Label htmlFor="temperature" className="text-sm font-medium">Temperature</Label>
+            <span className="text-xs text-muted-foreground">0.7</span>
           </div>
           <Slider 
             id="temperature"
@@ -25,13 +25,13 @@ export function ModelParamsCard() {
             step={0.1} 
             className="w-full"
           />
-          <p className="text-muted-foreground">Controla la aleatoriedad (0 = preciso, 2 = creativo)</p>
+          <p className="text-xs text-muted-foreground">Controla la aleatoriedad (0 = preciso, 2 = creativo)</p>
         </div>
         
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="top-p">Top-p</Label>
-            <span className="text-muted-foreground">0.9</span>
+            <Label htmlFor="top-p" className="text-sm font-medium">Top-p</Label>
+            <span className="text-xs text-muted-foreground">0.9</span>
           </div>
           <Slider 
             id="top-p"
@@ -40,13 +40,13 @@ export function ModelParamsCard() {
             step={0.05}
             className="w-full"
           />
-          <p className="text-muted-foreground">Controla la diversidad de respuestas</p>
+          <p className="text-xs text-muted-foreground">Controla la diversidad de respuestas</p>
         </div>
         
-        <div className="space-y-3">
+        <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="max-tokens">Max Tokens</Label>
-            <span className="text-muted-foreground">2048</span>
+            <Label htmlFor="max-tokens" className="text-sm font-medium">Max Tokens</Label>
+            <span className="text-xs text-muted-foreground">2048</span>
           </div>
           <Slider 
             id="max-tokens"
@@ -55,13 +55,13 @@ export function ModelParamsCard() {
             step={128}
             className="w-full"
           />
-          <p className="text-muted-foreground">Longitud máxima de respuesta</p>
+          <p className="text-xs text-muted-foreground">Longitud máxima de respuesta</p>
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="language">Idioma por Defecto</Label>
+          <Label htmlFor="language" className="text-sm font-medium">Idioma por Defecto</Label>
           <Select defaultValue="es">
-            <SelectTrigger id="language" className="bg-input-background">
+            <SelectTrigger id="language" className="apple-input h-9">
               <SelectValue placeholder="Seleccionar idioma" />
             </SelectTrigger>
             <SelectContent>
@@ -74,26 +74,26 @@ export function ModelParamsCard() {
           </Select>
         </div>
         
-        <div className="border-t border-border pt-4 space-y-4">
+        <div className="border-t border-border/50 pt-3 space-y-3">
           <div className="space-y-2">
-            <Label htmlFor="welcome-message">Mensaje de Bienvenida</Label>
+            <Label htmlFor="welcome-message" className="text-sm font-medium">Mensaje de Bienvenida</Label>
             <Textarea 
               id="welcome-message" 
               placeholder="¡Hola! ¿En qué puedo ayudarte hoy?"
               rows={2}
               defaultValue="¡Hola! 👋 Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?"
-              className="resize-none bg-input-background"
+              className="resize-none apple-input"
             />
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="fallback-message">Mensaje Fallback</Label>
+            <Label htmlFor="fallback-message" className="text-sm font-medium">Mensaje Fallback</Label>
             <Textarea 
               id="fallback-message" 
               placeholder="Lo siento, no tengo información sobre eso..."
               rows={2}
               defaultValue="Disculpa, no tengo información específica sobre eso. ¿Puedo ayudarte con algo más?"
-              className="resize-none bg-input-background"
+              className="resize-none apple-input"
             />
           </div>
         </div>
