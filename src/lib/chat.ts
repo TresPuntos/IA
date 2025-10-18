@@ -1,6 +1,6 @@
 // src/lib/chat.ts
-import { callOpenAI, getDocumentationInfoForPrompt } from './openai';
-import { getCurrentConfig, applyToneToResponse, applyLanguageToResponse, limitTokens } from './config';
+import { callSupabaseChat } from './supabaseChat';
+import { getCurrentConfig, applyLanguageToResponse, limitTokens } from './config';
 import { getConfigSummary, getSystemPromptPreview } from './chatConfigDisplay';
 
 export async function testChat(site_id: string, message: string) {
@@ -23,49 +23,34 @@ export async function testChat(site_id: string, message: string) {
   // Verificar si el chat está activo
   if (config.chatStatus === 'inactive') {
     return { 
-      answer: applyToneToResponse(
-        applyLanguageToResponse(
-          "El chat está actualmente desactivado. Por favor, activa el chat en la configuración para poder ayudarte.",
-          config.language
-        ),
-        config.tone,
+      answer: applyLanguageToResponse(
+        "El chat está actualmente desactivado. Por favor, activa el chat en la configuración para poder ayudarte.",
         config.language
       )
     };
   }
 
-  // Usar OpenAI con el system prompt personalizado
+  // Usar Supabase Edge Function (más seguro)
   try {
-    // Obtener información adicional de documentación
-    const documentationInfo = await getDocumentationInfoForPrompt();
+    // Llamar a la Edge Function de Supabase
+    const chatResponse = await callSupabaseChat(message, config.systemPrompt);
     
-    // Construir system prompt mejorado con documentación
-    const enhancedSystemPrompt = `${config.systemPrompt}
-
-${documentationInfo}
-
-IMPORTANTE: Usa SOLO la información proporcionada en el catálogo y documentación. Si no tienes información específica sobre algo, di que no tienes esa información disponible.`;
-
-    // Llamar a OpenAI
-    const openaiResponse = await callOpenAI(message, enhancedSystemPrompt);
-    
-    if ('error' in openaiResponse) {
-      // Si hay error con OpenAI, mostrar mensaje de error
+    if ('error' in chatResponse) {
+      // Si hay error, mostrar mensaje de error
       return {
-        answer: `❌ Error: ${openaiResponse.error}`
+        answer: `❌ Error: ${chatResponse.error}`
       };
     }
 
-    // Aplicar configuración de tono e idioma a la respuesta de OpenAI
-    const processedResponse = applyToneToResponse(
-      applyLanguageToResponse(openaiResponse.answer, config.language),
-      config.tone,
+    // Aplicar configuración de idioma a la respuesta
+    const processedResponse = applyLanguageToResponse(
+      chatResponse.answer, 
       config.language
     );
 
     return { 
       answer: limitTokens(processedResponse, config.maxTokens),
-      usage: openaiResponse.usage
+      usage: chatResponse.usage
     };
 
   } catch (error) {

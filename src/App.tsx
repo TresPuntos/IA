@@ -14,7 +14,6 @@ import { ModelParamsCard } from "./components/ModelParamsCard";
 import { ToneStyleCard } from "./components/ToneStyleCard";
 import { DocumentationCard } from "./components/DocumentationCard";
 import { ProductCatalogCard } from "./components/ProductCatalogCard";
-import { OpenAIConfigCard } from "./components/OpenAIConfigCard";
 import { FutureFeaturesCard } from "./components/FutureFeaturesCard";
 import { VersionTestingCard } from "./components/VersionTestingCard";
 import { ActionsPanel } from "./components/ActionsPanel";
@@ -133,7 +132,6 @@ export default function App() {
             <SiteInfoCard />
             <ModelParamsCard />
             <ToneStyleCard />
-            <OpenAIConfigCard />
             <DocumentationCard />
             <ProductCatalogCard />
           </div>
