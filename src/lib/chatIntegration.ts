@@ -125,7 +125,7 @@ export const searchInDocumentation = async (query: string): Promise<string> => {
 };
 
 // Función principal para procesar consultas de productos
-export const processProductQuery = async (query: string): Promise<string> => {
+export const processProductQuery = async (query: string, systemPrompt?: string): Promise<string> => {
   const lowerQuery = query.toLowerCase();
   
   try {
@@ -143,7 +143,14 @@ export const processProductQuery = async (query: string): Promise<string> => {
         `• ${p.name} - ${p.price}€${p.description ? ` (${p.description})` : ''}`
       ).join('\n');
       
-      return `Encontré ${products.length} productos por debajo de ${maxPrice}€:\n\n${productList}`;
+      // Personalizar respuesta según system prompt
+      const baseResponse = `Encontré ${products.length} productos por debajo de ${maxPrice}€:\n\n${productList}`;
+      
+      if (systemPrompt?.includes('recomendaciones')) {
+        return `${baseResponse}\n\n💡 Recomendación: Te sugiero el ${products[0].name} por su excelente relación calidad-precio.`;
+      }
+      
+      return baseResponse;
     }
     
     // Buscar por categoría (ej: "ratón", "mouse", "smartphone")
