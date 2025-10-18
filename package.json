@@ -2,7 +2,7 @@
   "name": "ai-chat-config-dashboard",
   "version": "0.1.0",
   "private": true,
- "engines": {  "node": "22"},
+  "engines": { "node": "22" },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
