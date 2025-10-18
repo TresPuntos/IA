@@ -129,6 +129,31 @@ export const processProductQuery = async (query: string, systemPrompt?: string):
   const lowerQuery = query.toLowerCase();
   
   try {
+    // Buscar productos específicos mencionados directamente
+    const specificProductMatch = lowerQuery.match(/(?:recomiéndame|recomienda|busca|encuentra|muestra)\s+(?:un|una|el|la)?\s*([a-zA-Z\s]+)/);
+    if (specificProductMatch) {
+      const productName = specificProductMatch[1].trim();
+      const products = await searchProducts(productName);
+      
+      if (products.length > 0) {
+        // Eliminar duplicados por nombre
+        const uniqueProducts = products.filter((product, index, self) => 
+          index === self.findIndex(p => p.name === product.name)
+        );
+        
+        if (uniqueProducts.length === 1) {
+          const product = uniqueProducts[0];
+          return `¡Perfecto! Te recomiendo el ${product.name}:\n\n✨ ${product.name} - ${product.price}€\n📝 ${product.description}\n\n💡 Es una excelente opción por su calidad y precio.`;
+        } else if (uniqueProducts.length > 1) {
+          const productList = uniqueProducts.slice(0, 3).map(p => 
+            `• ${p.name} - ${p.price}€${p.description ? ` (${p.description})` : ''}`
+          ).join('\n');
+          
+          return `Encontré ${uniqueProducts.length} opciones relacionadas con ${productName}:\n\n${productList}\n\n💡 Te recomiendo especialmente el ${uniqueProducts[0].name} por su excelente relación calidad-precio.`;
+        }
+      }
+    }
+    
     // Buscar por precio máximo (ej: "menos de 80€", "por debajo de 100")
     const priceMatch = lowerQuery.match(/(?:menos de|por debajo de|máximo|hasta)\s*(\d+)/);
     if (priceMatch) {
@@ -139,15 +164,20 @@ export const processProductQuery = async (query: string, systemPrompt?: string):
         return `No encuentro productos por debajo de ${maxPrice}€ en el catálogo.`;
       }
       
-      const productList = products.slice(0, 5).map(p => 
+      // Eliminar duplicados
+      const uniqueProducts = products.filter((product, index, self) => 
+        index === self.findIndex(p => p.name === product.name)
+      );
+      
+      const productList = uniqueProducts.slice(0, 5).map(p => 
         `• ${p.name} - ${p.price}€${p.description ? ` (${p.description})` : ''}`
       ).join('\n');
       
       // Personalizar respuesta según system prompt
-      const baseResponse = `Encontré ${products.length} productos por debajo de ${maxPrice}€:\n\n${productList}`;
+      const baseResponse = `Encontré ${uniqueProducts.length} productos por debajo de ${maxPrice}€:\n\n${productList}`;
       
       if (systemPrompt?.includes('recomendaciones')) {
-        return `${baseResponse}\n\n💡 Recomendación: Te sugiero el ${products[0].name} por su excelente relación calidad-precio.`;
+        return `${baseResponse}\n\n💡 Recomendación: Te sugiero el ${uniqueProducts[0].name} por su excelente relación calidad-precio.`;
       }
       
       return baseResponse;
@@ -183,11 +213,16 @@ export const processProductQuery = async (query: string, systemPrompt?: string):
           return `No encuentro productos de ${category.toLowerCase()} en el catálogo.`;
         }
         
-        const productList = products.slice(0, 5).map(p => 
+        // Eliminar duplicados
+        const uniqueProducts = products.filter((product, index, self) => 
+          index === self.findIndex(p => p.name === product.name)
+        );
+        
+        const productList = uniqueProducts.slice(0, 5).map(p => 
           `• ${p.name} - ${p.price}€${p.description ? ` (${p.description})` : ''}`
         ).join('\n');
         
-        return `Encontré ${products.length} productos de ${category.toLowerCase()}:\n\n${productList}`;
+        return `Encontré ${uniqueProducts.length} productos de ${category.toLowerCase()}:\n\n${productList}`;
       }
     }
     
@@ -198,11 +233,16 @@ export const processProductQuery = async (query: string, systemPrompt?: string):
       return `No encuentro productos que coincidan con "${query}" en el catálogo.`;
     }
     
-    const productList = products.slice(0, 5).map(p => 
+    // Eliminar duplicados
+    const uniqueProducts = products.filter((product, index, self) => 
+      index === self.findIndex(p => p.name === product.name)
+    );
+    
+    const productList = uniqueProducts.slice(0, 5).map(p => 
       `• ${p.name} - ${p.price}€${p.description ? ` (${p.description})` : ''}`
     ).join('\n');
     
-    return `Encontré ${products.length} productos relacionados con "${query}":\n\n${productList}`;
+    return `Encontré ${uniqueProducts.length} productos relacionados con "${query}":\n\n${productList}`;
     
   } catch (error) {
     console.error('Error en processProductQuery:', error);

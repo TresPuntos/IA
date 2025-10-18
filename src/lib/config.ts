@@ -65,12 +65,24 @@ export const getCurrentConfig = (): ChatConfig => {
 export const applyToneToResponse = (response: string, tone: string, language: string): string => {
   const lowerResponse = response.toLowerCase();
   
-  // Si ya es una respuesta estructurada (con productos), mantener el formato
+  // Si ya es una respuesta estructurada (con productos), aplicar tono específico
   if (lowerResponse.includes('encontré') || lowerResponse.includes('•')) {
-    return response;
+    switch (tone) {
+      case 'premium':
+        return `✨ ${response}`;
+      case 'technical':
+        return `🔧 ${response}`;
+      case 'casual':
+        return `😊 ${response}`;
+      case 'professional':
+        return `📋 ${response}`;
+      case 'friendly':
+      default:
+        return `👋 ${response}`;
+    }
   }
 
-  // Aplicar tono según configuración
+  // Para respuestas simples, aplicar emoji según tono
   switch (tone) {
     case 'premium':
       return `✨ ${response}`;
