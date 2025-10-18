@@ -1,6 +1,5 @@
 // src/lib/chat.ts
-import { processProductQuery } from './chatIntegration';
-import { getDocumentationFiles } from './documentation';
+import { callOpenAI, getDocumentationInfoForPrompt } from './openai';
 import { getCurrentConfig, applyToneToResponse, applyLanguageToResponse, limitTokens } from './config';
 import { getConfigSummary, getSystemPromptPreview } from './chatConfigDisplay';
 
@@ -35,70 +34,44 @@ export async function testChat(site_id: string, message: string) {
     };
   }
 
-  // Solo usar datos locales - NO conectarse a internet
-  
-  // 1. Primero buscar productos en el catálogo local
+  // Usar OpenAI con el system prompt personalizado
   try {
-    const productResponse = await processProductQuery(message, config.systemPrompt);
-    if (productResponse && !productResponse.includes('No encuentro')) {
-      const processedResponse = applyToneToResponse(
-        applyLanguageToResponse(productResponse, config.language),
-        config.tone,
-        config.language
-      );
-      
-      return { 
-        answer: limitTokens(processedResponse, config.maxTokens)
+    // Obtener información adicional de documentación
+    const documentationInfo = await getDocumentationInfoForPrompt();
+    
+    // Construir system prompt mejorado con documentación
+    const enhancedSystemPrompt = `${config.systemPrompt}
+
+${documentationInfo}
+
+IMPORTANTE: Usa SOLO la información proporcionada en el catálogo y documentación. Si no tienes información específica sobre algo, di que no tienes esa información disponible.`;
+
+    // Llamar a OpenAI
+    const openaiResponse = await callOpenAI(message, enhancedSystemPrompt);
+    
+    if ('error' in openaiResponse) {
+      // Si hay error con OpenAI, mostrar mensaje de error
+      return {
+        answer: `❌ Error: ${openaiResponse.error}`
       };
     }
+
+    // Aplicar configuración de tono e idioma a la respuesta de OpenAI
+    const processedResponse = applyToneToResponse(
+      applyLanguageToResponse(openaiResponse.answer, config.language),
+      config.tone,
+      config.language
+    );
+
+    return { 
+      answer: limitTokens(processedResponse, config.maxTokens),
+      usage: openaiResponse.usage
+    };
+
   } catch (error) {
-    console.log('Error en búsqueda de productos:', error);
+    console.error('Error en testChat:', error);
+    return {
+      answer: `❌ Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    };
   }
-
-  // 2. Si no encuentra productos, buscar en documentación local
-  try {
-    const docs = await getDocumentationFiles();
-    if (docs.length > 0) {
-      // Buscar en el contenido de los documentos
-      const relevantDocs = docs.filter(doc => 
-        doc.content.toLowerCase().includes(message.toLowerCase()) ||
-        doc.name.toLowerCase().includes(message.toLowerCase())
-      );
-      
-      if (relevantDocs.length > 0) {
-        const docInfo = relevantDocs.map(doc => 
-          `• ${doc.name} (${doc.file_type.toUpperCase()})`
-        ).join('\n');
-        
-        const response = `Encontré información relevante en estos documentos:\n\n${docInfo}\n\n¿Te gustaría que revise el contenido específico de algún documento?`;
-        
-        const processedResponse = applyToneToResponse(
-          applyLanguageToResponse(response, config.language),
-          config.tone,
-          config.language
-        );
-        
-        return { 
-          answer: limitTokens(processedResponse, config.maxTokens)
-        };
-      }
-    }
-  } catch (error) {
-    console.log('Error en búsqueda de documentación:', error);
-  }
-
-  // 3. Si no encuentra nada localmente, respuesta genérica basada en configuración
-  const genericResponse = config.systemPrompt.includes('especializado') 
-    ? "No encuentro información específica sobre tu consulta en el catálogo de productos ni en la documentación disponible. ¿Podrías ser más específico o verificar que los datos estén cargados?"
-    : "No encuentro información específica sobre tu consulta. ¿Podrías ser más específico?";
-
-  const processedResponse = applyToneToResponse(
-    applyLanguageToResponse(genericResponse, config.language),
-    config.tone,
-    config.language
-  );
-
-  return { 
-    answer: limitTokens(processedResponse, config.maxTokens)
-  };
 }
