@@ -3,9 +3,138 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Upload, Link as LinkIcon, CheckCircle2, XCircle, Clock } from "lucide-react";
+import { Upload, Link as LinkIcon, CheckCircle2, XCircle, Clock, RefreshCw, AlertCircle } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { 
+  getCatalogStats, 
+  uploadProductsFromCSV, 
+  connectWooCommerce,
+  getUpdateHistory,
+  type CatalogStats,
+  type CatalogUpdate 
+} from "../lib/productCatalog";
+import { toast } from "sonner";
 
 export function ProductCatalogCard() {
+  const [stats, setStats] = useState<CatalogStats>({
+    total_products: 0,
+    active_products: 0,
+    csv_products: 0,
+    woocommerce_products: 0,
+    last_update: null
+  });
+  const [updateHistory, setUpdateHistory] = useState<CatalogUpdate[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [woocommerceUrl, setWooCommerceUrl] = useState('');
+  const [consumerKey, setConsumerKey] = useState('');
+  const [consumerSecret, setConsumerSecret] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Cargar datos al montar el componente
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const loadData = async () => {
+    try {
+      setIsLoading(true);
+      const [statsData, historyData] = await Promise.all([
+        getCatalogStats(),
+        getUpdateHistory()
+      ]);
+      setStats(statsData);
+      setUpdateHistory(historyData);
+    } catch (error) {
+      toast.error('Error al cargar datos: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCSVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsUploading(true);
+      const result = await uploadProductsFromCSV(file);
+      
+      if (result.success) {
+        toast.success(`${result.productsCount} productos cargados desde CSV`);
+        await loadData(); // Recargar datos
+      } else {
+        toast.error(result.error || 'Error al subir CSV');
+      }
+    } catch (error) {
+      toast.error('Error inesperado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleWooCommerceConnect = async () => {
+    if (!woocommerceUrl || !consumerKey || !consumerSecret) {
+      toast.error('Por favor completa todos los campos de WooCommerce');
+      return;
+    }
+
+    try {
+      setIsConnecting(true);
+      const result = await connectWooCommerce(woocommerceUrl, consumerKey, consumerSecret);
+      
+      if (result.success) {
+        toast.success(`${result.productsCount} productos sincronizados desde WooCommerce`);
+        await loadData(); // Recargar datos
+      } else {
+        toast.error(result.error || 'Error al conectar con WooCommerce');
+      }
+    } catch (error) {
+      toast.error('Error inesperado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    } finally {
+      setIsConnecting(false);
+    }
+  };
+
+  const getStatusBadge = () => {
+    if (stats.total_products === 0) {
+      return (
+        <Badge variant="outline" className="flex items-center gap-1">
+          <XCircle className="h-3 w-3 text-destructive" />
+          No configurado
+        </Badge>
+      );
+    }
+
+    const hasRecentUpdate = stats.last_update && 
+      new Date(stats.last_update).getTime() > Date.now() - 24 * 60 * 60 * 1000; // Últimas 24 horas
+
+    return (
+      <Badge variant="outline" className="flex items-center gap-1">
+        <CheckCircle2 className="h-3 w-3 text-green-500" />
+        {hasRecentUpdate ? 'Actualizado' : 'Configurado'}
+      </Badge>
+    );
+  };
+
+  const formatLastUpdate = () => {
+    if (!stats.last_update) return 'Nunca';
+    
+    const date = new Date(stats.last_update);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+    
+    if (diffHours < 1) return 'Hace menos de 1 hora';
+    if (diffHours < 24) return `Hace ${diffHours} horas`;
+    
+    return date.toLocaleDateString('es-ES');
+  };
+
   return (
     <Card className="shadow-lg border-border/50">
       <CardHeader>
@@ -16,9 +145,30 @@ export function ProductCatalogCard() {
         <div className="space-y-2">
           <Label>Subir CSV Manual</Label>
           <div className="flex gap-2">
-            <Button variant="outline" className="w-full justify-start">
-              <Upload className="mr-2 h-4 w-4" />
-              Elegir Archivo CSV
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleCSVUpload}
+              className="hidden"
+            />
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <>
+                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  Subiendo...
+                </>
+              ) : (
+                <>
+                  <Upload className="mr-2 h-4 w-4" />
+                  Elegir Archivo CSV
+                </>
+              )}
             </Button>
           </div>
           <p className="text-muted-foreground">Columnas: nombre, precio, descripción, categoría</p>
@@ -33,7 +183,7 @@ export function ProductCatalogCard() {
           </div>
         </div>
         
-        <div className="space-y-2">
+        <div className="space-y-3">
           <Label htmlFor="woocommerce-url">URL de API WooCommerce</Label>
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -41,33 +191,118 @@ export function ProductCatalogCard() {
               <Input 
                 id="woocommerce-url" 
                 placeholder="https://tutienda.com/wp-json/wc/v3"
+                value={woocommerceUrl}
+                onChange={(e) => setWooCommerceUrl(e.target.value)}
                 className="pl-9 bg-input-background"
               />
             </div>
-            <Button variant="outline">Conectar</Button>
           </div>
+          
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label htmlFor="consumer-key">Consumer Key</Label>
+              <Input 
+                id="consumer-key"
+                type="password"
+                placeholder="ck_..."
+                value={consumerKey}
+                onChange={(e) => setConsumerKey(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="consumer-secret">Consumer Secret</Label>
+              <Input 
+                id="consumer-secret"
+                type="password"
+                placeholder="cs_..."
+                value={consumerSecret}
+                onChange={(e) => setConsumerSecret(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <Button 
+            variant="outline" 
+            onClick={handleWooCommerceConnect}
+            disabled={isConnecting}
+            className="w-full"
+          >
+            {isConnecting ? (
+              <>
+                <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                Conectando...
+              </>
+            ) : (
+              <>
+                <LinkIcon className="mr-2 h-4 w-4" />
+                Conectar
+              </>
+            )}
+          </Button>
         </div>
         
         <div className="rounded-lg border border-border/50 bg-muted/20 p-3 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Estado:</span>
-            <Badge variant="outline" className="flex items-center gap-1">
-              <XCircle className="h-3 w-3 text-destructive" />
-              No configurado
-            </Badge>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Productos:</span>
-            <span>0 cargados</span>
-          </div>
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground">Último update:</span>
-            <div className="flex items-center gap-1 text-muted-foreground">
-              <Clock className="h-3 w-3" />
-              <span>Nunca</span>
+          {isLoading ? (
+            <div className="flex items-center justify-center py-4">
+              <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-muted-foreground">Cargando...</span>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Estado:</span>
+                {getStatusBadge()}
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Productos:</span>
+                <span>{stats.total_products} cargados</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-muted-foreground">Último update:</span>
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Clock className="h-3 w-3" />
+                  <span>{formatLastUpdate()}</span>
+                </div>
+              </div>
+              {stats.total_products > 0 && (
+                <div className="pt-2 border-t border-border/30">
+                  <div className="text-xs text-muted-foreground space-y-1">
+                    <div>CSV: {stats.csv_products} productos</div>
+                    <div>WooCommerce: {stats.woocommerce_products} productos</div>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {updateHistory.length > 0 && (
+          <div className="space-y-2">
+            <Label className="text-muted-foreground">Historial de Actualizaciones</Label>
+            <div className="space-y-1 max-h-32 overflow-y-auto">
+              {updateHistory.slice(0, 3).map((update) => (
+                <div key={update.id} className="flex items-center justify-between text-xs p-2 rounded border border-border/30">
+                  <div className="flex items-center gap-2">
+                    {update.status === 'completed' ? (
+                      <CheckCircle2 className="h-3 w-3 text-green-500" />
+                    ) : update.status === 'failed' ? (
+                      <AlertCircle className="h-3 w-3 text-red-500" />
+                    ) : (
+                      <RefreshCw className="h-3 w-3 text-yellow-500 animate-spin" />
+                    )}
+                    <span>{update.source === 'csv' ? 'CSV' : 'WooCommerce'}</span>
+                    <span className="text-muted-foreground">
+                      {update.products_count} productos
+                    </span>
+                  </div>
+                  <span className="text-muted-foreground">
+                    {new Date(update.created_at).toLocaleDateString('es-ES')}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
