@@ -56,16 +56,16 @@ export function ActionsPanel() {
   };
 
   return (
-    <Card className="shadow-2xl border border-slate-700/50 bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl font-semibold text-white flex items-center gap-2">
+    <Card className="bg-slate-900 border border-slate-800 shadow-xl">
+      <CardHeader className="pb-4 border-b border-slate-800">
+        <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
           <Settings className="h-5 w-5 text-blue-400" />
           Acciones Principales
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 pt-6">
         <Button 
-          className="w-full h-12 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-blue-500/25 transition-all duration-200" 
+          className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium shadow-lg hover:shadow-blue-500/25 transition-all duration-200" 
           size="lg" 
           onClick={handleSaveConfig}
         >
@@ -76,7 +76,7 @@ export function ActionsPanel() {
         <div className="grid grid-cols-2 gap-3">
           <Button 
             variant="outline" 
-            className="w-full h-12 border-slate-600/50 bg-slate-700/30 hover:bg-slate-600/50 text-slate-200 hover:text-white font-medium" 
+            className="w-full h-12 border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-medium" 
             size="lg" 
             onClick={handleTestChat}
           >
@@ -86,7 +86,7 @@ export function ActionsPanel() {
           
           <Button 
             variant="outline" 
-            className="w-full h-12 border-slate-600/50 bg-slate-700/30 hover:bg-slate-600/50 text-slate-200 hover:text-white font-medium" 
+            className="w-full h-12 border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-medium" 
             size="lg" 
             onClick={handleDuplicate}
           >
@@ -97,7 +97,7 @@ export function ActionsPanel() {
         
         <Button 
           variant="outline" 
-          className="w-full h-12 border-red-500/50 bg-red-900/20 hover:bg-red-800/30 text-red-400 hover:text-red-300 font-medium" 
+          className="w-full h-12 border-red-600 bg-red-900/20 hover:bg-red-800/30 text-red-400 hover:text-red-300 font-medium" 
           size="lg"
           onClick={handleReset}
         >
