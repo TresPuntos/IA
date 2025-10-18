@@ -1,8 +1,8 @@
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Upload, FileText, X, CheckCircle, AlertCircle, RefreshCw } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
 import { 
   uploadDocumentation, 
   getDocumentationFiles, 
@@ -38,18 +38,35 @@ export function DocumentationCard() {
     const file = event.target.files?.[0];
     if (!file) return;
 
+    // Validación adicional para PDFs
+    const isPDF = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+    if (isPDF) {
+      console.log('📄 PDF detectado en frontend:', file.name);
+    }
+
     try {
       setIsUploading(true);
+      console.log('🚀 Iniciando subida desde frontend:', {
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        isPDF: isPDF
+      });
+      
       const result = await uploadDocumentation(file);
       
       if (result.success && result.file) {
         setUploadedFiles(prev => [result.file!, ...prev]);
         toast.success(`Archivo "${file.name}" subido correctamente`);
+        console.log('✅ Subida exitosa desde frontend');
       } else {
         toast.error(result.error || 'Error al subir el archivo');
+        console.error('❌ Error en subida desde frontend:', result.error);
       }
     } catch (error) {
-      toast.error('Error inesperado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+      const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+      toast.error('Error inesperado: ' + errorMessage);
+      console.error('❌ Error inesperado desde frontend:', errorMessage);
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -137,7 +154,7 @@ export function DocumentationCard() {
               </>
             )}
           </Button>
-          <p className="text-muted-foreground">Máx. 10MB por archivo</p>
+          <p className="text-muted-foreground">Máx. 5MB por archivo</p>
         </div>
         
         {isLoading ? (

@@ -27,6 +27,16 @@ export const callSupabaseChat = async (
 ): Promise<ChatResponse | ChatError> => {
   try {
     const config = getCurrentConfig();
+    
+    console.log('🔍 DEBUG: Llamando a Supabase Edge Function...');
+    console.log('📝 Mensaje:', message);
+    console.log('⚙️ Configuración:', {
+      temperature: config.temperature,
+      topP: config.topP,
+      maxTokens: config.maxTokens,
+      language: config.language,
+      tone: config.tone
+    });
 
     // Llamar a la Edge Function de Supabase
     const { data, error } = await supabase.functions.invoke('openai-chat', {
@@ -41,25 +51,31 @@ export const callSupabaseChat = async (
       }
     });
 
+    console.log('📡 Respuesta de Supabase:', { data, error });
+
     if (error) {
+      console.error('❌ Error de Supabase:', error);
       return {
         error: `Error en Supabase Edge Function: ${error.message}`
       };
     }
 
     if (data.error) {
+      console.error('❌ Error en datos:', data.error);
       return {
         error: data.error,
         code: data.code
       };
     }
 
+    console.log('✅ Respuesta exitosa:', data);
     return {
       answer: data.answer,
       usage: data.usage
     };
 
   } catch (error) {
+    console.error('❌ Error inesperado:', error);
     return {
       error: `Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`
     };

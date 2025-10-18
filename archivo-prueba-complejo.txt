@@ -1,0 +1,52 @@
+Archivo de prueba complejo con caracteres problemáticos
+
+Este archivo contiene varios tipos de caracteres que pueden causar problemas:
+
+1. Caracteres españoles:
+   - ñ, á, é, í, ó, ú
+   - ¿, ¡
+   - Ç, ç
+
+2. Símbolos especiales:
+   - € (euro)
+   - £ (libra)
+   - ¥ (yen)
+   - © (copyright)
+   - ® (marca registrada)
+   - ™ (trademark)
+   - ±, ×, ÷, √, ∞
+
+3. Emojis:
+   - 🚀 (cohete)
+   - 💻 (computadora)
+   - 📱 (teléfono)
+   - ⭐ (estrella)
+   - 👋 (saludo)
+
+4. Caracteres de control problemáticos:
+   - Tabs:	(tabulación)
+   - Saltos de línea:
+     (línea 1)
+     (línea 2)
+
+5. Secuencias de escape:
+   - \u0048\u0065\u006C\u006C\u006F (Hello)
+   - \x48\x65\x6C\x6C\x6F (Hello)
+
+6. Caracteres Unicode problemáticos:
+   - \uFEFF (BOM)
+   - \u200B (Zero-width space)
+   - \u200C (Zero-width non-joiner)
+   - \u200D (Zero-width joiner)
+
+7. Texto con acentos y caracteres especiales:
+   "El niño comió piña en el jardín"
+   "Café con leche y azúcar"
+   "Año 2024 - Tecnología"
+
+8. Números especiales:
+   - ½, ¼, ¾, ⅓
+   - 1º, 2º, 3º
+   - 1ª, 2ª, 3ª
+
+Este archivo debería procesarse correctamente con la nueva implementación.

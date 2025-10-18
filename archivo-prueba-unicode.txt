@@ -1,0 +1,37 @@
+Archivo de prueba con caracteres especiales
+
+Este archivo contiene caracteres que antes causaban problemas de Unicode:
+
+Caracteres especiales en español:
+- ñ, á, é, í, ó, ú
+- ¿, ¡
+- Ç, ç
+
+Símbolos especiales:
+- € (euro)
+- £ (libra)
+- ¥ (yen)
+- © (copyright)
+- ® (marca registrada)
+- ™ (trademark)
+
+Emojis:
+- 🚀 (cohete)
+- 💻 (computadora)
+- 📱 (teléfono)
+- ⭐ (estrella)
+- 👋 (saludo)
+
+Caracteres que pueden causar problemas:
+- Tabs:	(tabulación)
+- Saltos de línea:
+  (línea 1)
+  (línea 2)
+
+Texto con acentos: "El niño comió piña en el jardín"
+
+Números especiales: ½, ¼, ¾, ⅓
+
+Símbolos matemáticos: ±, ×, ÷, √, ∞
+
+Este archivo debería subirse sin problemas ahora.
