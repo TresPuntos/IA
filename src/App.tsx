@@ -19,6 +19,7 @@ import { VersionTestingCard } from "./components/VersionTestingCard";
 import { ActionsPanel } from "./components/ActionsPanel";
 import { testChat } from "./lib/chat";
 import { loadConfig, saveConfig, resetConfig } from "./lib/configStorage";
+import { initializeTheme } from "./lib/theme";
 
 type PageType = 'overview' | 'settings' | 'documents' | 'catalog' | 'tests' | 'usage';
 
@@ -29,6 +30,9 @@ export default function App() {
 
   // Cargar configuración guardada al iniciar
   useEffect(() => {
+    // Inicializar tema
+    initializeTheme();
+    
     const savedConfig = loadConfig();
     if (savedConfig) {
       // Aplicar configuración guardada a los elementos del DOM
@@ -122,13 +126,13 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-      <div className="container mx-auto px-4 py-8">
-        <ConfigHeader />
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-          {/* Columna izquierda */}
-          <div className="lg:col-span-2 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95">
+      <ConfigHeader />
+      
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Columna izquierda - más compacta */}
+          <div className="lg:col-span-2 space-y-4">
             <SiteInfoCard />
             <ModelParamsCard />
             <ToneStyleCard />
@@ -136,8 +140,8 @@ export default function App() {
             <ProductCatalogCard />
           </div>
           
-          {/* Columna derecha */}
-          <div className="space-y-6">
+          {/* Columna derecha - más compacta */}
+          <div className="space-y-4">
             <FutureFeaturesCard />
             <VersionTestingCard 
               isLoading={isLoading}

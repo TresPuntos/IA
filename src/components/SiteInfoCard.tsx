@@ -9,31 +9,31 @@ import { Copy } from "lucide-react";
 
 export function SiteInfoCard() {
   return (
-    <Card className="shadow-lg border-border/50">
-      <CardHeader>
+    <Card className="premium-card">
+      <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle>Información del Sitio</CardTitle>
-            <CardDescription>Detalles básicos de tu instancia de chat</CardDescription>
+            <CardTitle className="text-lg">Información del Sitio</CardTitle>
+            <CardDescription className="text-sm">Detalles básicos de tu instancia de chat</CardDescription>
           </div>
-          <Badge variant="default" className="bg-green-600">Activo</Badge>
+          <Badge variant="default" className="bg-green-600 text-xs">Activo</Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3">
         <div className="space-y-2">
-          <Label htmlFor="site-id">Site ID</Label>
-          <Input id="site-id" placeholder="sitio_12345" defaultValue="sitio_12345" className="bg-input-background" />
+          <Label htmlFor="site-id" className="text-sm font-medium">Site ID</Label>
+          <Input id="site-id" placeholder="sitio_12345" defaultValue="sitio_12345" className="apple-input h-9" />
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="site-name">Nombre o Alias del Proyecto</Label>
-          <Input id="site-name" placeholder="Mi Tienda" defaultValue="Tienda Premium Tech" className="bg-input-background" />
+          <Label htmlFor="site-name" className="text-sm font-medium">Nombre o Alias del Proyecto</Label>
+          <Input id="site-name" placeholder="Mi Tienda" defaultValue="Tienda Premium Tech" className="apple-input h-9" />
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="chat-status">Estado del Chat</Label>
+          <Label htmlFor="chat-status" className="text-sm font-medium">Estado del Chat</Label>
           <Select defaultValue="active">
-            <SelectTrigger id="chat-status" className="bg-input-background">
+            <SelectTrigger id="chat-status" className="apple-input h-9">
               <SelectValue placeholder="Seleccionar estado" />
             </SelectTrigger>
             <SelectContent>
@@ -44,7 +44,7 @@ export function SiteInfoCard() {
           </Select>
         </div>
         
-        <Button variant="outline" className="w-full mt-4">
+        <Button variant="outline" className="w-full mt-3 h-9 apple-button">
           <Copy className="mr-2 h-4 w-4" />
           Duplicar Configuración
         </Button>
