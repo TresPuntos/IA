@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { getDocumentationFiles } from './documentation';
 
 const supabaseUrl = `https://${projectId}.supabase.co`;
 const supabase = createClient(supabaseUrl, publicAnonKey);
@@ -81,6 +82,45 @@ export const searchProductsByCategory = async (category: string): Promise<Produc
   } catch (error) {
     console.error('Error en searchProductsByCategory:', error);
     return [];
+  }
+};
+
+// Buscar en documentación local
+export const searchInDocumentation = async (query: string): Promise<string> => {
+  try {
+    const docs = await getDocumentationFiles();
+    if (docs.length === 0) {
+      return "No hay documentación disponible.";
+    }
+
+    const lowerQuery = query.toLowerCase();
+    const relevantDocs = docs.filter(doc => 
+      doc.content.toLowerCase().includes(lowerQuery) ||
+      doc.name.toLowerCase().includes(lowerQuery)
+    );
+
+    if (relevantDocs.length === 0) {
+      return "No encuentro información relevante en la documentación disponible.";
+    }
+
+    // Si encuentra documentos relevantes, mostrar extractos del contenido
+    const docResults = relevantDocs.map(doc => {
+      const content = doc.content;
+      const queryIndex = content.toLowerCase().indexOf(lowerQuery);
+      
+      // Extraer contexto alrededor de la búsqueda
+      const start = Math.max(0, queryIndex - 100);
+      const end = Math.min(content.length, queryIndex + 200);
+      const excerpt = content.substring(start, end);
+      
+      return `📄 ${doc.name} (${doc.file_type.toUpperCase()}):\n"${excerpt}..."`;
+    }).join('\n\n');
+
+    return `Encontré información relevante en la documentación:\n\n${docResults}`;
+    
+  } catch (error) {
+    console.error('Error en searchInDocumentation:', error);
+    return "Error al buscar en la documentación.";
   }
 };
 
