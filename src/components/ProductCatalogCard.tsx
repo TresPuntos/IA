@@ -1,10 +1,10 @@
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Upload, Link as LinkIcon, CheckCircle2, XCircle, Clock, RefreshCw, AlertCircle, Trash2 } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
 import { 
   getCatalogStats, 
   uploadProductsFromCSV, 
