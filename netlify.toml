@@ -3,4 +3,8 @@
   command = "npm run build"
 
 [context.production.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--version"
