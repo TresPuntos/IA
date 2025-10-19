@@ -43,12 +43,17 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
   useEffect(() => {
     const loadInitialConfig = async () => {
       try {
+        console.log('🔄 Cargando configuración inicial...');
         const savedConfig = await loadConfig();
+        console.log('📥 Configuración cargada:', savedConfig);
         if (savedConfig) {
           setConfig(savedConfig);
+          console.log('✅ Configuración aplicada al estado');
+        } else {
+          console.log('⚠️ No se encontró configuración guardada, usando valores por defecto');
         }
       } catch (error) {
-        console.error('Error loading config:', error);
+        console.error('❌ Error loading config:', error);
       } finally {
         setIsLoading(false);
       }
@@ -58,14 +63,22 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
   }, []);
 
   const updateConfig = (updates: Partial<ChatConfig>) => {
-    setConfig(prev => ({ ...prev, ...updates }));
+    console.log('🔄 Actualizando configuración:', updates);
+    setConfig(prev => {
+      const newConfig = { ...prev, ...updates };
+      console.log('📝 Nueva configuración:', newConfig);
+      return newConfig;
+    });
   };
 
   const saveConfiguration = async (): Promise<{ success: boolean; error?: string }> => {
     try {
+      console.log('💾 Guardando configuración:', config);
       const result = await saveConfig(config);
+      console.log('✅ Resultado del guardado:', result);
       return result;
     } catch (error) {
+      console.error('❌ Error al guardar:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Error desconocido'
