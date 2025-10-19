@@ -189,7 +189,7 @@ Mantén un tono formal y empresarial. Usa un lenguaje claro y directo. Sé efici
 };
 
 // Función para generar el prompt final basado en el tono
-export const generateFinalPrompt = (config: ChatConfig): string => {
+export const generateFinalPrompt = (config: ChatConfig, catalogPrompt?: string): string => {
   // Verificación de seguridad
   if (!config || !config.systemPrompts || !config.tone) {
     console.error('❌ Error: Configuración incompleta en generateFinalPrompt');
@@ -206,7 +206,10 @@ export const generateFinalPrompt = (config: ChatConfig): string => {
   // Añadir información de la URL del cliente si está disponible
   const urlInfo = config.clientUrl ? `\n\nINFORMACIÓN ADICIONAL DEL CLIENTE:\n- Sitio web: ${config.clientUrl}\n- Puedes usar esta información para proporcionar respuestas más precisas y contextualizadas.` : '';
   
-  return `${systemPrompt}${urlInfo}`;
+  // Añadir catálogo dinámico si está disponible
+  const catalogInfo = catalogPrompt ? `\n\n${catalogPrompt}` : '';
+  
+  return `${systemPrompt}${urlInfo}${catalogInfo}`;
 };
 
 // Función para obtener instrucciones de tono

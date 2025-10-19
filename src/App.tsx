@@ -7,6 +7,7 @@ import { Toaster } from "./components/ui/sonner";
 import { Button } from "./components/ui/button";
 import { Save, Copy, RotateCcw } from "lucide-react";
 import { ConfigProvider, useConfig } from "./lib/ConfigContext";
+import { CatalogProvider } from "./lib/CatalogContext";
 
 // Pages
 import { Dashboard } from "./pages/Dashboard";
@@ -138,7 +139,9 @@ export default function App() {
   return (
     <ThemeProvider defaultTheme="light">
       <ConfigProvider>
-        <AppContent />
+        <CatalogProvider>
+          <AppContent />
+        </CatalogProvider>
       </ConfigProvider>
     </ThemeProvider>
   );

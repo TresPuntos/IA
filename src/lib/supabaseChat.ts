@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 import { loadConfig } from './configStorage';
 import { generateFinalPrompt } from './config';
+import { generateCatalogPrompt } from './catalog';
 
 const supabaseUrl = `https://${projectId}.supabase.co`;
 const supabase = createClient(supabaseUrl, publicAnonKey);
@@ -40,8 +41,23 @@ export const callSupabaseChat = async (
       config = defaultConfig;
     }
     
+    // Generar catálogo dinámico desde localStorage
+    let catalogPrompt = '';
+    try {
+      const savedProducts = localStorage.getItem('catalog-products');
+      const savedCategories = localStorage.getItem('catalog-categories');
+      
+      if (savedProducts && savedCategories) {
+        const products = JSON.parse(savedProducts);
+        const categories = JSON.parse(savedCategories);
+        catalogPrompt = generateCatalogPrompt(products, categories);
+      }
+    } catch (error) {
+      console.error('Error loading catalog:', error);
+    }
+
     // Generar el prompt final basado en el tono seleccionado
-    const finalSystemPrompt = generateFinalPrompt(config);
+    const finalSystemPrompt = generateFinalPrompt(config, catalogPrompt);
     
     console.log('🔍 DEBUG: Llamando a Supabase Edge Function...');
     console.log('📝 Mensaje:', message);
