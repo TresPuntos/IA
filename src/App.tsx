@@ -11,7 +11,7 @@ import { Toaster } from "./components/ui/sonner";
 import { ConfigHeader } from "./components/ConfigHeader";
 import { SiteInfoCard } from "./components/SiteInfoCard";
 import { ModelParamsCard } from "./components/ModelParamsCard";
-import { ToneStyleCard } from "./components/ToneStyleCard";
+import { SystemPromptCard } from "./components/SystemPromptCard";
 import { DocumentationCard } from "./components/DocumentationCard";
 import { ProductCatalogCard } from "./components/ProductCatalogCard";
 import { FutureFeaturesCard } from "./components/FutureFeaturesCard";
@@ -96,7 +96,7 @@ function AppContent() {
           
           {/* Segunda fila */}
           <div className="w-full max-w-[480px]">
-            <ToneStyleCard />
+            <SystemPromptCard />
           </div>
           <div className="w-full max-w-[480px]">
             <DocumentationCard />
