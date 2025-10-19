@@ -55,7 +55,7 @@ export default function App() {
       maxTokens: parseInt((document.getElementById('maxTokens') as HTMLInputElement)?.value || '2048'),
       language: (document.getElementById('language') as HTMLSelectElement)?.value || 'es',
       tone: (document.getElementById('tone') as HTMLSelectElement)?.value || 'friendly',
-      systemPrompt: (document.getElementById('systemPrompt') as HTMLTextAreaElement)?.value || '',
+      systemPrompt: (document.getElementById('system-prompt') as HTMLTextAreaElement)?.value || '',
       versionTag: (document.getElementById('versionTag') as HTMLInputElement)?.value || 'v0.0'
     };
     
@@ -92,7 +92,7 @@ export default function App() {
       maxTokens: parseInt((document.getElementById('maxTokens') as HTMLInputElement)?.value || '2048'),
       language: (document.getElementById('language') as HTMLSelectElement)?.value || 'es',
       tone: (document.getElementById('tone') as HTMLSelectElement)?.value || 'friendly',
-      systemPrompt: (document.getElementById('systemPrompt') as HTMLTextAreaElement)?.value || '',
+      systemPrompt: (document.getElementById('system-prompt') as HTMLTextAreaElement)?.value || '',
       versionTag: (document.getElementById('versionTag') as HTMLInputElement)?.value || 'v0.0'
     };
     

@@ -13,8 +13,11 @@ import {
   clearCSVProducts,
   clearWooCommerceProducts,
   clearCatalog,
+  getProducts,
+  deleteProduct,
   type CatalogStats,
-  type CatalogUpdate 
+  type CatalogUpdate,
+  type Product 
 } from "../lib/productCatalog";
 import { toast } from "sonner";
 
@@ -27,6 +30,7 @@ export function ProductCatalogCard() {
     last_update: null
   });
   const [updateHistory, setUpdateHistory] = useState<CatalogUpdate[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -44,12 +48,14 @@ export function ProductCatalogCard() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [statsData, historyData] = await Promise.all([
+      const [statsData, historyData, productsData] = await Promise.all([
         getCatalogStats(),
-        getUpdateHistory()
+        getUpdateHistory(),
+        getProducts()
       ]);
       setStats(statsData);
       setUpdateHistory(historyData);
+      setProducts(productsData);
     } catch (error) {
       toast.error('Error al cargar datos: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     } finally {
@@ -158,6 +164,28 @@ export function ProductCatalogCard() {
       await clearCatalog();
       toast.success('Todos los productos eliminados');
       await loadData(); // Recargar datos
+    } catch (error) {
+      toast.error('Error inesperado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteProduct = async (productId: string, productName: string) => {
+    if (!window.confirm(`¿Estás seguro de que quieres eliminar el producto "${productName}"?`)) {
+      return;
+    }
+
+    try {
+      setIsDeleting(true);
+      const result = await deleteProduct(productId);
+      
+      if (result.success) {
+        toast.success(`Producto "${productName}" eliminado`);
+        await loadData(); // Recargar datos
+      } else {
+        toast.error(result.error || 'Error al eliminar producto');
+      }
     } catch (error) {
       toast.error('Error inesperado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     } finally {
@@ -381,6 +409,45 @@ export function ProductCatalogCard() {
             </>
           )}
         </div>
+
+        {/* Lista de productos individuales */}
+        {products.length > 0 && (
+          <div className="space-y-2">
+            <Label className="text-muted-foreground">Productos Cargados ({products.length})</Label>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {products.map((product) => (
+                <div key={product.id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-muted/20 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium truncate">{product.name}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {product.price}€ • {product.category} • {product.source.toUpperCase()}
+                      </div>
+                    </div>
+                    <Badge variant="outline" className={`text-xs ${
+                      product.status === 'active' 
+                        ? 'border-green-600/50 text-green-600' 
+                        : 'border-red-600/50 text-red-600'
+                    }`}>
+                      {product.status === 'active' ? 'Activo' : 'Inactivo'}
+                    </Badge>
+                  </div>
+                  <div className="flex gap-1 flex-shrink-0">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-8 w-8 hover:bg-destructive/10 hover:text-destructive"
+                      onClick={() => handleDeleteProduct(product.id, product.name)}
+                      disabled={isDeleting}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {updateHistory.length > 0 && (
           <div className="space-y-2">

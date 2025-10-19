@@ -53,19 +53,53 @@ export interface WooCommerceProduct {
 
 // Obtener estadísticas del catálogo
 export const getCatalogStats = async (): Promise<CatalogStats> => {
-  const { data, error } = await supabase.rpc('get_catalog_stats');
-  
-  if (error) {
-    throw new Error(`Error al obtener estadísticas: ${error.message}`);
+  try {
+    // Obtener todos los productos para contar
+    const { data: products, error: productsError } = await supabase
+      .from('product_catalog')
+      .select('source, status');
+
+    if (productsError) {
+      console.error('Error al obtener productos:', productsError);
+      return {
+        total_products: 0,
+        active_products: 0,
+        csv_products: 0,
+        woocommerce_products: 0,
+        last_update: null
+      };
+    }
+
+    // Contar productos por fuente y estado
+    const csvProducts = products?.filter(p => p.source === 'csv') || [];
+    const woocommerceProducts = products?.filter(p => p.source === 'woocommerce') || [];
+    const activeProducts = products?.filter(p => p.status === 'active') || [];
+
+    // Obtener la última actualización
+    const { data: lastUpdate, error: updateError } = await supabase
+      .from('catalog_updates')
+      .select('completed_at')
+      .order('completed_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    return {
+      total_products: products?.length || 0,
+      active_products: activeProducts.length,
+      csv_products: csvProducts.length,
+      woocommerce_products: woocommerceProducts.length,
+      last_update: lastUpdate?.completed_at || null
+    };
+  } catch (error) {
+    console.error('Error inesperado en getCatalogStats:', error);
+    return {
+      total_products: 0,
+      active_products: 0,
+      csv_products: 0,
+      woocommerce_products: 0,
+      last_update: null
+    };
   }
-  
-  return data || {
-    total_products: 0,
-    active_products: 0,
-    csv_products: 0,
-    woocommerce_products: 0,
-    last_update: null
-  };
 };
 
 // Obtener todos los productos
@@ -450,4 +484,30 @@ const fetchWooCommerceProducts = async (
   }
 
   return await response.json();
+};
+
+// Eliminar un producto individual
+export const deleteProduct = async (productId: string): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const { error } = await supabase
+      .from('product_catalog')
+      .delete()
+      .eq('id', productId);
+
+    if (error) {
+      return {
+        success: false,
+        error: `Error al eliminar producto: ${error.message}`
+      };
+    }
+
+    return {
+      success: true
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    };
+  }
 };

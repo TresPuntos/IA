@@ -131,7 +131,7 @@ export const applyConfigToDOM = (config: ChatConfig): void => {
   const siteNameInput = document.getElementById('siteName') as HTMLInputElement;
   const chatStatusSelect = document.getElementById('chatStatus') as HTMLSelectElement;
   const toneSelect = document.getElementById('tone') as HTMLSelectElement;
-  const systemPromptTextarea = document.getElementById('systemPrompt') as HTMLTextAreaElement;
+  const systemPromptTextarea = document.getElementById('system-prompt') as HTMLTextAreaElement;
   const modelSelect = document.getElementById('model') as HTMLSelectElement;
   const temperatureSlider = document.getElementById('temperature') as HTMLInputElement;
   const topPSlider = document.getElementById('topP') as HTMLInputElement;
