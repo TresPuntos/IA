@@ -6,8 +6,10 @@ import { Slider } from "./ui/slider";
 import { Textarea } from "./ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Badge } from "./ui/badge";
+import { useConfig } from "../lib/ConfigContext";
 
 export function ModelParamsCard() {
+  const { config, updateConfig } = useConfig();
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
 
   // Verificar estado de conexión
@@ -59,7 +61,10 @@ export function ModelParamsCard() {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="model" className="text-sm font-medium">Modelo de OpenAI</Label>
-          <Select defaultValue="gpt-4o-mini">
+          <Select 
+            value={config.model} 
+            onValueChange={(value) => updateConfig({ model: value as any })}
+          >
             <SelectTrigger id="model" className="apple-input h-9">
               <SelectValue placeholder="Seleccionar modelo" />
             </SelectTrigger>
@@ -77,11 +82,12 @@ export function ModelParamsCard() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="temperature" className="text-sm font-medium">Temperature</Label>
-            <span className="text-xs text-muted-foreground">0.7</span>
+            <span className="text-xs text-muted-foreground">{config.temperature}</span>
           </div>
           <Slider 
             id="temperature"
-            defaultValue={[0.7]} 
+            value={[config.temperature]} 
+            onValueChange={(value) => updateConfig({ temperature: value[0] })}
             max={2} 
             step={0.1} 
             className="w-full"
@@ -92,11 +98,12 @@ export function ModelParamsCard() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="top-p" className="text-sm font-medium">Top-p</Label>
-            <span className="text-xs text-muted-foreground">0.9</span>
+            <span className="text-xs text-muted-foreground">{config.topP}</span>
           </div>
           <Slider 
             id="topP"
-            defaultValue={[0.9]} 
+            value={[config.topP]} 
+            onValueChange={(value) => updateConfig({ topP: value[0] })}
             max={1} 
             step={0.05}
             className="w-full"
@@ -107,11 +114,12 @@ export function ModelParamsCard() {
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="max-tokens" className="text-sm font-medium">Max Tokens</Label>
-            <span className="text-xs text-muted-foreground">2048</span>
+            <span className="text-xs text-muted-foreground">{config.maxTokens}</span>
           </div>
           <Slider 
             id="maxTokens"
-            defaultValue={[2048]} 
+            value={[config.maxTokens]} 
+            onValueChange={(value) => updateConfig({ maxTokens: value[0] })}
             max={4096} 
             step={128}
             className="w-full"
@@ -121,7 +129,10 @@ export function ModelParamsCard() {
         
         <div className="space-y-2">
           <Label htmlFor="language" className="text-sm font-medium">Idioma por Defecto</Label>
-          <Select defaultValue="es">
+          <Select 
+            value={config.language} 
+            onValueChange={(value) => updateConfig({ language: value as any })}
+          >
             <SelectTrigger id="language" className="apple-input h-9">
               <SelectValue placeholder="Seleccionar idioma" />
             </SelectTrigger>
