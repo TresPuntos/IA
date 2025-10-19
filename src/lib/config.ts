@@ -108,7 +108,18 @@ Mantén un tono formal y empresarial. Usa un lenguaje claro y directo. Sé efici
 
 // Función para generar el prompt final basado en el tono
 export const generateFinalPrompt = (config: ChatConfig): string => {
+  // Verificación de seguridad
+  if (!config || !config.systemPrompts || !config.tone) {
+    console.error('❌ Error: Configuración incompleta en generateFinalPrompt');
+    return 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente.';
+  }
+
   const systemPrompt = config.systemPrompts[config.tone];
+  
+  if (!systemPrompt) {
+    console.error('❌ Error: No se encontró systemPrompt para el tono:', config.tone);
+    return 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente.';
+  }
   
   // Añadir información de la URL del cliente si está disponible
   const urlInfo = config.clientUrl ? `\n\nINFORMACIÓN ADICIONAL DEL CLIENTE:\n- Sitio web: ${config.clientUrl}\n- Puedes usar esta información para proporcionar respuestas más precisas y contextualizadas.` : '';

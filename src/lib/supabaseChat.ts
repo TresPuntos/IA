@@ -32,10 +32,12 @@ export const callSupabaseChat = async (
     const userConfig = await loadConfig('default');
     
     // Usar configuración del usuario o valores por defecto
-    const config = userConfig;
+    let config = userConfig;
     
-    if (!config) {
-      throw new Error('No se pudo cargar la configuración del usuario');
+    if (!config || !config.systemPrompts) {
+      console.log('⚠️ Configuración incompleta, usando defaultConfig');
+      const { defaultConfig } = await import('./config');
+      config = defaultConfig;
     }
     
     // Generar el prompt final basado en el tono seleccionado
