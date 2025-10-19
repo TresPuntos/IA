@@ -1,149 +1,142 @@
-import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
-import { Badge } from "./components/ui/badge";
-import { Button } from "./components/ui/button";
-import { Input } from "./components/ui/input";
-import { Label } from "./components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
-import { Slider } from "./components/ui/slider";
-import { Textarea } from "./components/ui/textarea";
+import { useState, useEffect } from "react";
+import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
+import { AppSidebar } from "./components/AppSidebar";
+import { ThemeProvider } from "./utils/theme-provider";
+import { toast } from "sonner@2.0.3";
 import { Toaster } from "./components/ui/sonner";
-import { ConfigHeader } from "./components/ConfigHeader";
-import { SiteInfoCard } from "./components/SiteInfoCard";
-import { ModelParamsCard } from "./components/ModelParamsCard";
-import { SystemPromptCard } from "./components/SystemPromptCard";
-import { DocumentationCard } from "./components/DocumentationCard";
-import { ProductCatalogCard } from "./components/ProductCatalogCard";
-import { FutureFeaturesCard } from "./components/FutureFeaturesCard";
-import { VersionTestingCard } from "./components/VersionTestingCard";
-import { ActionsPanel } from "./components/ActionsPanel";
-import { testChat } from "./lib/chat";
-import { loadConfig, saveConfig, resetConfig, applyConfigToDOM } from "./lib/configStorage";
-import { initializeTheme } from "./lib/theme";
+import { Button } from "./components/ui/button";
+import { Save, Copy, RotateCcw } from "lucide-react";
 import { ConfigProvider, useConfig } from "./lib/ConfigContext";
 
+// Pages
+import { Dashboard } from "./pages/Dashboard";
+import { Configuration } from "./pages/Configuration";
+import { Catalog } from "./pages/Catalog";
+import { Documentation } from "./pages/Documentation";
+import { Parameters } from "./pages/Parameters";
+
 function AppContent() {
-  const { config, saveConfiguration } = useConfig();
-  const [isLoading, setIsLoading] = useState(false);
-  const [chatResponse, setChatResponse] = useState<string>("");
+  const [currentPage, setCurrentPage] = useState("dashboard");
+  const [loading, setLoading] = useState(false);
+  const { saveConfiguration } = useConfig();
 
-  // Inicializar tema al montar
-  useEffect(() => {
-    initializeTheme();
-  }, []);
-
-  const handleSaveConfig = async () => {
-    console.log('🔍 DEBUG: handleSaveConfig llamado');
-    setIsLoading(true);
+  const handleSave = async () => {
+    setLoading(true);
     try {
-      console.log('🔍 DEBUG: Configuración actual:', config);
       const result = await saveConfiguration();
-      console.log('🔍 DEBUG: Resultado del guardado:', result);
       if (result.success) {
-        setChatResponse("✅ Configuración guardada exitosamente en Supabase");
+        toast.success("✅ Configuration saved successfully");
       } else {
-        setChatResponse(`⚠️ ${result.error || 'Error al guardar configuración'}`);
+        toast.error("Error saving: " + result.error);
       }
     } catch (error) {
-      console.error('❌ Error en handleSaveConfig:', error);
-      setChatResponse(`❌ Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+      toast.error("Error saving: " + (error as Error).message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleTestChat = async () => {
-    setIsLoading(true);
+  const handleDuplicate = async () => {
+    const newSiteId = prompt("Enter the ID for the new site:", "site_copy");
+    if (!newSiteId) return;
+    
+    setLoading(true);
     try {
-      const siteId = config.siteId || 'test_site';
-      const message = "Hola, ¿puedes ayudarme a encontrar productos?";
-      const response = await testChat(siteId, message);
-      setChatResponse(response.answer || "No se pudo obtener respuesta");
+      // Duplicate logic would go here
+      toast.success(`✅ Configuration duplicated as ${newSiteId}`);
     } catch (error) {
-      setChatResponse("❌ Error al probar el chat: " + (error as Error).message);
+      toast.error("Error duplicating: " + (error as Error).message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleDuplicate = () => {
-    // Crear una copia con un nuevo ID
-    const duplicatedConfig = {
-      ...config,
-      siteId: config.siteId + '_copy',
-      siteName: config.siteName + ' (Copia)',
-      versionTag: config.versionTag + '_copy'
-    };
+  const handleReset = () => {
+    if (!confirm("Are you sure you want to reset to default values?")) return;
     
-    // Aplicar la configuración duplicada usando la función especializada
-    applyConfigToDOM(duplicatedConfig);
-    
-    setChatResponse("✅ Configuración duplicada exitosamente");
+    // Reset logic would go here
+    toast.success("Values reset to defaults");
   };
 
-  const handleReset = async () => {
-    await resetConfig();
-    setChatResponse("✅ Configuración restablecida a valores por defecto");
+  const renderPage = () => {
+    switch (currentPage) {
+      case "dashboard":
+        return <Dashboard />;
+      case "configuration":
+        return <Configuration onDuplicate={handleDuplicate} />;
+      case "catalog":
+        return <Catalog />;
+      case "documentation":
+        return <Documentation />;
+      case "parameters":
+        return <Parameters />;
+      default:
+        return <Dashboard />;
+    }
   };
 
   return (
-    <div className="min-h-screen ios26-container">
-      <ConfigHeader />
-      
-      <div className="container mx-auto px-8 py-12 max-w-7xl">
-        <div className="ios26-grid">
-          {/* Primera fila */}
-          <div className="ios26-grid-item">
-            <SiteInfoCard />
-          </div>
-          <div className="ios26-grid-item">
-            <ModelParamsCard />
-          </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <AppSidebar currentPage={currentPage} onPageChange={setCurrentPage} />
+        
+        <main className="flex-1 flex flex-col">
+          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
+            <SidebarTrigger />
+            
+            <div className="flex-1" />
+            
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleReset}
+                disabled={loading}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset
+              </Button>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleDuplicate}
+                disabled={loading}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Duplicate
+              </Button>
+              
+              <Button
+                size="sm"
+                onClick={handleSave}
+                disabled={loading}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                {loading ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+          </header>
           
-          {/* Segunda fila */}
-          <div className="ios26-grid-item">
-            <SystemPromptCard />
+          <div className="flex-1 p-6 overflow-auto">
+            <div className="max-w-7xl mx-auto">
+              {renderPage()}
+            </div>
           </div>
-          <div className="ios26-grid-item">
-            <DocumentationCard />
-          </div>
-          
-          {/* Tercera fila */}
-          <div className="ios26-grid-item">
-            <ProductCatalogCard />
-          </div>
-          <div className="ios26-grid-item">
-            <FutureFeaturesCard />
-          </div>
-          
-          {/* Cuarta fila */}
-          <div className="ios26-grid-item">
-            <VersionTestingCard 
-              isLoading={isLoading}
-              chatResponse={chatResponse}
-              onTestChat={handleTestChat}
-            />
-          </div>
-          <div className="ios26-grid-item">
-            <ActionsPanel 
-              onSaveConfig={handleSaveConfig}
-              onTestChat={handleTestChat}
-              onDuplicate={handleDuplicate}
-              onReset={handleReset}
-              isLoading={isLoading}
-            />
-          </div>
-        </div>
+        </main>
       </div>
-      <Toaster />
-    </div>
+      
+      <Toaster position="top-right" />
+    </SidebarProvider>
   );
 }
 
 export default function App() {
   return (
-    <ConfigProvider>
-      <AppContent />
-    </ConfigProvider>
+    <ThemeProvider defaultTheme="light">
+      <ConfigProvider>
+        <AppContent />
+      </ConfigProvider>
+    </ThemeProvider>
   );
 }

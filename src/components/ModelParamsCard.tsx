@@ -39,17 +39,17 @@ export function ModelParamsCard() {
   }, []);
 
   return (
-        <Card className="ios26-card">
+    <Card className="shadow-lg border-border/50">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="ios26-subtitle">Parámetros del Modelo</CardTitle>
-            <CardDescription className="ios26-caption">Ajusta el comportamiento de la IA</CardDescription>
+            <CardTitle className="text-xl font-semibold text-card-foreground">Parámetros del Modelo</CardTitle>
+            <CardDescription className="text-muted-foreground">Ajusta el comportamiento de la IA</CardDescription>
           </div>
-          <span className={`ios26-tag ${
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
             connectionStatus === 'connected' 
-              ? 'ios26-tag-active' 
-              : 'ios26-tag-inactive'
+              ? 'bg-green-500 text-white' 
+              : 'bg-red-500 text-white'
           }`}>
             {connectionStatus === 'connected' ? 'Conectado' : 'Desconectado'}
           </span>
@@ -57,12 +57,12 @@ export function ModelParamsCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="model" className="ios26-body font-medium">Modelo de OpenAI</Label>
+          <Label htmlFor="model" className="text-sm font-medium text-card-foreground">Modelo de OpenAI</Label>
           <Select 
             value={config.model} 
             onValueChange={(value) => updateConfig({ model: value as any })}
           >
-            <SelectTrigger id="model" className="ios26-select h-9">
+            <SelectTrigger id="model" className="h-9 bg-input-background border-border/50">
               <SelectValue placeholder="Seleccionar modelo" />
             </SelectTrigger>
             <SelectContent>
@@ -73,12 +73,12 @@ export function ModelParamsCard() {
               <SelectItem value="gpt-4o-mini">GPT-4o Mini (Económico)</SelectItem>
             </SelectContent>
           </Select>
-          <p className="ios26-caption">Selecciona el modelo de OpenAI a utilizar</p>
+          <p className="text-xs text-muted-foreground">Selecciona el modelo de OpenAI a utilizar</p>
         </div>
         
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <Label htmlFor="temperature" className="text-sm font-medium">Temperature</Label>
+            <Label htmlFor="temperature" className="text-sm font-medium text-card-foreground">Temperature</Label>
             <span className="text-xs text-muted-foreground">{config.temperature}</span>
           </div>
           <Slider 
@@ -130,7 +130,7 @@ export function ModelParamsCard() {
             value={config.language} 
             onValueChange={(value) => updateConfig({ language: value as any })}
           >
-            <SelectTrigger id="language" className="apple-input h-9">
+            <SelectTrigger id="language" className="h-9 bg-input-background border-border/50">
               <SelectValue placeholder="Seleccionar idioma" />
             </SelectTrigger>
             <SelectContent>
@@ -151,7 +151,7 @@ export function ModelParamsCard() {
               placeholder="¡Hola! ¿En qué puedo ayudarte hoy?"
               rows={2}
               defaultValue="¡Hola! 👋 Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?"
-              className="resize-none apple-input"
+              className="resize-none bg-input-background border-border/50"
             />
           </div>
           
@@ -162,7 +162,7 @@ export function ModelParamsCard() {
               placeholder="Lo siento, no tengo información sobre eso..."
               rows={2}
               defaultValue="Disculpa, no tengo información específica sobre eso. ¿Puedo ayudarte con algo más?"
-              className="resize-none apple-input"
+              className="resize-none bg-input-background border-border/50"
             />
           </div>
         </div>

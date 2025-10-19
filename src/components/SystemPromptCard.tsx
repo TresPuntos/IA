@@ -9,19 +9,19 @@ export function SystemPromptCard() {
   const { config, updateConfig } = useConfig();
 
   return (
-    <Card className="ios26-card">
+    <Card className="shadow-lg border-border/50">
       <CardHeader className="pb-3">
-        <CardTitle className="ios26-subtitle">System Prompt Principal</CardTitle>
-        <CardDescription className="ios26-caption">Configura el comportamiento principal de la IA</CardDescription>
+        <CardTitle className="text-xl font-semibold text-card-foreground">System Prompt Principal</CardTitle>
+        <CardDescription className="text-muted-foreground">Configura el comportamiento principal de la IA</CardDescription>
       </CardHeader>
-      <CardContent className="ios26-spacing-compact">
+      <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="tone" className="ios26-body font-medium">Tono de Comunicación</Label>
+          <Label htmlFor="tone" className="text-sm font-medium text-card-foreground">Tono de Comunicación</Label>
           <Select 
             value={config.tone} 
             onValueChange={(value) => updateConfig({ tone: value as any })}
           >
-            <SelectTrigger id="tone" className="ios26-select h-9">
+            <SelectTrigger id="tone" className="h-9 bg-input-background border-border/50">
               <SelectValue placeholder="Seleccionar tono" />
             </SelectTrigger>
             <SelectContent>
@@ -35,16 +35,16 @@ export function SystemPromptCard() {
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="main-system-prompt" className="ios26-body font-medium">System Prompt Principal</Label>
+          <Label htmlFor="main-system-prompt" className="text-sm font-medium text-card-foreground">System Prompt Principal</Label>
           <Textarea 
             id="main-system-prompt" 
             placeholder="Eres un asistente especializado en ayudar a clientes..."
             rows={10}
             value={config.systemPrompt}
             onChange={(e) => updateConfig({ systemPrompt: e.target.value })}
-            className="ios26-textarea font-mono"
+            className="font-mono resize-none bg-input-background border-border/50"
           />
-          <p className="ios26-caption">
+          <p className="text-xs text-muted-foreground">
             Este es el ÚNICO prompt que seguirá OpenAI para todas las respuestas. 
             Incluye aquí todas las instrucciones sobre cómo debe comportarse la IA.
           </p>

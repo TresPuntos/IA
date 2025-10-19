@@ -1,14 +1,14 @@
-import React from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { ProductCatalogCard } from "../components/ProductCatalogCard";
 
 export function Catalog() {
   return (
     <div className="space-y-6">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-white mb-2">Catalog</h1>
-        <p className="text-slate-400">Manage your product inventory</p>
+      <div>
+        <h1 className="tracking-tight mb-2">Product Catalog</h1>
+        <p className="text-muted-foreground">Manage your product catalog for AI recommendations</p>
       </div>
-      
+
       <ProductCatalogCard />
     </div>
   );
