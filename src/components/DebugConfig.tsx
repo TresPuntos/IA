@@ -6,9 +6,10 @@ export function DebugConfig() {
 
   const handleTestSave = async () => {
     console.log('🧪 TEST: Intentando guardar configuración...');
+    console.log('🧪 TEST: Config actual:', config);
     const result = await saveConfiguration();
     console.log('🧪 TEST: Resultado:', result);
-    alert(`Resultado: ${result.success ? 'Éxito' : 'Error'}\n${result.error || ''}`);
+    alert(`Resultado: ${result.success ? 'Éxito' : 'Error'}\n${result.error || ''}\n\nSite ID: ${config.siteId}`);
   };
 
   const handleTestUpdate = () => {

@@ -25,7 +25,7 @@ interface ConfigProviderProps {
 
 export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
   const [config, setConfig] = useState<ChatConfig>({
-    siteId: 'mi-sitio',
+    siteId: 'default',
     siteName: 'Mi Tienda',
     chatStatus: 'active',
     tone: 'friendly',
@@ -44,7 +44,7 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
     const loadInitialConfig = async () => {
       try {
         console.log('🔄 Cargando configuración inicial...');
-        const savedConfig = await loadConfig();
+        const savedConfig = await loadConfig('default');
         console.log('📥 Configuración cargada:', savedConfig);
         if (savedConfig) {
           setConfig(savedConfig);
