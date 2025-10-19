@@ -56,7 +56,7 @@ export function ActionsPanel() {
   };
 
   return (
-    <Card className="bg-slate-900 border border-slate-800 shadow-xl">
+    <Card className="figma-card">
       <CardHeader className="pb-4 border-b border-slate-800">
         <CardTitle className="text-lg font-semibold text-white flex items-center gap-2">
           <Settings className="h-5 w-5 text-blue-400" />

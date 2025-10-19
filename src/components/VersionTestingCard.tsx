@@ -32,7 +32,7 @@ export function VersionTestingCard() {
   };
 
   return (
-    <Card className="shadow-lg border-border/50">
+    <Card className="figma-card">
       <CardHeader>
         <CardTitle>Versión y Pruebas</CardTitle>
         <CardDescription>Control de versiones y testing</CardDescription>

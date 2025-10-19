@@ -9,7 +9,7 @@ export function FutureFeaturesCard() {
   
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="shadow-lg border-border/50 border-dashed">
+      <Card className="figma-card border-dashed">
         <CollapsibleTrigger className="w-full">
           <CardHeader className="cursor-pointer hover:bg-muted/10 transition-colors rounded-t-lg">
             <div className="flex items-center justify-between">

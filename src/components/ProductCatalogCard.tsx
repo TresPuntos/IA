@@ -201,7 +201,7 @@ export function ProductCatalogCard() {
   };
 
   return (
-    <Card className="shadow-lg border-border/50">
+        <Card className="figma-card">
       <CardHeader>
         <CardTitle>Catálogo de Productos</CardTitle>
         <CardDescription>Conecta tu base de datos de productos</CardDescription>

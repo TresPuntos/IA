@@ -9,7 +9,7 @@ import { Copy } from "lucide-react";
 
 export function SiteInfoCard() {
   return (
-    <Card className="premium-card">
+    <Card className="figma-card">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>

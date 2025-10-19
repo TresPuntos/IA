@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 export function ToneStyleCard() {
   return (
-    <Card className="premium-card">
+    <Card className="figma-card">
       <CardHeader className="pb-3">
         <CardTitle className="text-lg">Tono y Personalidad</CardTitle>
         <CardDescription className="text-sm">Define cómo debe comunicarse la IA</CardDescription>

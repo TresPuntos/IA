@@ -122,7 +122,7 @@ export function DocumentationCard() {
   };
 
   return (
-    <Card className="shadow-lg border-border/50">
+        <Card className="figma-card">
       <CardHeader>
         <CardTitle>Documentación Adicional</CardTitle>
         <CardDescription>Sube archivos para mejorar el conocimiento de la IA</CardDescription>

@@ -108,44 +108,44 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       <ConfigHeader />
       
-      <div className="container mx-auto px-6 py-8 max-w-6xl">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 justify-items-center">
+      <div className="container mx-auto px-8 py-12 max-w-7xl">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-12 justify-items-center">
           {/* Primera fila */}
-          <div className="w-full max-w-[500px]">
+          <div className="w-full max-w-[480px]">
             <SiteInfoCard />
           </div>
-          <div className="w-full max-w-[500px]">
+          <div className="w-full max-w-[480px]">
             <ModelParamsCard />
           </div>
           
           {/* Segunda fila */}
-          <div className="w-full max-w-[500px]">
+          <div className="w-full max-w-[480px]">
             <ToneStyleCard />
           </div>
-          <div className="w-full max-w-[500px]">
+          <div className="w-full max-w-[480px]">
             <DocumentationCard />
           </div>
           
           {/* Tercera fila */}
-          <div className="w-full max-w-[500px]">
+          <div className="w-full max-w-[480px]">
             <ProductCatalogCard />
           </div>
-          <div className="w-full max-w-[500px]">
+          <div className="w-full max-w-[480px]">
             <FutureFeaturesCard />
           </div>
           
           {/* Cuarta fila */}
-          <div className="w-full max-w-[500px]">
+          <div className="w-full max-w-[480px]">
             <VersionTestingCard 
               isLoading={isLoading}
               chatResponse={chatResponse}
               onTestChat={handleTestChat}
             />
           </div>
-          <div className="w-full max-w-[500px]">
+          <div className="w-full max-w-[480px]">
             <ActionsPanel 
               onSaveConfig={handleSaveConfig}
               onTestChat={handleTestChat}
