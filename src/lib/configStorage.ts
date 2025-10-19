@@ -143,7 +143,11 @@ export const applyConfigToDOM = (config: ChatConfig): void => {
   if (siteNameInput) siteNameInput.value = config.siteName;
   if (chatStatusSelect) chatStatusSelect.value = config.chatStatus;
   if (toneSelect) toneSelect.value = config.tone;
-  if (systemPromptTextarea) systemPromptTextarea.value = config.systemPrompt;
+  if (systemPromptTextarea) {
+    systemPromptTextarea.value = config.systemPrompt;
+    // Disparar evento de cambio para que React detecte el cambio
+    systemPromptTextarea.dispatchEvent(new Event('input', { bubbles: true }));
+  }
   if (modelSelect) modelSelect.value = config.model;
   if (temperatureSlider) temperatureSlider.value = config.temperature.toString();
   if (topPSlider) topPSlider.value = config.topP.toString();
