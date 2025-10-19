@@ -33,11 +33,22 @@ function AppContent() {
   }, []);
 
   const handleSaveConfig = async () => {
-    const result = await saveConfiguration();
-    if (result.success) {
-      setChatResponse("✅ Configuración guardada exitosamente en Supabase");
-    } else {
-      setChatResponse(`⚠️ ${result.error || 'Error al guardar configuración'}`);
+    console.log('🔍 DEBUG: handleSaveConfig llamado');
+    setIsLoading(true);
+    try {
+      console.log('🔍 DEBUG: Configuración actual:', config);
+      const result = await saveConfiguration();
+      console.log('🔍 DEBUG: Resultado del guardado:', result);
+      if (result.success) {
+        setChatResponse("✅ Configuración guardada exitosamente en Supabase");
+      } else {
+        setChatResponse(`⚠️ ${result.error || 'Error al guardar configuración'}`);
+      }
+    } catch (error) {
+      console.error('❌ Error en handleSaveConfig:', error);
+      setChatResponse(`❌ Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`);
+    } finally {
+      setIsLoading(false);
     }
   };
 
