@@ -23,11 +23,8 @@ import { initializeTheme } from "./lib/theme";
 import { ConfigProvider, useConfig } from "./lib/ConfigContext";
 import { ContextDebug } from "./components/ContextDebug";
 
-type PageType = 'overview' | 'settings' | 'documents' | 'catalog' | 'tests' | 'usage';
-
 function AppContent() {
   const { config, saveConfiguration } = useConfig();
-  const [currentPage, setCurrentPage] = useState<PageType>('overview');
   const [isLoading, setIsLoading] = useState(false);
   const [chatResponse, setChatResponse] = useState<string>("");
 
