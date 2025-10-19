@@ -1,7 +1,6 @@
 // src/lib/supabaseChat.ts
 import { createClient } from '@supabase/supabase-js';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
-import { getCurrentConfig } from './config';
 
 const supabaseUrl = `https://${projectId}.supabase.co`;
 const supabase = createClient(supabaseUrl, publicAnonKey);
@@ -26,29 +25,38 @@ export const callSupabaseChat = async (
   systemPrompt?: string
 ): Promise<ChatResponse | ChatError> => {
   try {
-    const config = getCurrentConfig();
+    // Usar valores por defecto en lugar de getCurrentConfig
+    const defaultConfig = {
+      temperature: 0.7,
+      topP: 0.9,
+      maxTokens: 2048,
+      language: 'es',
+      tone: 'friendly',
+      model: 'gpt-4o-mini',
+      systemPrompt: 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente.'
+    };
     
     console.log('🔍 DEBUG: Llamando a Supabase Edge Function...');
     console.log('📝 Mensaje:', message);
     console.log('⚙️ Configuración:', {
-      temperature: config.temperature,
-      topP: config.topP,
-      maxTokens: config.maxTokens,
-      language: config.language,
-      tone: config.tone
+      temperature: defaultConfig.temperature,
+      topP: defaultConfig.topP,
+      maxTokens: defaultConfig.maxTokens,
+      language: defaultConfig.language,
+      tone: defaultConfig.tone
     });
 
     // Llamar a la Edge Function de Supabase
     const { data, error } = await supabase.functions.invoke('openai-chat', {
       body: {
         message,
-        systemPrompt: systemPrompt || config.systemPrompt,
-        model: config.model,
-        temperature: config.temperature,
-        topP: config.topP,
-        maxTokens: config.maxTokens,
-        language: config.language,
-        tone: config.tone
+        systemPrompt: systemPrompt || defaultConfig.systemPrompt,
+        model: defaultConfig.model,
+        temperature: defaultConfig.temperature,
+        topP: defaultConfig.topP,
+        maxTokens: defaultConfig.maxTokens,
+        language: defaultConfig.language,
+        tone: defaultConfig.tone
       }
     });
 
