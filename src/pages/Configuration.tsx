@@ -32,7 +32,7 @@ export function Configuration({ onDuplicate }: ConfigurationProps) {
                 id="site-id" 
                 value={config.siteId}
                 onChange={(e) => updateConfig({ siteId: e.target.value })}
-                placeholder="site_12345"
+                placeholder="100chef"
               />
             </div>
             <div className="space-y-2">
@@ -41,7 +41,16 @@ export function Configuration({ onDuplicate }: ConfigurationProps) {
                 id="site-name" 
                 value={config.siteName}
                 onChange={(e) => updateConfig({ siteName: e.target.value })}
-                placeholder="Tienda Premium Tech"
+                placeholder="100%Chef - Herramientas Cocina"
+              />
+            </div>
+            <div className="space-y-2 col-span-2">
+              <Label htmlFor="client-url">URL del Cliente</Label>
+              <Input 
+                id="client-url" 
+                value={config.clientUrl}
+                onChange={(e) => updateConfig({ clientUrl: e.target.value })}
+                placeholder="https://100x100chef.com/"
               />
             </div>
             <div className="space-y-2">
@@ -66,7 +75,7 @@ export function Configuration({ onDuplicate }: ConfigurationProps) {
                 id="version-tag" 
                 value={config.versionTag}
                 onChange={(e) => updateConfig({ versionTag: e.target.value })}
-                placeholder="v1.2"
+                placeholder="v1.0"
               />
             </div>
           </div>
@@ -98,16 +107,30 @@ export function Configuration({ onDuplicate }: ConfigurationProps) {
             </Select>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="system-prompt">System Prompt</Label>
-            <Textarea 
-              id="system-prompt" 
-              placeholder="You are an AI assistant specialized in helping customers..."
-              rows={8}
-              value={config.systemPrompt}
-              onChange={(e) => updateConfig({ systemPrompt: e.target.value })}
-              className="resize-none font-mono"
-            />
+          <div className="space-y-4">
+            <Label>System Prompts por Tono</Label>
+            <div className="space-y-4">
+              {Object.entries(config.systemPrompts).map(([toneKey, prompt]) => (
+                <div key={toneKey} className="space-y-2">
+                  <Label htmlFor={`prompt-${toneKey}`} className="capitalize">
+                    {toneKey} Prompt
+                  </Label>
+                  <Textarea 
+                    id={`prompt-${toneKey}`}
+                    placeholder={`System prompt for ${toneKey} tone...`}
+                    rows={6}
+                    value={prompt}
+                    onChange={(e) => updateConfig({ 
+                      systemPrompts: { 
+                        ...config.systemPrompts, 
+                        [toneKey]: e.target.value 
+                      } 
+                    })}
+                    className="resize-none font-mono text-sm"
+                  />
+                </div>
+              ))}
+            </div>
           </div>
         </CardContent>
       </Card>

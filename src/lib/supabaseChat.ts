@@ -2,6 +2,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
 import { loadConfig } from './configStorage';
+import { generateFinalPrompt } from './config';
 
 const supabaseUrl = `https://${projectId}.supabase.co`;
 const supabase = createClient(supabaseUrl, publicAnonKey);
@@ -31,23 +32,18 @@ export const callSupabaseChat = async (
     const userConfig = await loadConfig('default');
     
     // Usar configuración del usuario o valores por defecto
-    const config = userConfig || {
-      siteId: 'default',
-      siteName: 'Mi Tienda',
-      chatStatus: 'active',
-      systemPrompt: 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente.',
-      tone: 'friendly',
-      model: 'gpt-4o-mini',
-      temperature: 0.7,
-      topP: 0.9,
-      maxTokens: 2048,
-      language: 'es',
-      versionTag: 'v1.0'
-    };
+    const config = userConfig;
+    
+    if (!config) {
+      throw new Error('No se pudo cargar la configuración del usuario');
+    }
+    
+    // Generar el prompt final basado en el tono seleccionado
+    const finalSystemPrompt = generateFinalPrompt(config);
     
     console.log('🔍 DEBUG: Llamando a Supabase Edge Function...');
     console.log('📝 Mensaje:', message);
-    console.log('🎯 System Prompt del usuario:', config.systemPrompt);
+    console.log('🎯 System Prompt generado:', finalSystemPrompt);
     console.log('⚙️ Configuración completa:', {
       temperature: config.temperature,
       topP: config.topP,
@@ -61,7 +57,7 @@ export const callSupabaseChat = async (
     const { data, error } = await supabase.functions.invoke('openai-chat', {
       body: {
         message,
-        systemPrompt: systemPrompt || config.systemPrompt, // Usar el System Prompt Principal del usuario
+        systemPrompt: systemPrompt || finalSystemPrompt, // Usar el System Prompt generado del usuario
         model: config.model,
         temperature: config.temperature,
         topP: config.topP,

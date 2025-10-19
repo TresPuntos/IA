@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ChatConfig } from '../lib/config';
+import { ChatConfig, defaultConfig } from '../lib/config';
 import { loadConfig, saveConfig } from '../lib/configStorage';
 
 interface ConfigContextType {
@@ -24,25 +24,7 @@ interface ConfigProviderProps {
 }
 
 export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
-  const [config, setConfig] = useState<ChatConfig>({
-    siteId: 'default',
-    siteName: 'Mi Tienda',
-    chatStatus: 'active',
-    
-    // System Prompt Principal
-    systemPrompt: 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente.',
-    
-    // Tone & Style
-    tone: 'friendly',
-    
-    // Model Parameters
-    model: 'gpt-4o-mini',
-    temperature: 0.7,
-    topP: 0.9,
-    maxTokens: 2048,
-    language: 'es',
-    versionTag: 'v1.0'
-  });
+  const [config, setConfig] = useState<ChatConfig>(defaultConfig);
   const [isLoading, setIsLoading] = useState(true);
 
   // Cargar configuración al montar

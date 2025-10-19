@@ -8,9 +8,16 @@ export interface ChatConfiguration {
   id: string;
   site_id: string;
   site_name: string;
+  client_url: string;
   chat_status: 'active' | 'testing' | 'inactive';
   tone: 'friendly' | 'premium' | 'technical' | 'casual' | 'professional';
-  system_prompt: string;
+  system_prompts: {
+    friendly: string;
+    premium: string;
+    technical: string;
+    casual: string;
+    professional: string;
+  };
   model: 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4-turbo' | 'gpt-4o' | 'gpt-4o-mini';
   temperature: number;
   top_p: number;

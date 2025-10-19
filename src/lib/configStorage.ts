@@ -13,9 +13,10 @@ const convertSupabaseToLocal = (supabaseConfig: ChatConfiguration): ChatConfig =
   return {
     siteId: supabaseConfig.site_id,
     siteName: supabaseConfig.site_name,
+    clientUrl: supabaseConfig.client_url,
     chatStatus: supabaseConfig.chat_status,
     tone: supabaseConfig.tone,
-    systemPrompt: supabaseConfig.system_prompt,
+    systemPrompts: supabaseConfig.system_prompts,
     model: supabaseConfig.model,
     temperature: supabaseConfig.temperature,
     topP: supabaseConfig.top_p,
@@ -30,9 +31,10 @@ const convertLocalToSupabase = (localConfig: ChatConfig): Partial<ChatConfigurat
   return {
     site_id: localConfig.siteId,
     site_name: localConfig.siteName,
+    client_url: localConfig.clientUrl,
     chat_status: localConfig.chatStatus,
     tone: localConfig.tone,
-    system_prompt: localConfig.systemPrompt,
+    system_prompts: localConfig.systemPrompts,
     model: localConfig.model,
     temperature: localConfig.temperature,
     top_p: localConfig.topP,
