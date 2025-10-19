@@ -1,6 +1,6 @@
 import React from "react";
 import { SiteInfoCard } from "../components/SiteInfoCard";
-import { ToneStyleCard } from "../components/ToneStyleCard";
+import { SystemPromptCard } from "../components/SystemPromptCard";
 
 export function Overview() {
   return (
@@ -12,7 +12,7 @@ export function Overview() {
       
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <SiteInfoCard />
-        <ToneStyleCard />
+        <SystemPromptCard />
       </div>
     </div>
   );
