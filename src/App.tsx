@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
 import { AppSidebar } from "./components/AppSidebar";
 import { ThemeProvider } from "./utils/theme-provider";
-import { toast } from "sonner@2.0.3";
+import { toast } from "sonner";
 import { Toaster } from "./components/ui/sonner";
 import { Button } from "./components/ui/button";
 import { Save, Copy, RotateCcw } from "lucide-react";
