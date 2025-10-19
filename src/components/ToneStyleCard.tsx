@@ -1,25 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Textarea } from "./ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+import { useConfig } from "../lib/ConfigContext";
 
 export function ToneStyleCard() {
-  const [tone, setTone] = useState("friendly");
-  const [systemPrompt, setSystemPrompt] = useState("Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente. Proporciona recomendaciones basadas en el catálogo disponible.");
-  const [styleInstructions, setStyleInstructions] = useState("Usa un español neutro y profesional");
-
-  // Cargar valores desde el DOM al montar el componente
-  useEffect(() => {
-    const toneSelect = document.getElementById('tone') as HTMLSelectElement;
-    const systemPromptTextarea = document.getElementById('system-prompt') as HTMLTextAreaElement;
-    const styleInstructionsInput = document.getElementById('style-instructions') as HTMLInputElement;
-
-    if (toneSelect) setTone(toneSelect.value);
-    if (systemPromptTextarea) setSystemPrompt(systemPromptTextarea.value);
-    if (styleInstructionsInput) setStyleInstructions(styleInstructionsInput.value);
-  }, []);
+  const { config, updateConfig } = useConfig();
 
   return (
     <Card className="figma-card">
@@ -30,7 +18,10 @@ export function ToneStyleCard() {
       <CardContent className="space-y-3">
         <div className="space-y-2">
           <Label htmlFor="tone" className="text-sm font-medium">Selector de Tono</Label>
-          <Select value={tone} onValueChange={setTone}>
+          <Select 
+            value={config.tone} 
+            onValueChange={(value) => updateConfig({ tone: value as any })}
+          >
             <SelectTrigger id="tone" className="apple-input h-9">
               <SelectValue placeholder="Seleccionar tono" />
             </SelectTrigger>
@@ -50,8 +41,8 @@ export function ToneStyleCard() {
             id="system-prompt" 
             placeholder="Eres un asistente experto en tecnología..."
             rows={4}
-            value={systemPrompt}
-            onChange={(e) => setSystemPrompt(e.target.value)}
+            value={config.systemPrompt}
+            onChange={(e) => updateConfig({ systemPrompt: e.target.value })}
             className="resize-none font-mono apple-input"
           />
         </div>
@@ -61,9 +52,9 @@ export function ToneStyleCard() {
           <Input 
             id="style-instructions" 
             placeholder="ej., Siempre usa emojis, Habla en español..."
-            value={styleInstructions}
-            onChange={(e) => setStyleInstructions(e.target.value)}
+            value="Usa un español neutro y profesional"
             className="apple-input h-9"
+            readOnly
           />
         </div>
       </CardContent>

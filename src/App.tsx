@@ -20,46 +20,23 @@ import { ActionsPanel } from "./components/ActionsPanel";
 import { testChat } from "./lib/chat";
 import { loadConfig, saveConfig, resetConfig, applyConfigToDOM } from "./lib/configStorage";
 import { initializeTheme } from "./lib/theme";
+import { ConfigProvider, useConfig } from "./lib/ConfigContext";
 
 type PageType = 'overview' | 'settings' | 'documents' | 'catalog' | 'tests' | 'usage';
 
-export default function App() {
+function AppContent() {
+  const { config, saveConfiguration } = useConfig();
   const [currentPage, setCurrentPage] = useState<PageType>('overview');
   const [isLoading, setIsLoading] = useState(false);
   const [chatResponse, setChatResponse] = useState<string>("");
 
-  // Cargar configuración guardada al iniciar
+  // Inicializar tema al montar
   useEffect(() => {
-    const loadInitialConfig = async () => {
-      // Inicializar tema
-      initializeTheme();
-      
-      const savedConfig = await loadConfig();
-      if (savedConfig) {
-        // Aplicar configuración guardada usando la función especializada
-        applyConfigToDOM(savedConfig);
-      }
-    };
-    
-    loadInitialConfig();
+    initializeTheme();
   }, []);
 
   const handleSaveConfig = async () => {
-    const config = {
-      siteId: (document.getElementById('siteId') as HTMLInputElement)?.value || '',
-      siteName: (document.getElementById('siteName') as HTMLInputElement)?.value || '',
-      chatStatus: (document.getElementById('chatStatus') as HTMLSelectElement)?.value || 'active',
-      model: (document.getElementById('model') as HTMLSelectElement)?.value || 'gpt-4o-mini',
-      temperature: parseFloat((document.getElementById('temperature') as HTMLInputElement)?.value || '0.7'),
-      topP: parseFloat((document.getElementById('topP') as HTMLInputElement)?.value || '0.9'),
-      maxTokens: parseInt((document.getElementById('maxTokens') as HTMLInputElement)?.value || '2048'),
-      language: (document.getElementById('language') as HTMLSelectElement)?.value || 'es',
-      tone: (document.getElementById('tone') as HTMLSelectElement)?.value || 'friendly',
-      systemPrompt: (document.getElementById('system-prompt') as HTMLTextAreaElement)?.value || '',
-      versionTag: (document.getElementById('versionTag') as HTMLInputElement)?.value || 'v0.0'
-    };
-    
-    const result = await saveConfig(config);
+    const result = await saveConfiguration();
     if (result.success) {
       setChatResponse("✅ Configuración guardada exitosamente en Supabase");
     } else {
@@ -70,7 +47,7 @@ export default function App() {
   const handleTestChat = async () => {
     setIsLoading(true);
     try {
-      const siteId = (document.getElementById('siteId') as HTMLInputElement)?.value || 'test_site';
+      const siteId = config.siteId || 'test_site';
       const message = "Hola, ¿puedes ayudarme a encontrar productos?";
       const response = await testChat(siteId, message);
       setChatResponse(response.answer || "No se pudo obtener respuesta");
@@ -82,20 +59,6 @@ export default function App() {
   };
 
   const handleDuplicate = () => {
-    const config = {
-      siteId: (document.getElementById('siteId') as HTMLInputElement)?.value || '',
-      siteName: (document.getElementById('siteName') as HTMLInputElement)?.value || '',
-      chatStatus: (document.getElementById('chatStatus') as HTMLSelectElement)?.value || 'active',
-      model: (document.getElementById('model') as HTMLSelectElement)?.value || 'gpt-4o-mini',
-      temperature: parseFloat((document.getElementById('temperature') as HTMLInputElement)?.value || '0.7'),
-      topP: parseFloat((document.getElementById('topP') as HTMLInputElement)?.value || '0.9'),
-      maxTokens: parseInt((document.getElementById('maxTokens') as HTMLInputElement)?.value || '2048'),
-      language: (document.getElementById('language') as HTMLSelectElement)?.value || 'es',
-      tone: (document.getElementById('tone') as HTMLSelectElement)?.value || 'friendly',
-      systemPrompt: (document.getElementById('system-prompt') as HTMLTextAreaElement)?.value || '',
-      versionTag: (document.getElementById('versionTag') as HTMLInputElement)?.value || 'v0.0'
-    };
-    
     // Crear una copia con un nuevo ID
     const duplicatedConfig = {
       ...config,
@@ -166,5 +129,13 @@ export default function App() {
       </div>
       <Toaster />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ConfigProvider>
+      <AppContent />
+    </ConfigProvider>
   );
 }
