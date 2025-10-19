@@ -1,14 +1,10 @@
 // src/pages/Catalog.tsx
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
-import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Label } from "../components/ui/label";
-import { Textarea } from "../components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { Badge } from "../components/ui/badge";
-import { Switch } from "../components/ui/switch";
-import { Plus, Edit, Trash2, Eye, EyeOff } from "lucide-react";
-import { useState } from "react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { CSVUploader } from "../components/CSVUploader";
+import { EcommerceConnections } from "../components/EcommerceConnections";
+import { ProductStats } from "../components/ProductStats";
 import { useCatalog } from "../lib/CatalogContext";
 import { Product, ProductCategory } from "../lib/catalog";
 
@@ -26,340 +22,204 @@ export function Catalog() {
     toggleCategoryActive
   } = useCatalog();
 
-  const [showAddProduct, setShowAddProduct] = useState(false);
-  const [showAddCategory, setShowAddCategory] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [editingCategory, setEditingCategory] = useState<ProductCategory | null>(null);
+  const [csvFiles, setCsvFiles] = useState<any[]>([]);
+  const [ecommerceConnections, setEcommerceConnections] = useState<any[]>([]);
+  const [lastSync, setLastSync] = useState<Date | undefined>();
+  const [syncStatus, setSyncStatus] = useState<'success' | 'error' | 'pending' | 'idle'>('idle');
 
-  const [newProduct, setNewProduct] = useState({
-    name: '',
-    category: '',
-    price: 0,
-    description: '',
-    sku: '',
-    imageUrl: '',
-    productUrl: '',
-    isActive: true
-  });
+  // Cargar datos desde localStorage
+  useEffect(() => {
+    const savedCsvFiles = localStorage.getItem('catalog-csv-files');
+    const savedConnections = localStorage.getItem('catalog-ecommerce-connections');
+    const savedLastSync = localStorage.getItem('catalog-last-sync');
 
-  const [newCategory, setNewCategory] = useState({
-    name: '',
-    description: '',
-    isActive: true
-  });
-
-  const handleAddProduct = () => {
-    if (newProduct.name && newProduct.category && newProduct.price > 0) {
-      addProduct(newProduct);
-      setNewProduct({
-        name: '',
-        category: '',
-        price: 0,
-        description: '',
-        sku: '',
-        imageUrl: '',
-        productUrl: '',
-        isActive: true
-      });
-      setShowAddProduct(false);
+    if (savedCsvFiles) {
+      setCsvFiles(JSON.parse(savedCsvFiles));
     }
-  };
-
-  const handleAddCategory = () => {
-    if (newCategory.name) {
-      addCategory(newCategory);
-      setNewCategory({
-        name: '',
-        description: '',
-        isActive: true
-      });
-      setShowAddCategory(false);
+    if (savedConnections) {
+      setEcommerceConnections(JSON.parse(savedConnections));
     }
-  };
+    if (savedLastSync) {
+      setLastSync(new Date(savedLastSync));
+    }
+  }, []);
 
-  const handleEditProduct = (product: Product) => {
-    setEditingProduct(product);
-    setNewProduct({
-      name: product.name,
-      category: product.category,
-      price: product.price,
-      description: product.description,
-      sku: product.sku,
-      imageUrl: product.imageUrl || '',
-      productUrl: product.productUrl || '',
-      isActive: product.isActive
+  const handleCSVUploaded = (file: any, products: Product[]) => {
+    // Añadir productos del CSV al catálogo
+    products.forEach(product => {
+      addProduct(product);
     });
-    setShowAddProduct(true);
+
+    // Actualizar lista de archivos CSV
+    const updatedFiles = [...csvFiles, file];
+    setCsvFiles(updatedFiles);
+    localStorage.setItem('catalog-csv-files', JSON.stringify(updatedFiles));
+
+    // Actualizar estado de sincronización
+    setLastSync(new Date());
+    setSyncStatus('success');
+    localStorage.setItem('catalog-last-sync', new Date().toISOString());
   };
 
-  const handleUpdateProduct = () => {
-    if (editingProduct && newProduct.name && newProduct.category && newProduct.price > 0) {
-      updateProduct(editingProduct.id, newProduct);
-      setEditingProduct(null);
-      setShowAddProduct(false);
-      setNewProduct({
-        name: '',
-        category: '',
-        price: 0,
-        description: '',
-        sku: '',
-        imageUrl: '',
-        productUrl: '',
-        isActive: true
-      });
+  const handleCSVDeleted = (fileId: string) => {
+    const updatedFiles = csvFiles.filter(f => f.id !== fileId);
+    setCsvFiles(updatedFiles);
+    localStorage.setItem('catalog-csv-files', JSON.stringify(updatedFiles));
+  };
+
+  const handleConnectionUpdate = (connection: any) => {
+    const updatedConnections = ecommerceConnections.map(c => 
+      c.id === connection.id ? connection : c
+    );
+    
+    // Si es una nueva conexión, añadirla
+    if (!ecommerceConnections.find(c => c.id === connection.id)) {
+      updatedConnections.push(connection);
+    }
+    
+    setEcommerceConnections(updatedConnections);
+    localStorage.setItem('catalog-ecommerce-connections', JSON.stringify(updatedConnections));
+
+    // Simular sincronización
+    if (connection.isConnected) {
+      setSyncStatus('pending');
+      setTimeout(() => {
+        setSyncStatus('success');
+        setLastSync(new Date());
+        localStorage.setItem('catalog-last-sync', new Date().toISOString());
+      }, 2000);
     }
   };
+
+  const activeProducts = products.filter(p => p.isActive).length;
+  const connectedEcommerce = ecommerceConnections.filter(c => c.isConnected).length;
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="tracking-tight mb-2">Catálogo de Productos</h1>
-          <p className="text-muted-foreground">Gestiona el catálogo que usa el AI para recomendar productos</p>
-        </div>
-        <div className="flex gap-2">
-          <Button onClick={() => setShowAddCategory(true)} variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Nueva Categoría
-          </Button>
-          <Button onClick={() => setShowAddProduct(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nuevo Producto
-          </Button>
-        </div>
+      <div>
+        <h1 className="tracking-tight mb-2">Gestión de Catálogo</h1>
+        <p className="text-muted-foreground">
+          Administra tu catálogo de productos desde múltiples fuentes: CSV, ecommerce y manual
+        </p>
       </div>
 
-      {/* Estadísticas */}
-      <div className="grid grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{products.length}</div>
-            <div className="text-sm text-muted-foreground">Total Productos</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{products.filter(p => p.isActive).length}</div>
-            <div className="text-sm text-muted-foreground">Productos Activos</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="text-2xl font-bold">{categories.length}</div>
-            <div className="text-sm text-muted-foreground">Categorías</div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Estadísticas generales */}
+      <ProductStats
+        totalProducts={products.length}
+        activeProducts={activeProducts}
+        csvFiles={csvFiles.length}
+        ecommerceConnections={connectedEcommerce}
+        lastSync={lastSync}
+        syncStatus={syncStatus}
+      />
 
-      {/* Formulario para añadir/editar producto */}
-      {showAddProduct && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{editingProduct ? 'Editar Producto' : 'Nuevo Producto'}</CardTitle>
-            <CardDescription>
-              {editingProduct ? 'Modifica los datos del producto' : 'Añade un nuevo producto al catálogo'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="product-name">Nombre del Producto</Label>
-                <Input
-                  id="product-name"
-                  value={newProduct.name}
-                  onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
-                  placeholder="Ej: Pacojet 4"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="product-category">Categoría</Label>
-                <Select value={newProduct.category} onValueChange={(value) => setNewProduct({ ...newProduct, category: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecciona categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map(category => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="product-price">Precio (€)</Label>
-                <Input
-                  id="product-price"
-                  type="number"
-                  value={newProduct.price}
-                  onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
-                  placeholder="2800"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="product-sku">SKU</Label>
-                <Input
-                  id="product-sku"
-                  value={newProduct.sku}
-                  onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })}
-                  placeholder="PACO-4-001"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="product-description">Descripción</Label>
-              <Textarea
-                id="product-description"
-                value={newProduct.description}
-                onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
-                placeholder="Descripción del producto y sus características principales"
-                rows={3}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="product-image">URL de Imagen</Label>
-                <Input
-                  id="product-image"
-                  value={newProduct.imageUrl}
-                  onChange={(e) => setNewProduct({ ...newProduct, imageUrl: e.target.value })}
-                  placeholder="https://100x100chef.com/images/producto.jpg"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="product-url">URL del Producto</Label>
-                <Input
-                  id="product-url"
-                  value={newProduct.productUrl}
-                  onChange={(e) => setNewProduct({ ...newProduct, productUrl: e.target.value })}
-                  placeholder="https://100x100chef.com/productos/producto"
-                />
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Switch
-                id="product-active"
-                checked={newProduct.isActive}
-                onCheckedChange={(checked) => setNewProduct({ ...newProduct, isActive: checked })}
-              />
-              <Label htmlFor="product-active">Producto activo</Label>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={editingProduct ? handleUpdateProduct : handleAddProduct}>
-                {editingProduct ? 'Actualizar' : 'Añadir'} Producto
-              </Button>
-              <Button variant="outline" onClick={() => {
-                setShowAddProduct(false);
-                setEditingProduct(null);
-                setNewProduct({
-                  name: '',
-                  category: '',
-                  price: 0,
-                  description: '',
-                  sku: '',
-                  imageUrl: '',
-                  productUrl: '',
-                  isActive: true
-                });
-              }}>
-                Cancelar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Tabs para diferentes funcionalidades */}
+      <Tabs defaultValue="upload" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="upload">Subir CSV</TabsTrigger>
+          <TabsTrigger value="ecommerce">Conexiones Ecommerce</TabsTrigger>
+          <TabsTrigger value="manual">Gestión Manual</TabsTrigger>
+        </TabsList>
 
-      {/* Lista de productos por categoría */}
-      {categories.map(category => {
-        const categoryProducts = products.filter(p => p.category === category.id);
-        return (
-          <Card key={category.id}>
+        <TabsContent value="upload" className="space-y-4">
+          <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    {category.name}
-                    <Badge variant={category.isActive ? "default" : "secondary"}>
-                      {categoryProducts.length} productos
-                    </Badge>
-                  </CardTitle>
-                  <CardDescription>{category.description}</CardDescription>
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toggleCategoryActive(category.id)}
-                  >
-                    {category.isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditingCategory(category)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => deleteCategory(category.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+              <CardTitle>Importar Catálogo desde CSV</CardTitle>
+              <CardDescription>
+                Sube archivos CSV con tu catálogo de productos. El archivo debe contener las columnas: name, price, category, description
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              {categoryProducts.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">
-                  No hay productos en esta categoría
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {categoryProducts.map(product => (
-                    <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-medium">{product.name}</h4>
-                          <Badge variant={product.isActive ? "default" : "secondary"}>
-                            {product.price}€
-                          </Badge>
-                          <Badge variant="outline">{product.sku}</Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mt-1">{product.description}</p>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => toggleProductActive(product.id)}
-                        >
-                          {product.isActive ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditProduct(product)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => deleteProduct(product.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <CSVUploader
+                onFileUploaded={handleCSVUploaded}
+                onFileDeleted={handleCSVDeleted}
+              />
             </CardContent>
           </Card>
-        );
-      })}
+        </TabsContent>
+
+        <TabsContent value="ecommerce" className="space-y-4">
+          <EcommerceConnections onConnectionUpdate={handleConnectionUpdate} />
+        </TabsContent>
+
+        <TabsContent value="manual" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Gestión Manual de Productos</CardTitle>
+              <CardDescription>
+                Añade, edita o elimina productos manualmente. Estos productos se sincronizarán con el AI automáticamente.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {/* Resumen de productos por categoría */}
+                {categories.map(category => {
+                  const categoryProducts = products.filter(p => p.category === category.id);
+                  return (
+                    <div key={category.id} className="p-4 border rounded-lg">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-medium">{category.name}</h3>
+                        <span className="text-sm text-muted-foreground">
+                          {categoryProducts.length} productos
+                        </span>
+                      </div>
+                      <div className="text-sm text-muted-foreground">
+                        {category.description}
+                      </div>
+                      {categoryProducts.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          {categoryProducts.slice(0, 3).map(product => (
+                            <div key={product.id} className="flex items-center justify-between text-sm">
+                              <span>{product.name}</span>
+                              <span className="text-muted-foreground">{product.price}€</span>
+                            </div>
+                          ))}
+                          {categoryProducts.length > 3 && (
+                            <div className="text-xs text-muted-foreground">
+                              ... y {categoryProducts.length - 3} productos más
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Información adicional */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Información del Sistema</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <h4 className="font-medium mb-2">Fuentes de Datos Soportadas:</h4>
+              <ul className="space-y-1 text-muted-foreground">
+                <li>• Archivos CSV con productos</li>
+                <li>• WooCommerce (WordPress)</li>
+                <li>• PrestaShop</li>
+                <li>• Shopify</li>
+                <li>• Gestión manual</li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-medium mb-2">Funcionalidades:</h4>
+              <ul className="space-y-1 text-muted-foreground">
+                <li>• Sincronización automática</li>
+                <li>• Activar/desactivar productos</li>
+                <li>• Gestión por categorías</li>
+                <li>• Integración con AI</li>
+                <li>• Respaldos automáticos</li>
+              </ul>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

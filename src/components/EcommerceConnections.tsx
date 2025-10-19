@@ -1,0 +1,398 @@
+// src/components/EcommerceConnections.tsx
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
+import { Button } from './ui/button';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { Badge } from './ui/badge';
+import { Switch } from './ui/switch';
+import { Alert, AlertDescription } from './ui/alert';
+import { 
+  ShoppingCart, 
+  ExternalLink, 
+  CheckCircle, 
+  AlertCircle, 
+  Info,
+  Key,
+  Globe,
+  Settings
+} from 'lucide-react';
+
+interface EcommerceConnection {
+  id: string;
+  platform: 'woocommerce' | 'prestashop' | 'shopify';
+  name: string;
+  url: string;
+  apiKey?: string;
+  apiSecret?: string;
+  isConnected: boolean;
+  lastSync?: Date;
+  productsCount?: number;
+}
+
+interface EcommerceConnectionsProps {
+  onConnectionUpdate: (connection: EcommerceConnection) => void;
+}
+
+export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnectionsProps) {
+  const [connections, setConnections] = useState<EcommerceConnection[]>([
+    {
+      id: 'woocommerce-1',
+      platform: 'woocommerce',
+      name: 'Mi Tienda WooCommerce',
+      url: '',
+      isConnected: false
+    },
+    {
+      id: 'prestashop-1',
+      platform: 'prestashop',
+      name: 'Mi Tienda PrestaShop',
+      url: '',
+      isConnected: false
+    },
+    {
+      id: 'shopify-1',
+      platform: 'shopify',
+      name: 'Mi Tienda Shopify',
+      url: '',
+      isConnected: false
+    }
+  ]);
+
+  const [editingConnection, setEditingConnection] = useState<EcommerceConnection | null>(null);
+  const [isTesting, setIsTesting] = useState<string | null>(null);
+
+  const platformInfo = {
+    woocommerce: {
+      name: 'WooCommerce',
+      description: 'La plataforma de ecommerce más popular para WordPress',
+      icon: '🛒',
+      color: 'bg-blue-500',
+      steps: [
+        'Ve a tu panel de WordPress',
+        'Instala el plugin WooCommerce si no lo tienes',
+        'Ve a WooCommerce > Configuración > Avanzado > REST API',
+        'Haz clic en "Crear una clave API"',
+        'Copia la URL de tu tienda y las credenciales generadas'
+      ]
+    },
+    prestashop: {
+      name: 'PrestaShop',
+      description: 'Plataforma de ecommerce open source',
+      icon: '🛍️',
+      color: 'bg-orange-500',
+      steps: [
+        'Ve a tu panel de administración de PrestaShop',
+        'Navega a Configuración > Avanzado > Web Service',
+        'Habilita el Web Service',
+        'Ve a Configuración > Avanzado > API Keys',
+        'Genera una nueva API Key con permisos de lectura',
+        'Copia la URL de tu tienda y la API Key'
+      ]
+    },
+    shopify: {
+      name: 'Shopify',
+      description: 'Plataforma de ecommerce en la nube',
+      icon: '🏪',
+      color: 'bg-green-500',
+      steps: [
+        'Ve a tu panel de administración de Shopify',
+        'Navega a Configuración > Apps y canales de venta',
+        'Haz clic en "Desarrollar aplicaciones"',
+        'Crea una nueva aplicación privada',
+        'Habilita los permisos de lectura para productos',
+        'Instala la aplicación y copia las credenciales'
+      ]
+    }
+  };
+
+  const handleConnectionUpdate = (connection: EcommerceConnection) => {
+    setConnections(prev => prev.map(c => 
+      c.id === connection.id ? connection : c
+    ));
+    onConnectionUpdate(connection);
+  };
+
+  const handleTestConnection = async (connection: EcommerceConnection) => {
+    setIsTesting(connection.id);
+    
+    try {
+      // Simular test de conexión
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Simular respuesta exitosa
+      const updatedConnection = {
+        ...connection,
+        isConnected: true,
+        lastSync: new Date(),
+        productsCount: Math.floor(Math.random() * 1000) + 100
+      };
+      
+      handleConnectionUpdate(updatedConnection);
+      
+    } catch (error) {
+      console.error('Connection test failed:', error);
+    } finally {
+      setIsTesting(null);
+    }
+  };
+
+  const renderConnectionForm = (connection: EcommerceConnection) => {
+    const info = platformInfo[connection.platform];
+    
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <span className="text-2xl">{info.icon}</span>
+            {info.name}
+          </CardTitle>
+          <CardDescription>{info.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Instrucciones */}
+          <Alert>
+            <Info className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Pasos para conectar:</strong>
+              <ol className="mt-2 list-decimal list-inside space-y-1">
+                {info.steps.map((step, index) => (
+                  <li key={index} className="text-sm">{step}</li>
+                ))}
+              </ol>
+            </AlertDescription>
+          </Alert>
+
+          {/* Formulario de conexión */}
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor={`${connection.id}-name`}>Nombre de la Conexión</Label>
+              <Input
+                id={`${connection.id}-name`}
+                value={connection.name}
+                onChange={(e) => setEditingConnection({
+                  ...connection,
+                  name: e.target.value
+                })}
+                placeholder={`Mi Tienda ${info.name}`}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor={`${connection.id}-url`}>URL de la Tienda</Label>
+              <Input
+                id={`${connection.id}-url`}
+                value={connection.url}
+                onChange={(e) => setEditingConnection({
+                  ...connection,
+                  url: e.target.value
+                })}
+                placeholder="https://mitienda.com"
+              />
+            </div>
+
+            {connection.platform === 'woocommerce' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor={`${connection.id}-key`}>Consumer Key</Label>
+                  <Input
+                    id={`${connection.id}-key`}
+                    type="password"
+                    value={connection.apiKey || ''}
+                    onChange={(e) => setEditingConnection({
+                      ...connection,
+                      apiKey: e.target.value
+                    })}
+                    placeholder="ck_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`${connection.id}-secret`}>Consumer Secret</Label>
+                  <Input
+                    id={`${connection.id}-secret`}
+                    type="password"
+                    value={connection.apiSecret || ''}
+                    onChange={(e) => setEditingConnection({
+                      ...connection,
+                      apiSecret: e.target.value
+                    })}
+                    placeholder="cs_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  />
+                </div>
+              </>
+            )}
+
+            {connection.platform === 'prestashop' && (
+              <div className="space-y-2">
+                <Label htmlFor={`${connection.id}-key`}>API Key</Label>
+                <Input
+                  id={`${connection.id}-key`}
+                  type="password"
+                  value={connection.apiKey || ''}
+                  onChange={(e) => setEditingConnection({
+                    ...connection,
+                    apiKey: e.target.value
+                  })}
+                  placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                />
+              </div>
+            )}
+
+            {connection.platform === 'shopify' && (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor={`${connection.id}-key`}>API Key</Label>
+                  <Input
+                    id={`${connection.id}-key`}
+                    type="password"
+                    value={connection.apiKey || ''}
+                    onChange={(e) => setEditingConnection({
+                      ...connection,
+                      apiKey: e.target.value
+                    })}
+                    placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor={`${connection.id}-secret`}>API Secret</Label>
+                  <Input
+                    id={`${connection.id}-secret`}
+                    type="password"
+                    value={connection.apiSecret || ''}
+                    onChange={(e) => setEditingConnection({
+                      ...connection,
+                      apiSecret: e.target.value
+                    })}
+                    placeholder="xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                  />
+                </div>
+              </>
+            )}
+
+            <div className="flex gap-2">
+              <Button
+                onClick={() => handleTestConnection(editingConnection || connection)}
+                disabled={isTesting === connection.id || !connection.url}
+              >
+                {isTesting === connection.id ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Probando...
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Probar Conexión
+                  </>
+                )}
+              </Button>
+              
+              {connection.isConnected && (
+                <Button variant="outline" onClick={() => window.open(connection.url, '_blank')}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Ver Tienda
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  };
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold mb-2">Conexiones de Ecommerce</h2>
+        <p className="text-muted-foreground">
+          Conecta tu tienda online para sincronizar automáticamente el catálogo de productos
+        </p>
+      </div>
+
+      {/* Estadísticas de conexiones */}
+      <div className="grid grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold">{connections.filter(c => c.isConnected).length}</div>
+            <div className="text-sm text-muted-foreground">Conexiones Activas</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold">
+              {connections.reduce((sum, c) => sum + (c.productsCount || 0), 0)}
+            </div>
+            <div className="text-sm text-muted-foreground">Productos Sincronizados</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <div className="text-2xl font-bold">
+              {connections.filter(c => c.lastSync && c.lastSync > new Date(Date.now() - 24 * 60 * 60 * 1000)).length}
+            </div>
+            <div className="text-sm text-muted-foreground">Sincronizados Hoy</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Lista de conexiones */}
+      <div className="space-y-4">
+        {connections.map(connection => (
+          <div key={connection.id}>
+            {editingConnection?.id === connection.id ? (
+              renderConnectionForm(editingConnection)
+            ) : (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-lg ${platformInfo[connection.platform].color} flex items-center justify-center text-white text-xl`}>
+                        {platformInfo[connection.platform].icon}
+                      </div>
+                      <div>
+                        <h3 className="font-medium">{connection.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {connection.url || 'No configurado'}
+                        </p>
+                        {connection.lastSync && (
+                          <p className="text-xs text-muted-foreground">
+                            Última sincronización: {connection.lastSync.toLocaleString()}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {connection.isConnected ? (
+                        <Badge variant="default" className="flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3" />
+                          Conectado
+                        </Badge>
+                      ) : (
+                        <Badge variant="secondary" className="flex items-center gap-1">
+                          <AlertCircle className="h-3 w-3" />
+                          Desconectado
+                        </Badge>
+                      )}
+                      {connection.productsCount && (
+                        <Badge variant="outline">
+                          {connection.productsCount} productos
+                        </Badge>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingConnection(connection)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
