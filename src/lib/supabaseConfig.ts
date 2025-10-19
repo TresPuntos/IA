@@ -11,6 +11,10 @@ export interface ChatConfiguration {
   chat_status: 'active' | 'testing' | 'inactive';
   tone: 'friendly' | 'premium' | 'technical' | 'casual' | 'professional';
   system_prompt: string;
+  product_prompt?: string;
+  support_prompt?: string;
+  sales_prompt?: string;
+  style_instructions?: string;
   model: 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4-turbo' | 'gpt-4o' | 'gpt-4o-mini';
   temperature: number;
   top_p: number;
@@ -61,6 +65,10 @@ export const saveConfigurationToSupabase = async (
           chat_status: config.chat_status,
           tone: config.tone,
           system_prompt: config.system_prompt,
+          product_prompt: config.product_prompt,
+          support_prompt: config.support_prompt,
+          sales_prompt: config.sales_prompt,
+          style_instructions: config.style_instructions,
           model: config.model,
           temperature: config.temperature,
           top_p: config.top_p,
@@ -93,6 +101,10 @@ export const saveConfigurationToSupabase = async (
           chat_status: config.chat_status || 'active',
           tone: config.tone || 'friendly',
           system_prompt: config.system_prompt || 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente.',
+          product_prompt: config.product_prompt || 'Cuando el cliente pregunte sobre productos específicos, busca en el catálogo y proporciona información detallada incluyendo precio, descripción y disponibilidad.',
+          support_prompt: config.support_prompt || 'Para consultas técnicas o problemas, consulta la documentación disponible y proporciona soluciones paso a paso.',
+          sales_prompt: config.sales_prompt || 'Para ayudar con ventas, destaca las características principales de los productos y guía al cliente hacia la compra de manera natural.',
+          style_instructions: config.style_instructions || 'Usa un español neutro y profesional. Mantén las respuestas concisas pero informativas.',
           model: config.model || 'gpt-4o-mini',
           temperature: config.temperature || 0.7,
           top_p: config.top_p || 0.9,

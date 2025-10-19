@@ -2,65 +2,18 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Button } from "./ui/button";
 import { Save, Copy, MessageSquare, RotateCcw, Settings } from "lucide-react";
-import { getCurrentConfig } from "../lib/config";
-import { saveConfig, resetConfig } from "../lib/configStorage";
 import { toast } from "sonner";
+import { useConfig } from "../lib/ConfigContext";
 
-export function ActionsPanel() {
-  const handleSaveConfig = async () => {
-    try {
-      const config = getCurrentConfig();
-      const result = await saveConfig(config);
-      
-      if (result.success) {
-        toast.success("Configuración guardada correctamente", {
-          description: `Configuración de ${config.siteName} guardada en Supabase`
-        });
-      } else {
-        toast.warning("Configuración guardada con advertencias", {
-          description: result.error || "Se guardó pero con algunos problemas"
-        });
-      }
-    } catch (error) {
-      toast.error("Error al guardar configuración", {
-        description: "No se pudo guardar la configuración"
-      });
-    }
-  };
+interface ActionsPanelProps {
+  onSaveConfig: () => Promise<void>;
+  onTestChat: () => Promise<void>;
+  onDuplicate: () => void;
+  onReset: () => Promise<void>;
+  isLoading: boolean;
+}
 
-  const handleTestChat = () => {
-    // Scroll to chat section
-    const chatSection = document.querySelector('[data-testid="chat-section"]') || 
-                       document.querySelector('.space-y-4');
-    if (chatSection) {
-      chatSection.scrollIntoView({ behavior: 'smooth' });
-    }
-    toast.info("Prueba el chat en la sección de versiones", {
-      description: "Usa el botón 'Probar Chat' en la sección de pruebas"
-    });
-  };
-
-  const handleDuplicate = () => {
-    const config = getCurrentConfig();
-    const configText = JSON.stringify(config, null, 2);
-    
-    navigator.clipboard.writeText(configText).then(() => {
-      toast.success("Configuración copiada al portapapeles", {
-        description: "Puedes pegar la configuración en otro lugar"
-      });
-    }).catch(() => {
-      toast.error("Error al copiar configuración");
-    });
-  };
-
-  const handleReset = async () => {
-    if (confirm("¿Estás seguro de que quieres resetear toda la configuración? Esta acción no se puede deshacer.")) {
-      await resetConfig();
-      toast.success("Configuración reseteada", {
-        description: "La configuración ha sido eliminada de Supabase y localStorage"
-      });
-    }
-  };
+export function ActionsPanel({ onSaveConfig, onTestChat, onDuplicate, onReset, isLoading }: ActionsPanelProps) {
 
   return (
     <Card className="figma-card">
@@ -74,10 +27,11 @@ export function ActionsPanel() {
         <Button 
           className="w-full h-12 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-medium shadow-lg hover:shadow-blue-500/25 transition-all duration-200" 
           size="lg" 
-          onClick={handleSaveConfig}
+          onClick={onSaveConfig}
+          disabled={isLoading}
         >
           <Save className="mr-2 h-5 w-5" />
-          Guardar Configuración
+          {isLoading ? "Guardando..." : "Guardar Configuración"}
         </Button>
         
         <div className="grid grid-cols-2 gap-3">
@@ -85,7 +39,8 @@ export function ActionsPanel() {
             variant="outline" 
             className="w-full h-12 border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-medium" 
             size="lg" 
-            onClick={handleTestChat}
+            onClick={onTestChat}
+            disabled={isLoading}
           >
             <MessageSquare className="mr-2 h-5 w-5" />
             Probar Chat
@@ -95,7 +50,8 @@ export function ActionsPanel() {
             variant="outline" 
             className="w-full h-12 border-slate-700 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-medium" 
             size="lg" 
-            onClick={handleDuplicate}
+            onClick={onDuplicate}
+            disabled={isLoading}
           >
             <Copy className="mr-2 h-5 w-5" />
             Duplicar
@@ -106,7 +62,8 @@ export function ActionsPanel() {
           variant="outline" 
           className="w-full h-12 border-red-600 bg-red-900/20 hover:bg-red-800/30 text-red-400 hover:text-red-300 font-medium" 
           size="lg"
-          onClick={handleReset}
+          onClick={onReset}
+          disabled={isLoading}
         >
           <RotateCcw className="mr-2 h-5 w-5" />
           Reset
