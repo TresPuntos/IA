@@ -29,15 +29,11 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
     siteName: 'Mi Tienda',
     chatStatus: 'active',
     
-    // System Prompts
+    // System Prompt Principal
     systemPrompt: 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente.',
-    productPrompt: 'Cuando el cliente pregunte sobre productos específicos, busca en el catálogo y proporciona información detallada incluyendo precio, descripción y disponibilidad.',
-    supportPrompt: 'Para consultas técnicas o problemas, consulta la documentación disponible y proporciona soluciones paso a paso.',
-    salesPrompt: 'Para ayudar con ventas, destaca las características principales de los productos y guía al cliente hacia la compra de manera natural.',
     
     // Tone & Style
     tone: 'friendly',
-    styleInstructions: 'Usa un español neutro y profesional. Mantén las respuestas concisas pero informativas.',
     
     // Model Parameters
     model: 'gpt-4o-mini',

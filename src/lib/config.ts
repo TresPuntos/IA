@@ -5,15 +5,11 @@ export interface ChatConfig {
   siteName: string;
   chatStatus: 'active' | 'testing' | 'inactive';
   
-  // System Prompts
+  // System Prompt Principal
   systemPrompt: string;
-  productPrompt: string;
-  supportPrompt: string;
-  salesPrompt: string;
   
   // Tone & Style
   tone: 'friendly' | 'premium' | 'technical' | 'casual' | 'professional';
-  styleInstructions: string;
   
   // Model Parameters
   model: 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4-turbo' | 'gpt-4o' | 'gpt-4o-mini';
@@ -32,15 +28,11 @@ export const defaultConfig: ChatConfig = {
   siteName: 'Mi Tienda',
   chatStatus: 'active',
   
-  // System Prompts
+  // System Prompt Principal
   systemPrompt: 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente. Proporciona recomendaciones basadas en el catálogo disponible.',
-  productPrompt: 'Cuando el cliente pregunte sobre productos específicos, busca en el catálogo y proporciona información detallada incluyendo precio, descripción y disponibilidad. Si no encuentras el producto exacto, sugiere alternativas similares.',
-  supportPrompt: 'Para consultas técnicas o problemas, consulta la documentación disponible y proporciona soluciones paso a paso. Si no tienes la información necesaria, indica claramente que necesitas más detalles.',
-  salesPrompt: 'Para ayudar con ventas, destaca las características principales de los productos, menciona ofertas especiales si las hay, y guía al cliente hacia la compra de manera natural y útil.',
   
   // Tone & Style
   tone: 'friendly',
-  styleInstructions: 'Usa un español neutro y profesional. Mantén las respuestas concisas pero informativas.',
   
   // Model Parameters
   model: 'gpt-4o-mini',
@@ -51,52 +43,14 @@ export const defaultConfig: ChatConfig = {
   versionTag: 'v1.0'
 };
 
-// Función para obtener configuración actual del DOM
-export const getCurrentConfig = (): ChatConfig => {
-  // Intentar obtener valores de los inputs del dashboard
-  const siteIdInput = document.getElementById('siteId') as HTMLInputElement;
-  const siteNameInput = document.getElementById('siteName') as HTMLInputElement;
-  const chatStatusSelect = document.getElementById('chatStatus') as HTMLSelectElement;
-  const toneSelect = document.getElementById('tone') as HTMLSelectElement;
-  const systemPromptTextarea = document.getElementById('systemPrompt') as HTMLTextAreaElement;
-  const modelSelect = document.getElementById('model') as HTMLSelectElement;
-  const temperatureSlider = document.getElementById('temperature') as HTMLInputElement;
-  const topPSlider = document.getElementById('topP') as HTMLInputElement;
-  const maxTokensSlider = document.getElementById('maxTokens') as HTMLInputElement;
-  const languageSelect = document.getElementById('language') as HTMLSelectElement;
-  const versionTagInput = document.getElementById('versionTag') as HTMLInputElement;
-
-  return {
-    siteId: siteIdInput?.value || defaultConfig.siteId,
-    siteName: siteNameInput?.value || defaultConfig.siteName,
-    chatStatus: (chatStatusSelect?.value as any) || defaultConfig.chatStatus,
-    tone: (toneSelect?.value as any) || defaultConfig.tone,
-    systemPrompt: systemPromptTextarea?.value || defaultConfig.systemPrompt,
-    model: (modelSelect?.value as any) || defaultConfig.model,
-    temperature: parseFloat(temperatureSlider?.value || '0.7'),
-    topP: parseFloat(topPSlider?.value || '0.9'),
-    maxTokens: parseInt(maxTokensSlider?.value || '2048'),
-    language: (languageSelect?.value as any) || defaultConfig.language,
-    versionTag: versionTagInput?.value || defaultConfig.versionTag
-  };
-};
-
 // Función para generar el prompt final basado en el tono
 export const generateFinalPrompt = (config: ChatConfig): string => {
   const basePrompt = config.systemPrompt;
   const toneInstructions = getToneInstructions(config.tone);
-  const styleInstructions = config.styleInstructions;
   
   return `${basePrompt}
 
-${toneInstructions}
-
-${styleInstructions}
-
-PROMPTS ESPECÍFICOS:
-- Productos: ${config.productPrompt}
-- Soporte: ${config.supportPrompt}
-- Ventas: ${config.salesPrompt}`;
+${toneInstructions}`;
 };
 
 // Función para obtener instrucciones de tono

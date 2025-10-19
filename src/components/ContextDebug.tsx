@@ -5,11 +5,20 @@ export function ContextDebug() {
   const { config, updateConfig, saveConfiguration } = useConfig();
 
   const handleTest = async () => {
-    console.log('🧪 Context Debug - Config:', config);
+    console.log('🧪 Context Debug - Full Config:', config);
     console.log('🧪 Context Debug - System Prompt:', config.systemPrompt);
+    console.log('🧪 Context Debug - System Prompt Length:', config.systemPrompt.length);
+    
     const result = await saveConfiguration();
     console.log('🧪 Context Debug - Save Result:', result);
-    alert(`System Prompt: "${config.systemPrompt}"\nSave Result: ${result.success ? 'Success' : 'Failed'}`);
+    
+    alert(`System Prompt: "${config.systemPrompt}"\nLength: ${config.systemPrompt.length}\nSave Result: ${result.success ? 'Success' : 'Failed'}\nError: ${result.error || 'None'}`);
+  };
+
+  const handleUpdatePrompt = () => {
+    const newPrompt = `Test prompt actualizado: ${new Date().toLocaleTimeString()}`;
+    console.log('🧪 Updating prompt to:', newPrompt);
+    updateConfig({ systemPrompt: newPrompt });
   };
 
   return (
@@ -22,7 +31,7 @@ export function ContextDebug() {
       padding: '10px',
       zIndex: 9999,
       fontSize: '12px',
-      maxWidth: '300px'
+      maxWidth: '400px'
     }}>
       <h4>🔍 CONTEXT DEBUG</h4>
       <p><strong>Site ID:</strong> {config.siteId}</p>
@@ -32,14 +41,20 @@ export function ContextDebug() {
         background: '#f5f5f5', 
         padding: '5px', 
         fontSize: '10px',
-        maxHeight: '60px',
-        overflow: 'auto'
+        maxHeight: '80px',
+        overflow: 'auto',
+        border: '1px solid #ccc'
       }}>
-        {config.systemPrompt.substring(0, 100)}...
+        {config.systemPrompt.substring(0, 200)}...
       </div>
-      <button onClick={handleTest} style={{ margin: '5px', fontSize: '10px' }}>
-        Test Context
-      </button>
+      <div style={{ marginTop: '10px' }}>
+        <button onClick={handleUpdatePrompt} style={{ margin: '2px', fontSize: '10px' }}>
+          Update Prompt
+        </button>
+        <button onClick={handleTest} style={{ margin: '2px', fontSize: '10px' }}>
+          Test Save
+        </button>
+      </div>
     </div>
   );
 }
