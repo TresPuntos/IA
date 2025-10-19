@@ -31,12 +31,23 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
   useEffect(() => {
     const loadInitialConfig = async () => {
       try {
+        console.log('🔍 DEBUG: Cargando configuración inicial...');
+        console.log('🔍 DEBUG: defaultConfig:', defaultConfig);
+        
         const savedConfig = await loadConfig('default');
+        console.log('🔍 DEBUG: savedConfig:', savedConfig);
+        
         if (savedConfig) {
           setConfig(savedConfig);
+          console.log('✅ Configuración cargada desde almacenamiento');
+        } else {
+          console.log('ℹ️ No hay configuración guardada, usando defaultConfig');
+          setConfig(defaultConfig);
         }
       } catch (error) {
         console.error('❌ Error loading config:', error);
+        console.log('🔄 Usando defaultConfig como fallback');
+        setConfig(defaultConfig);
       } finally {
         setIsLoading(false);
       }

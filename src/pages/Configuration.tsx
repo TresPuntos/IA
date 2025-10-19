@@ -10,7 +10,19 @@ interface ConfigurationProps {
 }
 
 export function Configuration({ onDuplicate }: ConfigurationProps) {
-  const { config, updateConfig } = useConfig();
+  const { config, updateConfig, isLoading } = useConfig();
+
+  // Verificación de seguridad para systemPrompts
+  if (isLoading || !config || !config.systemPrompts) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="tracking-tight mb-2">Configuration</h1>
+          <p className="text-muted-foreground">Cargando configuración...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
