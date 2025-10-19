@@ -51,7 +51,7 @@ export function ModelParamsCard() {
               ? 'ios26-tag-active' 
               : 'ios26-tag-inactive'
           }`}>
-            {connectionStatus === 'connected' ? '🔗 Conectado' : '❌ Desconectado'}
+            {connectionStatus === 'connected' ? 'Conectado' : 'Desconectado'}
           </span>
         </div>
       </CardHeader>
