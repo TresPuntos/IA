@@ -14,6 +14,7 @@ import { Configuration } from "./pages/Configuration";
 import { Catalog } from "./pages/Catalog";
 import { Documentation } from "./pages/Documentation";
 import { Parameters } from "./pages/Parameters";
+import { Testing } from "./pages/Testing";
 
 function AppContent() {
   const [currentPage, setCurrentPage] = useState("dashboard");
@@ -70,6 +71,8 @@ function AppContent() {
         return <Documentation />;
       case "parameters":
         return <Parameters />;
+      case "testing":
+        return <Testing />;
       default:
         return <Dashboard />;
     }

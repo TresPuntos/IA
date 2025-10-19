@@ -15,7 +15,8 @@ import {
   FileText, 
   Sliders,
   Sun,
-  Moon
+  Moon,
+  MessageSquare
 } from "lucide-react";
 import { useTheme } from "../utils/theme-provider";
 import { Switch } from "./ui/switch";
@@ -50,6 +51,11 @@ const menuItems = [
     id: "parameters",
     title: "Parameters",
     icon: Sliders,
+  },
+  {
+    id: "testing",
+    title: "Testing",
+    icon: MessageSquare,
   },
 ];
 
