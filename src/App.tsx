@@ -87,44 +87,44 @@ function AppContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen ios26-container">
       <ConfigHeader />
       
       <div className="container mx-auto px-8 py-12 max-w-7xl">
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-12 justify-items-center">
+        <div className="ios26-grid">
           {/* Primera fila */}
-          <div className="w-full max-w-[480px]">
+          <div className="ios26-grid-item">
             <SiteInfoCard />
           </div>
-          <div className="w-full max-w-[480px]">
+          <div className="ios26-grid-item">
             <ModelParamsCard />
           </div>
           
           {/* Segunda fila */}
-          <div className="w-full max-w-[480px]">
+          <div className="ios26-grid-item">
             <SystemPromptCard />
           </div>
-          <div className="w-full max-w-[480px]">
+          <div className="ios26-grid-item">
             <DocumentationCard />
           </div>
           
           {/* Tercera fila */}
-          <div className="w-full max-w-[480px]">
+          <div className="ios26-grid-item">
             <ProductCatalogCard />
           </div>
-          <div className="w-full max-w-[480px]">
+          <div className="ios26-grid-item">
             <FutureFeaturesCard />
           </div>
           
           {/* Cuarta fila */}
-          <div className="w-full max-w-[480px]">
+          <div className="ios26-grid-item">
             <VersionTestingCard 
               isLoading={isLoading}
               chatResponse={chatResponse}
               onTestChat={handleTestChat}
             />
           </div>
-          <div className="w-full max-w-[480px]">
+          <div className="ios26-grid-item">
             <ActionsPanel 
               onSaveConfig={handleSaveConfig}
               onTestChat={handleTestChat}

@@ -39,33 +39,30 @@ export function ModelParamsCard() {
   }, []);
 
   return (
-        <Card className="figma-card">
+        <Card className="ios26-card">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-lg">Parámetros del Modelo</CardTitle>
-            <CardDescription className="text-sm">Ajusta el comportamiento de la IA</CardDescription>
+            <CardTitle className="ios26-subtitle">Parámetros del Modelo</CardTitle>
+            <CardDescription className="ios26-caption">Ajusta el comportamiento de la IA</CardDescription>
           </div>
-          <Badge 
-            variant={connectionStatus === 'connected' ? 'default' : 'destructive'}
-            className={`text-xs ${
-              connectionStatus === 'connected' 
-                ? 'bg-green-100 text-green-800 border-green-200' 
-                : 'bg-red-100 text-red-800 border-red-200'
-            }`}
-          >
+          <span className={`ios26-tag ${
+            connectionStatus === 'connected' 
+              ? 'ios26-tag-active' 
+              : 'ios26-tag-inactive'
+          }`}>
             {connectionStatus === 'connected' ? '🔗 Conectado' : '❌ Desconectado'}
-          </Badge>
+          </span>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="model" className="text-sm font-medium">Modelo de OpenAI</Label>
+          <Label htmlFor="model" className="ios26-body font-medium">Modelo de OpenAI</Label>
           <Select 
             value={config.model} 
             onValueChange={(value) => updateConfig({ model: value as any })}
           >
-            <SelectTrigger id="model" className="apple-input h-9">
+            <SelectTrigger id="model" className="ios26-select h-9">
               <SelectValue placeholder="Seleccionar modelo" />
             </SelectTrigger>
             <SelectContent>
@@ -76,7 +73,7 @@ export function ModelParamsCard() {
               <SelectItem value="gpt-4o-mini">GPT-4o Mini (Económico)</SelectItem>
             </SelectContent>
           </Select>
-          <p className="text-xs text-muted-foreground">Selecciona el modelo de OpenAI a utilizar</p>
+          <p className="ios26-caption">Selecciona el modelo de OpenAI a utilizar</p>
         </div>
         
         <div className="space-y-2">

@@ -2241,4 +2241,180 @@ html {
   .apple-input {
     @apply rounded-xl border border-border/50 bg-background/50 backdrop-blur-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200;
   }
+
+  /* iOS 26 Style System */
+  .ios26-container {
+    @apply bg-gradient-to-br from-slate-50 via-white to-slate-100;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+
+  .ios26-card {
+    @apply bg-white/95 backdrop-blur-xl border border-slate-200/60 rounded-3xl shadow-sm;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .ios26-card:hover {
+    @apply shadow-lg;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08), 0 4px 6px rgba(0, 0, 0, 0.03);
+    transform: translateY(-2px);
+  }
+
+  .ios26-button {
+    @apply rounded-2xl font-medium transition-all duration-200;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+
+  .ios26-button:hover {
+    transform: scale(1.02);
+  }
+
+  .ios26-button:active {
+    transform: scale(0.98);
+  }
+
+  .ios26-input {
+    @apply rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+
+  .ios26-select {
+    @apply rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+
+  .ios26-textarea {
+    @apply rounded-2xl border border-slate-200/60 bg-white/80 backdrop-blur-sm focus:border-blue-500/50 focus:ring-2 focus:ring-blue-500/20 transition-all duration-200 resize-none;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  }
+
+  .ios26-slider {
+    @apply rounded-full bg-slate-200/60 transition-all duration-200;
+  }
+
+  .ios26-slider::-webkit-slider-thumb {
+    @apply rounded-full bg-blue-500 shadow-lg;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    transition: all 0.2s ease;
+  }
+
+  .ios26-slider::-webkit-slider-thumb:hover {
+    @apply bg-blue-600 scale-110;
+  }
+
+  /* iOS 26 Status Tags */
+  .ios26-tag {
+    @apply inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-all duration-200;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+  }
+
+  .ios26-tag-active {
+    @apply bg-green-500 text-white;
+    box-shadow: 0 2px 8px rgba(34, 197, 94, 0.3);
+  }
+
+  .ios26-tag-active:hover {
+    @apply bg-green-600;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .ios26-tag-inactive {
+    @apply bg-red-500 text-white;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+  }
+
+  .ios26-tag-inactive:hover {
+    @apply bg-red-600;
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .ios26-tag-warning {
+    @apply bg-yellow-500 text-white;
+    box-shadow: 0 2px 8px rgba(234, 179, 8, 0.3);
+  }
+
+  .ios26-tag-warning:hover {
+    @apply bg-yellow-600;
+    box-shadow: 0 4px 12px rgba(234, 179, 8, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .ios26-tag-info {
+    @apply bg-blue-500 text-white;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  }
+
+  .ios26-tag-info:hover {
+    @apply bg-blue-600;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .ios26-tag-neutral {
+    @apply bg-slate-500 text-white;
+    box-shadow: 0 2px 8px rgba(100, 116, 139, 0.3);
+  }
+
+  .ios26-tag-neutral:hover {
+    @apply bg-slate-600;
+    box-shadow: 0 4px 12px rgba(100, 116, 139, 0.4);
+    transform: translateY(-1px);
+  }
+
+  /* iOS 26 Typography */
+  .ios26-title {
+    @apply text-2xl font-semibold text-slate-900;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+  }
+
+  .ios26-subtitle {
+    @apply text-lg font-medium text-slate-700;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+
+  .ios26-body {
+    @apply text-base text-slate-600;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .ios26-caption {
+    @apply text-sm text-slate-500;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    font-weight: 400;
+    line-height: 1.4;
+  }
+
+  /* iOS 26 Spacing */
+  .ios26-spacing {
+    @apply space-y-6;
+  }
+
+  .ios26-spacing-compact {
+    @apply space-y-4;
+  }
+
+  .ios26-spacing-tight {
+    @apply space-y-2;
+  }
+
+  /* iOS 26 Grid */
+  .ios26-grid {
+    @apply grid grid-cols-1 xl:grid-cols-2 gap-8 justify-items-center;
+  }
+
+  .ios26-grid-item {
+    @apply w-full max-w-[480px];
+  }
 }
