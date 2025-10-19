@@ -111,41 +111,41 @@ export default function App() {
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-background/95">
       <ConfigHeader />
       
-      <div className="container mx-auto px-4 py-6 max-w-7xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 justify-center">
+      <div className="container mx-auto px-6 py-8 max-w-6xl">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 justify-items-center">
           {/* Primera fila */}
-          <div className="max-w-[500px]">
+          <div className="w-full max-w-[500px]">
             <SiteInfoCard />
           </div>
-          <div className="max-w-[500px]">
+          <div className="w-full max-w-[500px]">
             <ModelParamsCard />
           </div>
           
           {/* Segunda fila */}
-          <div className="max-w-[500px]">
+          <div className="w-full max-w-[500px]">
             <ToneStyleCard />
           </div>
-          <div className="max-w-[500px]">
+          <div className="w-full max-w-[500px]">
             <DocumentationCard />
           </div>
           
           {/* Tercera fila */}
-          <div className="max-w-[500px]">
+          <div className="w-full max-w-[500px]">
             <ProductCatalogCard />
           </div>
-          <div className="max-w-[500px]">
+          <div className="w-full max-w-[500px]">
             <FutureFeaturesCard />
           </div>
           
           {/* Cuarta fila */}
-          <div className="max-w-[500px]">
+          <div className="w-full max-w-[500px]">
             <VersionTestingCard 
               isLoading={isLoading}
               chatResponse={chatResponse}
               onTestChat={handleTestChat}
             />
           </div>
-          <div className="max-w-[500px]">
+          <div className="w-full max-w-[500px]">
             <ActionsPanel 
               onSaveConfig={handleSaveConfig}
               onTestChat={handleTestChat}

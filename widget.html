@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Widget</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .ai-widget-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 24px;
+            background: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .widget-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .widget-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+        
+        .widget-subtitle {
+            font-size: 16px;
+            color: #666;
+        }
+        
+        .widget-section {
+            margin-bottom: 24px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e1e5e9;
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 6px;
+        }
+        
+        .form-input, .form-select, .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.2s;
+            background: white;
+        }
+        
+        .form-input:focus, .form-select:focus, .form-textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .form-textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #059669;
+        }
+        
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        
+        .stat-item {
+            text-align: center;
+            padding: 16px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #e1e5e9;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .file-list {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #e1e5e9;
+        }
+        
+        .file-item:last-child {
+            border-bottom: none;
+        }
+        
+        .file-info {
+            flex: 1;
+        }
+        
+        .file-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #1a1a1a;
+        }
+        
+        .file-size {
+            font-size: 12px;
+            color: #666;
+            margin-top: 2px;
+        }
+        
+        .chat-container {
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
+            overflow: hidden;
+            background: white;
+        }
+        
+        .chat-messages {
+            height: 250px;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+        
+        .chat-input-container {
+            display: flex;
+            padding: 16px;
+            background: white;
+            border-top: 1px solid #e1e5e9;
+            gap: 12px;
+        }
+        
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #3b82f6;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .badge-error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .message {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #3b82f6;
+        }
+        
+        .message-user {
+            border-left-color: #10b981;
+        }
+        
+        .message-ai {
+            border-left-color: #3b82f6;
+        }
+        
+        .message-header {
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .message-content {
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .file-upload-area:hover {
+            border-color: #3b82f6;
+            background: #f8faff;
+        }
+        
+        .file-upload-area.dragover {
+            border-color: #3b82f6;
+            background: #f0f9ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="ai-widget-container">
+        <div class="widget-header">
+            <h1 class="widget-title">🤖 AI Chat Widget</h1>
+            <p class="widget-subtitle">Configuración y prueba de tu asistente IA</p>
+        </div>
+
+        <!-- Configuración Básica -->
+        <div class="widget-section">
+            <h3 class="section-title">⚙️ Configuración</h3>
+            
+            <div class="form-group">
+                <label class="form-label">Site ID</label>
+                <input type="text" class="form-input" id="siteId" value="mi-sitio">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Nombre del Sitio</label>
+                <input type="text" class="form-input" id="siteName" value="Mi Tienda">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Tono</label>
+                <select class="form-select" id="tone">
+                    <option value="friendly">Amigable</option>
+                    <option value="premium">Premium</option>
+                    <option value="technical">Técnico</option>
+                    <option value="casual">Casual</option>
+                    <option value="professional">Profesional</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Modelo</label>
+                <select class="form-select" id="model">
+                    <option value="gpt-4o-mini">GPT-4o Mini (Económico)</option>
+                    <option value="gpt-3.5-turbo">GPT-3.5 Turbo (Rápido)</option>
+                    <option value="gpt-4">GPT-4 (Alta calidad)</option>
+                    <option value="gpt-4-turbo">GPT-4 Turbo (Balanceado)</option>
+                    <option value="gpt-4o">GPT-4o (Más inteligente)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Estadísticas -->
+        <div class="widget-section">
+            <h3 class="section-title">📊 Estadísticas</h3>
+            
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalProducts">0</div>
+                    <div class="stat-label">Productos</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="totalDocs">0</div>
+                    <div class="stat-label">Documentos</div>
+                </div>
+            </div>
+            
+            <button class="btn btn-secondary" onclick="loadStats()">
+                🔄 Actualizar Estadísticas
+            </button>
+        </div>
+
+        <!-- Documentación -->
+        <div class="widget-section">
+            <h3 class="section-title">📄 Documentación</h3>
+            
+            <div class="file-upload-area" onclick="document.getElementById('fileInput').click()">
+                <div>📁 Arrastra archivos aquí o haz clic para seleccionar</div>
+                <div style="font-size: 12px; color: #666; margin-top: 8px;">
+                    PDF, TXT, CSV, MD (máx. 5MB)
+                </div>
+            </div>
+            
+            <input type="file" id="fileInput" class="hidden" accept=".pdf,.txt,.csv,.md" onchange="uploadFile(this)">
+            
+            <div id="fileList" class="file-list" style="margin-top: 16px;"></div>
+        </div>
+
+        <!-- Chat de Prueba -->
+        <div class="widget-section">
+            <h3 class="section-title">💬 Chat de Prueba</h3>
+            
+            <div class="chat-container">
+                <div id="chatMessages" class="chat-messages">
+                    <div style="color: #666; font-style: italic; text-align: center; margin-top: 50px;">
+                        Escribe un mensaje para probar el chat...
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <input
+                        type="text"
+                        class="chat-input"
+                        id="chatInput"
+                        placeholder="Escribe tu mensaje..."
+                        onkeypress="if(event.key==='Enter') sendMessage()"
+                    >
+                    <button class="btn btn-primary" onclick="sendMessage()" id="sendBtn">
+                        Enviar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Supabase
+        const SUPABASE_URL = 'https://akwobmrcwqbbrdvzyiul.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrd29ibXJjd3FiYnJkdnp5aXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE5MzQ4NzMsImV4cCI6MjA0NzUxMDg3M30.8Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q';
+        
+        // Variables globales
+        let uploadedFiles = [];
+        let products = [];
+        
+        // Inicializar al cargar la página
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadFiles();
+        });
+        
+        // Cargar estadísticas
+        async function loadStats() {
+            try {
+                // Cargar productos
+                const productsResponse = await fetch(`${SUPABASE_URL}/rest/v1/product_catalog?select=*&apikey=${SUPABASE_ANON_KEY}`);
+                const productsData = await productsResponse.json();
+                products = productsData || [];
+                
+                // Cargar documentación
+                const docsResponse = await fetch(`${SUPABASE_URL}/rest/v1/documentation_files?select=*&apikey=${SUPABASE_ANON_KEY}`);
+                const docsData = await docsResponse.json();
+                uploadedFiles = docsData || [];
+                
+                // Actualizar UI
+                document.getElementById('totalProducts').textContent = products.length;
+                document.getElementById('totalDocs').textContent = uploadedFiles.length;
+                
+                updateFileList();
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+        
+        // Cargar archivos
+        async function loadFiles() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/documentation_files?select=*&apikey=${SUPABASE_ANON_KEY}`);
+                const data = await response.json();
+                uploadedFiles = data || [];
+                updateFileList();
+            } catch (error) {
+                console.error('Error loading files:', error);
+            }
+        }
+        
+        // Actualizar lista de archivos
+        function updateFileList() {
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = '';
+            
+            uploadedFiles.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">${Math.round(file.file_size / 1024)} KB • ${file.file_type.toUpperCase()}</div>
+                    </div>
+                    <span class="badge ${file.status === 'ready' ? 'badge-success' : file.status === 'processing' ? 'badge-warning' : 'badge-error'}">
+                        ${file.status === 'ready' ? 'Listo' : file.status === 'processing' ? 'Procesando' : 'Error'}
+                    </span>
+                `;
+                fileList.appendChild(fileItem);
+            });
+        }
+        
+        // Subir archivo
+        async function uploadFile(input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            if (file.size > 5 * 1024 * 1024) {
+                alert('El archivo es demasiado grande. Máximo 5MB.');
+                return;
+            }
+            
+            try {
+                const content = await readFileContent(file);
+                const fileType = getFileType(file.type);
+                
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/documentation_files`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'apikey': SUPABASE_ANON_KEY
+                    },
+                    body: JSON.stringify({
+                        name: file.name,
+                        content: content,
+                        file_type: fileType,
+                        file_size: file.size,
+                        status: 'ready'
+                    })
+                });
+                
+                if (response.ok) {
+                    await loadFiles();
+                    await loadStats();
+                    alert(`Archivo "${file.name}" subido correctamente`);
+                } else {
+                    throw new Error('Error al subir archivo');
+                }
+            } catch (error) {
+                console.error('Error uploading file:', error);
+                alert('Error al subir archivo: ' + error.message);
+            }
+        }
+        
+        // Leer contenido del archivo
+        function readFileContent(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => reject(new Error('Error al leer archivo'));
+                reader.readAsText(file);
+            });
+        }
+        
+        // Obtener tipo de archivo
+        function getFileType(mimeType) {
+            switch (mimeType) {
+                case 'application/pdf': return 'pdf';
+                case 'text/plain': return 'txt';
+                case 'text/csv': return 'csv';
+                case 'text/markdown': return 'md';
+                default: return 'txt';
+            }
+        }
+        
+        // Enviar mensaje
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+            
+            const sendBtn = document.getElementById('sendBtn');
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // Mostrar mensaje del usuario
+            addMessage('user', message);
+            input.value = '';
+            
+            // Deshabilitar botón y mostrar loading
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<div class="loading"></div>';
+            
+            try {
+                // Obtener configuración
+                const config = {
+                    siteId: document.getElementById('siteId').value,
+                    siteName: document.getElementById('siteName').value,
+                    tone: document.getElementById('tone').value,
+                    model: document.getElementById('model').value,
+                    systemPrompt: 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente.'
+                };
+                
+                // Llamar a la Edge Function
+                const response = await fetch(`${SUPABASE_URL}/functions/v1/openai-chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        systemPrompt: config.systemPrompt,
+                        model: config.model,
+                        temperature: 0.7,
+                        topP: 0.9,
+                        maxTokens: 2048,
+                        language: 'es',
+                        tone: config.tone
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    throw new Error(data.error);
+                }
+                
+                // Mostrar respuesta de la IA
+                addMessage('ai', data.answer);
+                
+            } catch (error) {
+                console.error('Error sending message:', error);
+                addMessage('ai', '❌ Error: ' + error.message);
+            } finally {
+                // Rehabilitar botón
+                sendBtn.disabled = false;
+                sendBtn.innerHTML = 'Enviar';
+            }
+        }
+        
+        // Añadir mensaje al chat
+        function addMessage(sender, content) {
+            const chatMessages = document.getElementById('chatMessages');
+            
+            // Limpiar mensaje de placeholder si existe
+            if (chatMessages.children.length === 1 && chatMessages.children[0].style.fontStyle === 'italic') {
+                chatMessages.innerHTML = '';
+            }
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message message-${sender}`;
+            messageDiv.innerHTML = `
+                <div class="message-header">${sender === 'user' ? '👤 Usuario' : '🤖 IA'}</div>
+                <div class="message-content">${content}</div>
+            `;
+            
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        // Drag and drop para archivos
+        const uploadArea = document.querySelector('.file-upload-area');
+        
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+        
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+        
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const input = document.getElementById('fileInput');
+                input.files = files;
+                uploadFile(input);
+            }
+        });
+    </script>
+</body>
+</html>
