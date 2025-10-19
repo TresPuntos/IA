@@ -8,6 +8,7 @@ import { Play, RotateCcw, Bot, User, Send } from "lucide-react";
 import { useConfig } from "../lib/ConfigContext";
 import { useState } from "react";
 import { testChat } from "../lib/chat";
+import { EnhancedChatMessage } from "../components/EnhancedChatMessage";
 
 interface Message {
   id: string;
@@ -177,28 +178,14 @@ export function Testing() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-2">
                     {messages.map((message) => (
-                      <div key={message.id} className="flex items-start gap-3">
-                        {message.role === 'user' ? (
-                          <User className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                        ) : (
-                          <Bot className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                        )}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-medium">
-                              {message.role === 'user' ? 'Tú' : 'Asistente'}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {message.timestamp.toLocaleTimeString()}
-                            </span>
-                          </div>
-                          <p className="text-sm whitespace-pre-wrap bg-background/50 rounded p-2">
-                            {message.content}
-                          </p>
-                        </div>
-                      </div>
+                      <EnhancedChatMessage
+                        key={message.id}
+                        content={message.content}
+                        role={message.role}
+                        timestamp={message.timestamp}
+                      />
                     ))}
                   </div>
                 )}
