@@ -1907,6 +1907,9 @@
   --sidebar-accent-foreground: oklch(.205 0 0);
   --sidebar-border: oklch(.922 0 0);
   --sidebar-ring: oklch(.708 0 0);
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
+  --sidebar-width-mobile: 18rem;
 }
 
 .dark {
@@ -1944,6 +1947,9 @@
   --sidebar-accent-foreground: oklch(.985 0 0);
   --sidebar-border: oklch(.269 0 0);
   --sidebar-ring: oklch(.439 0 0);
+  --sidebar-width: 16rem;
+  --sidebar-width-icon: 3rem;
+  --sidebar-width-mobile: 18rem;
 }
 
 html {
