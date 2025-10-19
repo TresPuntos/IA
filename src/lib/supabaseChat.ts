@@ -1,6 +1,7 @@
 // src/lib/supabaseChat.ts
 import { createClient } from '@supabase/supabase-js';
 import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { loadConfig } from './configStorage';
 
 const supabaseUrl = `https://${projectId}.supabase.co`;
 const supabase = createClient(supabaseUrl, publicAnonKey);
@@ -25,38 +26,48 @@ export const callSupabaseChat = async (
   systemPrompt?: string
 ): Promise<ChatResponse | ChatError> => {
   try {
-    // Usar valores por defecto en lugar de getCurrentConfig
-    const defaultConfig = {
+    // Cargar la configuración actual del usuario
+    console.log('🔍 DEBUG: Cargando configuración del usuario...');
+    const userConfig = await loadConfig('default');
+    
+    // Usar configuración del usuario o valores por defecto
+    const config = userConfig || {
+      siteId: 'default',
+      siteName: 'Mi Tienda',
+      chatStatus: 'active',
+      systemPrompt: 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente.',
+      tone: 'friendly',
+      model: 'gpt-4o-mini',
       temperature: 0.7,
       topP: 0.9,
       maxTokens: 2048,
       language: 'es',
-      tone: 'friendly',
-      model: 'gpt-4o-mini',
-      systemPrompt: 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente.'
+      versionTag: 'v1.0'
     };
     
     console.log('🔍 DEBUG: Llamando a Supabase Edge Function...');
     console.log('📝 Mensaje:', message);
-    console.log('⚙️ Configuración:', {
-      temperature: defaultConfig.temperature,
-      topP: defaultConfig.topP,
-      maxTokens: defaultConfig.maxTokens,
-      language: defaultConfig.language,
-      tone: defaultConfig.tone
+    console.log('🎯 System Prompt del usuario:', config.systemPrompt);
+    console.log('⚙️ Configuración completa:', {
+      temperature: config.temperature,
+      topP: config.topP,
+      maxTokens: config.maxTokens,
+      language: config.language,
+      tone: config.tone,
+      model: config.model
     });
 
-    // Llamar a la Edge Function de Supabase
+    // Llamar a la Edge Function de Supabase con la configuración del usuario
     const { data, error } = await supabase.functions.invoke('openai-chat', {
       body: {
         message,
-        systemPrompt: systemPrompt || defaultConfig.systemPrompt,
-        model: defaultConfig.model,
-        temperature: defaultConfig.temperature,
-        topP: defaultConfig.topP,
-        maxTokens: defaultConfig.maxTokens,
-        language: defaultConfig.language,
-        tone: defaultConfig.tone
+        systemPrompt: systemPrompt || config.systemPrompt, // Usar el System Prompt Principal del usuario
+        model: config.model,
+        temperature: config.temperature,
+        topP: config.topP,
+        maxTokens: config.maxTokens,
+        language: config.language,
+        tone: config.tone
       }
     });
 
