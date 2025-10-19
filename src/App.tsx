@@ -1,11 +1,10 @@
 import { useState, useEffect } from "react";
-import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
 import { AppSidebar } from "./components/AppSidebar";
 import { ThemeProvider } from "./utils/theme-provider";
 import { toast } from "sonner";
 import { Toaster } from "./components/ui/sonner";
 import { Button } from "./components/ui/button";
-import { Save, Copy, RotateCcw } from "lucide-react";
+import { Save, Copy, RotateCcw, PanelLeft } from "lucide-react";
 import { ConfigProvider, useConfig } from "./lib/ConfigContext";
 
 // Pages
@@ -19,6 +18,7 @@ import { Testing } from "./pages/Testing";
 function AppContent() {
   const [currentPage, setCurrentPage] = useState("dashboard");
   const [loading, setLoading] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const { saveConfiguration } = useConfig();
 
   const handleSave = async () => {
@@ -79,58 +79,65 @@ function AppContent() {
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <AppSidebar currentPage={currentPage} onPageChange={setCurrentPage} />
-        
-        <main className="flex-1 flex flex-col">
-          <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
-            <SidebarTrigger />
-            
-            <div className="flex-1" />
-            
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleReset}
-                disabled={loading}
-              >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Reset
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleDuplicate}
-                disabled={loading}
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                Duplicate
-              </Button>
-              
-              <Button
-                size="sm"
-                onClick={handleSave}
-                disabled={loading}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                {loading ? 'Saving...' : 'Save'}
-              </Button>
-            </div>
-          </header>
+    <div className="flex min-h-screen w-full bg-background">
+      {/* Sidebar */}
+      {sidebarOpen && <AppSidebar currentPage={currentPage} onPageChange={setCurrentPage} />}
+      
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        <header className="sticky top-0 z-10 flex h-16 items-center gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="lg:hidden"
+          >
+            <PanelLeft className="h-4 w-4" />
+          </Button>
           
-          <div className="flex-1 p-6 overflow-auto">
-            <div className="max-w-7xl mx-auto">
-              {renderPage()}
-            </div>
+          <div className="flex-1" />
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleReset}
+              disabled={loading}
+            >
+              <RotateCcw className="h-4 w-4 mr-2" />
+              Reset
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDuplicate}
+              disabled={loading}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              Duplicate
+            </Button>
+            
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={loading}
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {loading ? 'Saving...' : 'Save'}
+            </Button>
           </div>
-        </main>
+        </header>
+        
+        <div className="flex-1 p-6 overflow-auto">
+          <div className="max-w-7xl mx-auto">
+            {renderPage()}
+          </div>
+        </div>
       </div>
       
       <Toaster position="top-right" />
-    </SidebarProvider>
+    </div>
   );
 }
 
