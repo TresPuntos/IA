@@ -21,6 +21,7 @@ import { testChat } from "./lib/chat";
 import { loadConfig, saveConfig, resetConfig, applyConfigToDOM } from "./lib/configStorage";
 import { initializeTheme } from "./lib/theme";
 import { ConfigProvider, useConfig } from "./lib/ConfigContext";
+import { ContextDebug } from "./components/ContextDebug";
 
 type PageType = 'overview' | 'settings' | 'documents' | 'catalog' | 'tests' | 'usage';
 
@@ -80,6 +81,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+      <ContextDebug />
       <ConfigHeader />
       
       <div className="container mx-auto px-8 py-12 max-w-7xl">

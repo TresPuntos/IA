@@ -5,9 +5,15 @@ export interface ChatConfig {
   siteName: string;
   chatStatus: 'active' | 'testing' | 'inactive';
   
+  // System Prompts
+  systemPrompt: string;
+  productPrompt: string;
+  supportPrompt: string;
+  salesPrompt: string;
+  
   // Tone & Style
   tone: 'friendly' | 'premium' | 'technical' | 'casual' | 'professional';
-  systemPrompt: string;
+  styleInstructions: string;
   
   // Model Parameters
   model: 'gpt-3.5-turbo' | 'gpt-4' | 'gpt-4-turbo' | 'gpt-4o' | 'gpt-4o-mini';
@@ -22,17 +28,27 @@ export interface ChatConfig {
 
 // Configuración por defecto
 export const defaultConfig: ChatConfig = {
-  siteId: 'exitbcn',
-  siteName: 'Tienda Premium Tech',
+  siteId: 'default',
+  siteName: 'Mi Tienda',
   chatStatus: 'active',
-  tone: 'friendly',
+  
+  // System Prompts
   systemPrompt: 'Eres un asistente especializado en ayudar a clientes a encontrar productos. Siempre sé amable, directo y enfócate en las necesidades del cliente. Proporciona recomendaciones basadas en el catálogo disponible.',
+  productPrompt: 'Cuando el cliente pregunte sobre productos específicos, busca en el catálogo y proporciona información detallada incluyendo precio, descripción y disponibilidad. Si no encuentras el producto exacto, sugiere alternativas similares.',
+  supportPrompt: 'Para consultas técnicas o problemas, consulta la documentación disponible y proporciona soluciones paso a paso. Si no tienes la información necesaria, indica claramente que necesitas más detalles.',
+  salesPrompt: 'Para ayudar con ventas, destaca las características principales de los productos, menciona ofertas especiales si las hay, y guía al cliente hacia la compra de manera natural y útil.',
+  
+  // Tone & Style
+  tone: 'friendly',
+  styleInstructions: 'Usa un español neutro y profesional. Mantén las respuestas concisas pero informativas.',
+  
+  // Model Parameters
   model: 'gpt-4o-mini',
   temperature: 0.7,
   topP: 0.9,
   maxTokens: 2048,
   language: 'es',
-  versionTag: 'v0.1'
+  versionTag: 'v1.0'
 };
 
 // Función para obtener configuración actual del DOM
@@ -63,6 +79,37 @@ export const getCurrentConfig = (): ChatConfig => {
     language: (languageSelect?.value as any) || defaultConfig.language,
     versionTag: versionTagInput?.value || defaultConfig.versionTag
   };
+};
+
+// Función para generar el prompt final basado en el tono
+export const generateFinalPrompt = (config: ChatConfig): string => {
+  const basePrompt = config.systemPrompt;
+  const toneInstructions = getToneInstructions(config.tone);
+  const styleInstructions = config.styleInstructions;
+  
+  return `${basePrompt}
+
+${toneInstructions}
+
+${styleInstructions}
+
+PROMPTS ESPECÍFICOS:
+- Productos: ${config.productPrompt}
+- Soporte: ${config.supportPrompt}
+- Ventas: ${config.salesPrompt}`;
+};
+
+// Función para obtener instrucciones de tono
+export const getToneInstructions = (tone: string): string => {
+  const toneInstructions: Record<string, string> = {
+    friendly: 'Comunícate de manera cercana y amigable. Usa un lenguaje cálido y accesible. Incluye emojis ocasionalmente para hacer la conversación más agradable.',
+    premium: 'Mantén un tono sofisticado y elegante. Usa un lenguaje refinado y profesional. Destaca la calidad y exclusividad de los productos.',
+    technical: 'Sé preciso y técnico en tus explicaciones. Proporciona detalles específicos y datos concretos. Usa terminología profesional cuando sea apropiado.',
+    casual: 'Habla de manera relajada y informal. Usa un lenguaje cotidiano y cercano. Haz que la conversación se sienta natural y sin formalidades.',
+    professional: 'Mantén un tono formal y empresarial. Usa un lenguaje claro y directo. Sé eficiente y orientado a resultados.'
+  };
+  
+  return toneInstructions[tone] || toneInstructions.friendly;
 };
 
 // Función para aplicar configuración de tono
