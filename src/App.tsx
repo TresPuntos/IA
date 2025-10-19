@@ -30,17 +30,21 @@ export default function App() {
 
   // Cargar configuración guardada al iniciar
   useEffect(() => {
-    // Inicializar tema
-    initializeTheme();
+    const loadInitialConfig = async () => {
+      // Inicializar tema
+      initializeTheme();
+      
+      const savedConfig = await loadConfig();
+      if (savedConfig) {
+        // Aplicar configuración guardada usando la función especializada
+        applyConfigToDOM(savedConfig);
+      }
+    };
     
-    const savedConfig = loadConfig();
-    if (savedConfig) {
-      // Aplicar configuración guardada usando la función especializada
-      applyConfigToDOM(savedConfig);
-    }
+    loadInitialConfig();
   }, []);
 
-  const handleSaveConfig = () => {
+  const handleSaveConfig = async () => {
     const config = {
       siteId: (document.getElementById('siteId') as HTMLInputElement)?.value || '',
       siteName: (document.getElementById('siteName') as HTMLInputElement)?.value || '',
@@ -55,8 +59,12 @@ export default function App() {
       versionTag: (document.getElementById('versionTag') as HTMLInputElement)?.value || 'v0.0'
     };
     
-    saveConfig(config);
-    setChatResponse("✅ Configuración guardada exitosamente");
+    const result = await saveConfig(config);
+    if (result.success) {
+      setChatResponse("✅ Configuración guardada exitosamente en Supabase");
+    } else {
+      setChatResponse(`⚠️ ${result.error || 'Error al guardar configuración'}`);
+    }
   };
 
   const handleTestChat = async () => {
@@ -102,8 +110,8 @@ export default function App() {
     setChatResponse("✅ Configuración duplicada exitosamente");
   };
 
-  const handleReset = () => {
-    resetConfig();
+  const handleReset = async () => {
+    await resetConfig();
     setChatResponse("✅ Configuración restablecida a valores por defecto");
   };
 

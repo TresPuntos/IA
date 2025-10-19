@@ -7,13 +7,20 @@ import { saveConfig, resetConfig } from "../lib/configStorage";
 import { toast } from "sonner";
 
 export function ActionsPanel() {
-  const handleSaveConfig = () => {
+  const handleSaveConfig = async () => {
     try {
       const config = getCurrentConfig();
-      saveConfig(config);
-      toast.success("Configuración guardada correctamente", {
-        description: `Configuración de ${config.siteName} guardada en localStorage`
-      });
+      const result = await saveConfig(config);
+      
+      if (result.success) {
+        toast.success("Configuración guardada correctamente", {
+          description: `Configuración de ${config.siteName} guardada en Supabase`
+        });
+      } else {
+        toast.warning("Configuración guardada con advertencias", {
+          description: result.error || "Se guardó pero con algunos problemas"
+        });
+      }
     } catch (error) {
       toast.error("Error al guardar configuración", {
         description: "No se pudo guardar la configuración"
@@ -46,11 +53,11 @@ export function ActionsPanel() {
     });
   };
 
-  const handleReset = () => {
+  const handleReset = async () => {
     if (confirm("¿Estás seguro de que quieres resetear toda la configuración? Esta acción no se puede deshacer.")) {
-      resetConfig();
+      await resetConfig();
       toast.success("Configuración reseteada", {
-        description: "La página se recargará con valores por defecto"
+        description: "La configuración ha sido eliminada de Supabase y localStorage"
       });
     }
   };
