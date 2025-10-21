@@ -256,20 +256,26 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
                   </div>
                   <div className="flex items-center gap-2">
                     {file.status === 'success' && (
-                      <Badge variant="default">Procesado</Badge>
+                      <Badge variant="default" className="bg-green-100 text-green-800">✅ Procesado</Badge>
                     )}
                     {file.status === 'error' && (
-                      <Badge variant="destructive">Error</Badge>
+                      <Badge variant="destructive">❌ Error</Badge>
                     )}
                     {file.status === 'uploading' && (
-                      <Badge variant="secondary">Procesando...</Badge>
+                      <Badge variant="secondary">⏳ Procesando...</Badge>
                     )}
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDeleteFile(file.id)}
+                      onClick={() => {
+                        if (window.confirm(`¿Estás seguro de que quieres eliminar el archivo "${file.name}"?`)) {
+                          handleDeleteFile(file.id);
+                        }
+                      }}
+                      className="hover:bg-red-50 hover:text-red-600 hover:border-red-300"
                     >
                       <Trash2 className="h-4 w-4" />
+                      Eliminar
                     </Button>
                   </div>
                 </div>
