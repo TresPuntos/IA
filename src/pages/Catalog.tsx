@@ -46,6 +46,44 @@ export function Catalog() {
     }
   }, []);
 
+  // Limpieza automática al cargar la página
+  useEffect(() => {
+    const performAutoCleanup = async () => {
+      console.log('🗑️ Ejecutando limpieza automática...');
+      
+      try {
+        // 1. Eliminar todos los productos de Supabase
+        const productsResult = await clearAllProducts();
+        console.log('📦 Productos eliminados:', productsResult.deletedCount || 0);
+
+        // 2. Eliminar historial de actualizaciones
+        const historyResult = await clearAllUpdateHistory();
+        console.log('📋 Historial eliminado:', historyResult.deletedCount || 0);
+
+        // 3. Limpiar localStorage
+        localStorage.removeItem('catalog-csv-files');
+        localStorage.removeItem('catalog-ecommerce-connections');
+        localStorage.removeItem('catalog-last-sync');
+
+        // 4. Limpiar estado local
+        setCsvFiles([]);
+        setEcommerceConnections([]);
+        setLastSync(undefined);
+        setSyncStatus('idle');
+
+        console.log('✅ Limpieza automática completada');
+        toast.success('✅ Catálogo limpiado completamente - Listo para empezar de cero');
+        
+      } catch (error) {
+        console.error('❌ Error en limpieza automática:', error);
+        toast.error('❌ Error durante la limpieza automática');
+      }
+    };
+
+    // Ejecutar limpieza automática
+    performAutoCleanup();
+  }, []);
+
   const handleCSVUploaded = (file: any, products: Product[]) => {
     // Añadir productos del CSV al catálogo
     products.forEach(product => {
