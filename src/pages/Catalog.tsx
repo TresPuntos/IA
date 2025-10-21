@@ -125,46 +125,35 @@ export function Catalog() {
     }
   };
 
-  const handleClearAll = async () => {
-    if (!window.confirm('⚠️ ¿Estás SEGURO de que quieres eliminar TODOS los productos y conexiones?\n\nEsto eliminará:\n- Todos los productos del catálogo\n- Todas las conexiones ecommerce\n- Todo el historial de actualizaciones\n- Todos los archivos CSV locales\n\nEsta acción NO se puede deshacer.')) {
+  const handleManualCleanup = () => {
+    if (!window.confirm('⚠️ ¿Estás seguro de que quieres limpiar todo el catálogo?\n\nEsto eliminará:\n- Todos los productos locales\n- Todas las categorías\n- Todos los archivos CSV\n- Todas las conexiones ecommerce\n\nEsta acción NO se puede deshacer.')) {
       return;
     }
 
     try {
-      toast.info('🗑️ Iniciando limpieza completa...');
+      console.log('🗑️ Ejecutando limpieza manual...');
       
-      // 1. Eliminar todos los productos de Supabase
-      const productsResult = await clearAllProducts();
-      if (!productsResult.success) {
-        throw new Error(`Error al eliminar productos: ${productsResult.error}`);
-      }
+      // 1. Limpiar CatalogContext (localStorage)
+      clearAllProducts();
+      clearAllCategories();
 
-      // 2. Eliminar historial de actualizaciones
-      const historyResult = await clearAllUpdateHistory();
-      if (!historyResult.success) {
-        console.warn('⚠️ Error al eliminar historial:', historyResult.error);
-      }
-
-      // 3. Limpiar localStorage
+      // 2. Limpiar localStorage adicional
       localStorage.removeItem('catalog-csv-files');
       localStorage.removeItem('catalog-ecommerce-connections');
       localStorage.removeItem('catalog-last-sync');
 
-      // 4. Limpiar estado local
+      // 3. Limpiar estado local
       setCsvFiles([]);
       setEcommerceConnections([]);
       setLastSync(undefined);
       setSyncStatus('idle');
 
-      toast.success(`✅ Limpieza completa exitosa!\n- ${productsResult.deletedCount} productos eliminados\n- Historial limpiado\n- Conexiones eliminadas\n- Archivos CSV eliminados`);
+      console.log('✅ Limpieza manual completada');
+      toast.success('✅ Catálogo limpiado completamente - Listo para empezar de cero');
       
-      // Recargar la página para asegurar estado limpio
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
-
     } catch (error) {
-      toast.error('❌ Error durante la limpieza: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+      console.error('❌ Error en limpieza manual:', error);
+      toast.error('❌ Error durante la limpieza manual');
     }
   };
 
@@ -213,7 +202,7 @@ export function Catalog() {
         lastSync={lastSync}
         syncStatus={syncStatus}
         onDeleteCSV={handleDeleteCSVProducts}
-        onClearAll={handleClearAll}
+        onClearAll={handleManualCleanup}
       />
 
       {/* Tabs para diferentes funcionalidades */}
