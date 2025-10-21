@@ -254,15 +254,31 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
             } else if (response.status === 401) {
               const errorText = await response.text();
               console.log('Error 401 - API Key inválida:', errorText);
+              console.log('🔍 DEBUGGING INFO:');
+              console.log('- URL probada:', testUrl);
+              console.log('- API Key usada:', cleanApiKey);
+              console.log('- Auth String generado:', authString);
+              console.log('- Response headers:', Object.fromEntries(response.headers.entries()));
+              console.log('- Response body:', errorText);
+              
               lastError = new Error(`🔑 API Key inválida o sin permisos (401). 
 
-Pasos para solucionarlo:
-1. Ve a PrestaShop > Parámetros Avanzados > Webservice
-2. Verifica que el Webservice esté habilitado
-3. Genera una nueva API Key con permisos de lectura
-4. Verifica que la API Key sea exactamente: ${cleanApiKey}
+DEBUG INFO:
+• URL: ${testUrl}
+• API Key: ${cleanApiKey}
+• Response: ${errorText}
 
-URL probada: ${testUrl}`);
+POSIBLES CAUSAS:
+1. El Webservice NO está habilitado en PrestaShop
+2. La API Key NO tiene permisos de lectura
+3. Problema de configuración del servidor (.htaccess, modo CGI)
+4. La API Key es incorrecta o ha expirado
+
+SOLUCIÓN:
+1. Ve a PrestaShop > Parámetros Avanzados > Webservice
+2. Verifica que esté habilitado
+3. Verifica permisos de la API Key: Productos, Categorías, Combinaciones
+4. Prueba con una nueva API Key`);
             } else if (response.status === 403) {
               const errorText = await response.text();
               console.log('Error 403 - Acceso denegado:', errorText);
