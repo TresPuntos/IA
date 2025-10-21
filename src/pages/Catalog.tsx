@@ -54,28 +54,36 @@ export function Catalog() {
       console.log('🗑️ Ejecutando limpieza automática...');
       
       try {
-        // 1. Eliminar todos los productos de Supabase
-        const productsResult = await clearAllProducts();
-        console.log('📦 Productos eliminados:', productsResult.deletedCount || 0);
-
-        // 2. Eliminar historial de actualizaciones
-        const historyResult = await clearAllUpdateHistory();
-        console.log('📋 Historial eliminado:', historyResult.deletedCount || 0);
-
-        // 3. Limpiar CatalogContext (localStorage)
+        // 1. Limpiar CatalogContext (localStorage) primero
         clearAllProducts();
         clearAllCategories();
 
-        // 4. Limpiar localStorage adicional
+        // 2. Limpiar localStorage adicional
         localStorage.removeItem('catalog-csv-files');
         localStorage.removeItem('catalog-ecommerce-connections');
         localStorage.removeItem('catalog-last-sync');
 
-        // 5. Limpiar estado local
+        // 3. Limpiar estado local
         setCsvFiles([]);
         setEcommerceConnections([]);
         setLastSync(undefined);
         setSyncStatus('idle');
+
+        // 4. Intentar eliminar productos de Supabase (opcional)
+        try {
+          const productsResult = await clearAllProducts();
+          console.log('📦 Productos eliminados de Supabase:', productsResult.deletedCount || 0);
+        } catch (supabaseError) {
+          console.warn('⚠️ No se pudieron eliminar productos de Supabase:', supabaseError);
+        }
+
+        // 5. Intentar eliminar historial de actualizaciones (opcional)
+        try {
+          const historyResult = await clearAllUpdateHistory();
+          console.log('📋 Historial eliminado de Supabase:', historyResult.deletedCount || 0);
+        } catch (supabaseError) {
+          console.warn('⚠️ No se pudo eliminar historial de Supabase:', supabaseError);
+        }
 
         console.log('✅ Limpieza automática completada');
         toast.success('✅ Catálogo limpiado completamente - Listo para empezar de cero');
