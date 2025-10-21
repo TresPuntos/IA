@@ -25,6 +25,7 @@ interface ProductStatsProps {
   onDeleteCSV?: () => void;
   onDeleteWooCommerce?: () => void;
   onDeleteManual?: () => void;
+  onClearAll?: () => void;
 }
 
 export function ProductStats({
@@ -36,7 +37,8 @@ export function ProductStats({
   syncStatus,
   onDeleteCSV,
   onDeleteWooCommerce,
-  onDeleteManual
+  onDeleteManual,
+  onClearAll
 }: ProductStatsProps) {
   const getSyncStatusInfo = () => {
     switch (syncStatus) {
@@ -208,6 +210,28 @@ export function ProductStats({
           </div>
         </CardContent>
       </Card>
+
+      {/* Botón de Limpiar Todo */}
+      {onClearAll && (totalProducts > 0 || csvFiles > 0 || ecommerceConnections > 0) && (
+        <Card className="border-red-200 bg-red-50">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-red-800">⚠️ Zona de Peligro</h3>
+                <p className="text-sm text-red-600">Eliminar todos los productos y conexiones</p>
+              </div>
+              <Button
+                variant="destructive"
+                onClick={onClearAll}
+                className="bg-red-600 hover:bg-red-700"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Limpiar Todo
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

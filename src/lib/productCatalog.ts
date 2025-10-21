@@ -384,6 +384,72 @@ export const clearWooCommerceProducts = async (): Promise<{ success: boolean; de
   }
 };
 
+// Eliminar TODOS los productos del catálogo
+export const clearAllProducts = async (): Promise<{ success: boolean; deletedCount?: number; error?: string }> => {
+  try {
+    console.log('🗑️ Iniciando limpieza completa del catálogo...');
+    
+    const { data, error } = await supabase
+      .from('product_catalog')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000') // Eliminar todos los productos
+      .select('id');
+
+    if (error) {
+      console.error('❌ Error al eliminar productos:', error);
+      return {
+        success: false,
+        error: `Error al eliminar productos: ${error.message}`
+      };
+    }
+
+    console.log('✅ Productos eliminados:', data?.length || 0);
+    return {
+      success: true,
+      deletedCount: data?.length || 0
+    };
+  } catch (error) {
+    console.error('❌ Error inesperado:', error);
+    return {
+      success: false,
+      error: `Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    };
+  }
+};
+
+// Eliminar TODOS los registros de actualización
+export const clearAllUpdateHistory = async (): Promise<{ success: boolean; deletedCount?: number; error?: string }> => {
+  try {
+    console.log('🗑️ Iniciando limpieza del historial de actualizaciones...');
+    
+    const { data, error } = await supabase
+      .from('catalog_updates')
+      .delete()
+      .neq('id', '00000000-0000-0000-0000-000000000000') // Eliminar todos los registros
+      .select('id');
+
+    if (error) {
+      console.error('❌ Error al eliminar historial:', error);
+      return {
+        success: false,
+        error: `Error al eliminar historial: ${error.message}`
+      };
+    }
+
+    console.log('✅ Registros de actualización eliminados:', data?.length || 0);
+    return {
+      success: true,
+      deletedCount: data?.length || 0
+    };
+  } catch (error) {
+    console.error('❌ Error inesperado:', error);
+    return {
+      success: false,
+      error: `Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    };
+  }
+};
+
 // Obtener historial de actualizaciones
 export const getUpdateHistory = async (): Promise<CatalogUpdate[]> => {
   const { data, error } = await supabase
