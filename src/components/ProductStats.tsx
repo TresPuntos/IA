@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Badge } from './ui/badge';
+import { Button } from './ui/button';
 import { 
   Package, 
   TrendingUp, 
@@ -10,7 +11,8 @@ import {
   FileText,
   ShoppingCart,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Trash2
 } from 'lucide-react';
 
 interface ProductStatsProps {
@@ -20,6 +22,9 @@ interface ProductStatsProps {
   ecommerceConnections: number;
   lastSync?: Date;
   syncStatus: 'success' | 'error' | 'pending' | 'idle';
+  onDeleteCSV?: () => void;
+  onDeleteWooCommerce?: () => void;
+  onDeleteManual?: () => void;
 }
 
 export function ProductStats({
@@ -28,7 +33,10 @@ export function ProductStats({
   csvFiles,
   ecommerceConnections,
   lastSync,
-  syncStatus
+  syncStatus,
+  onDeleteCSV,
+  onDeleteWooCommerce,
+  onDeleteManual
 }: ProductStatsProps) {
   const getSyncStatusInfo = () => {
     switch (syncStatus) {
@@ -167,7 +175,19 @@ export function ProductStats({
                 <FileText className="h-4 w-4 text-blue-500" />
                 <span className="font-medium">Archivos CSV</span>
               </div>
-              <Badge variant="outline">{csvFiles} archivos</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline">{csvFiles} archivos</Badge>
+                {onDeleteCSV && csvFiles > 0 && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onDeleteCSV}
+                    className="h-7 px-2 text-red-600 hover:bg-red-50 hover:text-red-700"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </Button>
+                )}
+              </div>
             </div>
             
             <div className="flex items-center justify-between p-3 border rounded-lg">

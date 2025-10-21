@@ -7,6 +7,8 @@ import { EcommerceConnections } from "../components/EcommerceConnections";
 import { ProductStats } from "../components/ProductStats";
 import { useCatalog } from "../lib/CatalogContext";
 import { Product, ProductCategory } from "../lib/catalog";
+import { clearCSVProducts, clearWooCommerceProducts, clearCatalog } from "../lib/productCatalog";
+import { toast } from "sonner";
 
 export function Catalog() {
   const { 
@@ -67,6 +69,26 @@ export function Catalog() {
     localStorage.setItem('catalog-csv-files', JSON.stringify(updatedFiles));
   };
 
+  const handleDeleteCSVProducts = async () => {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar TODOS los productos CSV? Esto limpiará el catálogo para una nueva importación.')) {
+      return;
+    }
+
+    try {
+      const result = await clearCSVProducts();
+      
+      if (result.success) {
+        toast.success(`✅ ${result.deletedCount} productos CSV eliminados. El catálogo está listo para una nueva importación.`);
+        // Recargar la página para actualizar las estadísticas
+        window.location.reload();
+      } else {
+        toast.error(result.error || 'Error al eliminar productos CSV');
+      }
+    } catch (error) {
+      toast.error('Error inesperado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
+    }
+  };
+
   const handleConnectionUpdate = (connection: any) => {
     const updatedConnections = ecommerceConnections.map(c => 
       c.id === connection.id ? connection : c
@@ -111,6 +133,7 @@ export function Catalog() {
         ecommerceConnections={connectedEcommerce}
         lastSync={lastSync}
         syncStatus={syncStatus}
+        onDeleteCSV={handleDeleteCSVProducts}
       />
 
       {/* Tabs para diferentes funcionalidades */}

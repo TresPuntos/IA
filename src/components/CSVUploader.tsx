@@ -5,6 +5,7 @@ import { Button } from './ui/button';
 import { Badge } from './ui/badge';
 import { Upload, FileText, Trash2, CheckCircle, AlertCircle, Download } from 'lucide-react';
 import { toast } from 'sonner';
+import { uploadProductsFromCSV } from '../lib/productCatalog';
 
 interface CSVFile {
   id: string;
@@ -74,58 +75,45 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
     setIsUploading(true);
 
     try {
-      // Simular procesamiento del CSV
-      const text = await file.text();
-      const lines = text.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim());
+      console.log('🚀 Iniciando subida real de CSV:', file.name);
       
-      // Validar que tenga las columnas necesarias
-      const requiredColumns = ['name', 'price', 'category', 'description'];
-      const hasRequiredColumns = requiredColumns.every(col => 
-        headers.some(header => header.toLowerCase().includes(col.toLowerCase()))
-      );
+      // Usar la función real de subida de CSV
+      const result = await uploadProductsFromCSV(file, (progress) => {
+        console.log('📊 Progreso:', progress);
+      });
 
-      if (!hasRequiredColumns) {
-        throw new Error('El CSV debe contener las columnas: name, price, category, description');
+      if (result.success) {
+        console.log('✅ CSV subido correctamente:', result.productsCount, 'productos');
+        
+        // Actualizar estado del archivo
+        setUploadedFiles(prev => prev.map(f => 
+          f.id === fileId 
+            ? { ...f, status: 'success', productsCount: result.productsCount }
+            : f
+        ));
+
+        // Notificar al componente padre con datos simulados para compatibilidad
+        const simulatedProducts = Array.from({ length: result.productsCount || 0 }, (_, index) => ({
+          id: `csv-product-${fileId}-${index}`,
+          name: `Producto ${index + 1}`,
+          price: 0,
+          category: '',
+          description: '',
+          sku: `CSV-${index + 1}`,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }));
+        
+        onFileUploaded(newFile, simulatedProducts);
+        
+        toast.success(`✅ CSV procesado correctamente: ${result.productsCount} productos guardados en Supabase`);
+      } else {
+        throw new Error(result.error || 'Error desconocido al procesar CSV');
       }
-
-      // Procesar productos
-      const products = lines.slice(1)
-        .filter(line => line.trim())
-        .map((line, index) => {
-          const values = line.split(',').map(v => v.trim());
-          const product: any = {};
-          
-          headers.forEach((header, i) => {
-            const key = header.toLowerCase().replace(/\s+/g, '_');
-            product[key] = values[i] || '';
-          });
-          
-          return {
-            ...product,
-            id: `csv-product-${fileId}-${index}`,
-            sku: product.sku || `CSV-${index + 1}`,
-            price: parseFloat(product.price) || 0,
-            isActive: true,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          };
-        });
-
-      // Actualizar estado del archivo
-      setUploadedFiles(prev => prev.map(f => 
-        f.id === fileId 
-          ? { ...f, status: 'success', productsCount: products.length }
-          : f
-      ));
-
-      // Notificar al componente padre
-      onFileUploaded(newFile, products);
-      
-      toast.success(`CSV procesado correctamente: ${products.length} productos encontrados`);
       
     } catch (error) {
-      console.error('Error processing CSV:', error);
+      console.error('❌ Error processing CSV:', error);
       
       setUploadedFiles(prev => prev.map(f => 
         f.id === fileId 
@@ -133,7 +121,7 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
           : f
       ));
       
-      toast.error(`Error al procesar CSV: ${(error as Error).message}`);
+      toast.error(`❌ Error al procesar CSV: ${(error as Error).message}`);
     } finally {
       setIsUploading(false);
     }
