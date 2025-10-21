@@ -132,37 +132,62 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
       if (connection.platform === 'prestashop') {
         console.log('Probando conexión Prestashop...');
         // Prueba real de conexión Prestashop
-        const testUrl = `${connection.url}/products?display=full&limit=1`;
-        console.log('URL de prueba:', testUrl);
+        const cleanUrl = connection.url.replace(/\/$/, ''); // Quitar barra final si existe
         
-        const response = await fetch(testUrl, {
-          headers: {
-            'Authorization': `Basic ${btoa(`${connection.apiKey}:`)}`,
-            'Content-Type': 'application/json'
+        // Probar diferentes formatos de URL
+        const testUrls = [
+          `${cleanUrl}/products?display=full&limit=1`,
+          `${cleanUrl}/products?limit=1`,
+          `${cleanUrl}/products`,
+          `${cleanUrl}/api/products?display=full&limit=1`
+        ];
+        
+        let lastError = null;
+        
+        for (const testUrl of testUrls) {
+          try {
+            console.log('Probando URL:', testUrl);
+            
+            const response = await fetch(testUrl, {
+              method: 'GET',
+              headers: {
+                'Authorization': `Basic ${btoa(`${connection.apiKey}:`)}`,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              mode: 'cors'
+            });
+
+            console.log('Respuesta de prueba:', response.status, response.statusText);
+
+            if (response.ok) {
+              const data = await response.json();
+              console.log('Datos de respuesta:', data);
+              const productsCount = data.products ? data.products.length : 0;
+              
+              const updatedConnection = {
+                ...connection,
+                isConnected: true,
+                lastSync: new Date(),
+                productsCount: productsCount
+              };
+              
+              console.log('Actualizando conexión:', updatedConnection);
+              handleConnectionUpdate(updatedConnection);
+              return; // Salir si funciona
+            } else {
+              const errorText = await response.text();
+              console.log('Error con esta URL:', response.status, errorText);
+              lastError = new Error(`Error de conexión: ${response.status} ${response.statusText}`);
+            }
+          } catch (error) {
+            console.log('Error de red con esta URL:', error);
+            lastError = error;
           }
-        });
-
-        console.log('Respuesta de prueba:', response.status, response.statusText);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Error de respuesta:', errorText);
-          throw new Error(`Error de conexión: ${response.status} ${response.statusText}`);
         }
-
-        const data = await response.json();
-        console.log('Datos de respuesta:', data);
-        const productsCount = data.products ? data.products.length : 0;
         
-        const updatedConnection = {
-          ...connection,
-          isConnected: true,
-          lastSync: new Date(),
-          productsCount: productsCount
-        };
-        
-        console.log('Actualizando conexión:', updatedConnection);
-        handleConnectionUpdate(updatedConnection);
+        // Si llegamos aquí, ninguna URL funcionó
+        throw lastError || new Error('No se pudo conectar con ninguna URL de prueba');
       } else {
         console.log('Probando conexión simulada para:', connection.platform);
         // Simular test de conexión para otras plataformas

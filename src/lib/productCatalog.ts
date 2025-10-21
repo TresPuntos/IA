@@ -656,7 +656,8 @@ const fetchPrestashopProducts = async (
   apiUrl: string,
   apiKey: string
 ): Promise<PrestashopProduct[]> => {
-  const url = `${apiUrl}/products?display=full&limit=1000`;
+  const cleanUrl = apiUrl.replace(/\/$/, ''); // Quitar barra final si existe
+  const url = `${cleanUrl}/products?display=full&limit=1000`;
   console.log('Fetching Prestashop products from:', url);
   
   const response = await fetch(url, {
@@ -686,7 +687,8 @@ const fetchPrestashopCombinations = async (
   productId: number
 ): Promise<PrestashopCombination[]> => {
   try {
-    const url = `${apiUrl}/products/${productId}/combinations?display=full`;
+    const cleanUrl = apiUrl.replace(/\/$/, ''); // Quitar barra final si existe
+    const url = `${cleanUrl}/products/${productId}/combinations?display=full`;
     
     const response = await fetch(url, {
       headers: {
