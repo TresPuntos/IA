@@ -157,7 +157,7 @@ export function PrestashopScanner({
               disabled={isScanning || isImporting}
             />
             <p className="text-sm text-muted-foreground">
-              Genera tu API Key en PrestaShop > Web Service
+              Genera tu API Key en PrestaShop &gt; Web Service
             </p>
           </div>
 
