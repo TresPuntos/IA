@@ -80,59 +80,55 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
       // Leer el contenido del CSV
       const text = await file.text();
       
-      // Función para parsear CSV correctamente manejando comillas y saltos de línea
-      const parseCSV = (csvText: string): string[][] => {
-        const result: string[][] = [];
-        let currentRow: string[] = [];
+      // Parser más simple: usar regex para dividir por líneas que empiezan con comillas
+      const lines = text.split(/\r?\n/);
+      console.log('📊 Total líneas en el archivo:', lines.length);
+      
+      // Filtrar solo las líneas que empiezan con comillas (productos reales)
+      const productLines = lines.filter(line => line.trim().startsWith('"'));
+      console.log('📊 Líneas que empiezan con comillas:', productLines.length);
+      
+      // Parsear cada línea de producto
+      const rows: string[][] = [];
+      
+      productLines.forEach((line, index) => {
+        if (index < 3) { // Log solo las primeras 3 líneas
+          console.log(`📋 Línea ${index + 1}:`, line.substring(0, 100) + '...');
+        }
+        
+        // Parsear línea CSV simple
+        const fields: string[] = [];
         let currentField = '';
         let inQuotes = false;
-        let i = 0;
         
-        while (i < csvText.length) {
-          const char = csvText[i];
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
           
           if (char === '"') {
-            if (inQuotes && csvText[i + 1] === '"') {
+            if (inQuotes && line[i + 1] === '"') {
               // Comilla escapada
               currentField += '"';
-              i += 2;
+              i++; // Saltar la siguiente comilla
             } else {
               // Inicio o fin de comillas
               inQuotes = !inQuotes;
-              i++;
             }
           } else if (char === ',' && !inQuotes) {
             // Fin de campo
-            currentRow.push(currentField.trim());
+            fields.push(currentField.trim());
             currentField = '';
-            i++;
-          } else if ((char === '\n' || char === '\r') && !inQuotes) {
-            // Fin de fila
-            currentRow.push(currentField.trim());
-            if (currentRow.length > 0) {
-              result.push(currentRow);
-            }
-            currentRow = [];
-            currentField = '';
-            i++;
           } else {
             currentField += char;
-            i++;
           }
         }
         
-        // Agregar la última fila si no termina con salto de línea
-        if (currentField.trim() || currentRow.length > 0) {
-          currentRow.push(currentField.trim());
-          if (currentRow.length > 0) {
-            result.push(currentRow);
-          }
-        }
+        // Agregar el último campo
+        fields.push(currentField.trim());
         
-        return result;
-      };
-
-      const rows = parseCSV(text);
+        if (fields.length > 0) {
+          rows.push(fields);
+        }
+      });
       
       if (rows.length < 2) {
         throw new Error('El CSV debe tener al menos una línea de encabezados y una línea de datos');
