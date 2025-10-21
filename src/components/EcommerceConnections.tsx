@@ -125,7 +125,11 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
   };
 
   const handleTestConnection = async (connection: EcommerceConnection) => {
-    console.log('Iniciando prueba de conexión para:', connection.platform, connection.url);
+    console.log('=== INICIANDO PRUEBA DE CONEXIÓN ===');
+    console.log('Iniciando prueba de conexión para:', connection.platform);
+    console.log('Connection completa:', connection);
+    console.log('URL:', connection.url);
+    console.log('API Key:', connection.apiKey ? '***' : 'undefined');
     setIsTesting(connection.id);
     
     try {
@@ -135,11 +139,13 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
         const cleanUrl = connection.url.trim().replace(/\/$/, ''); // Quitar espacios y barra final
         
         // Validar que la URL esté bien formada
-        if (!cleanUrl.includes('/api/')) {
-          throw new Error('La URL debe contener /api/ para ser una API de Prestashop válida');
-        }
-        
+        console.log('URL original:', connection.url);
         console.log('URL limpia:', cleanUrl);
+        
+        if (!cleanUrl.includes('/api/')) {
+          console.error('URL no contiene /api/:', cleanUrl);
+          throw new Error(`La URL debe contener /api/ para ser una API de Prestashop válida. URL actual: ${cleanUrl}`);
+        }
         
         // Probar diferentes formatos de URL
         const testUrls = [
