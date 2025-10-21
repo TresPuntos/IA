@@ -80,48 +80,79 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
       // Leer el contenido del CSV
       const text = await file.text();
       
-      // Parser unificado para CSV con comillas y saltos de línea dentro de campos
-      console.log('🔧 Versión del parser: 2024-12-19-v5 (FORZAR ACTUALIZACIÓN)');
-      console.log('🚨 ESTE ES EL PARSER CORRECTO QUE CUENTA 1511 PRODUCTOS');
+      // Parser robusto para CSV con comillas y códigos HTML problemáticos
+      console.log('🔧 Versión del parser: 2024-12-19-v6 (MANEJO DE CÓDIGOS HTML)');
+      console.log('🚨 PARSER CORREGIDO PARA MANEJAR class=""MsoNormal"" Y SIMILARES');
       
       const lines = text.split(/\r?\n/);
       console.log('📊 Total líneas en el archivo:', lines.length);
       
-      // Reconstruir líneas completas de productos (pueden estar en múltiples líneas físicas)
-      const reconstructedLines: string[] = [];
-      let currentLine = '';
-      let quoteCount = 0;
-      
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
+      // Función para detectar si una línea es el inicio de un nuevo producto
+      const isProductStart = (line: string): boolean => {
+        // Una línea es inicio de producto si:
+        // 1. Empieza con comilla
+        // 2. Contiene al menos 3 comillas (name, price, category)
+        // 3. No es continuación de una descripción HTML
+        const trimmedLine = line.trim();
+        if (!trimmedLine.startsWith('"')) return false;
         
         // Contar comillas en la línea
-        const lineQuoteCount = (line.match(/"/g) || []).length;
-        quoteCount += lineQuoteCount;
+        const quoteCount = (trimmedLine.match(/"/g) || []).length;
         
-        if (currentLine === '') {
-          // Empezar nueva línea
-          currentLine = line;
-        } else {
-          // Continuar línea existente
-          currentLine += '\n' + line;
+        // Si tiene 6 o más comillas, probablemente es un producto completo en una línea
+        if (quoteCount >= 6) return true;
+        
+        // Si tiene 2 comillas y contiene campos típicos de producto, es inicio
+        if (quoteCount >= 2 && trimmedLine.includes('","')) {
+          // Verificar que no sea una línea de continuación HTML
+          const firstField = trimmedLine.split('","')[0];
+          if (firstField && firstField.length > 0 && !firstField.includes('<')) {
+            return true;
+          }
         }
         
-        // Si el número de comillas es par, la línea está completa
-        if (quoteCount % 2 === 0 && quoteCount > 0) {
-          reconstructedLines.push(currentLine);
-          currentLine = '';
-          quoteCount = 0;
+        return false;
+      };
+      
+      // Reconstruir líneas completas de productos
+      const reconstructedLines: string[] = [];
+      let currentProduct = '';
+      let inProduct = false;
+      
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        if (isProductStart(line)) {
+          // Si ya había un producto en construcción, guardarlo
+          if (inProduct && currentProduct) {
+            reconstructedLines.push(currentProduct);
+          }
+          // Empezar nuevo producto
+          currentProduct = line;
+          inProduct = true;
+        } else if (inProduct && line) {
+          // Continuar construyendo el producto actual
+          currentProduct += '\n' + line;
+        } else if (!line) {
+          // Línea vacía, continuar
+          continue;
+        } else {
+          // Línea que no pertenece a un producto
+          if (inProduct && currentProduct) {
+            reconstructedLines.push(currentProduct);
+            currentProduct = '';
+            inProduct = false;
+          }
         }
       }
       
-      // Agregar la última línea si existe
-      if (currentLine.trim()) {
-        reconstructedLines.push(currentLine);
+      // Agregar el último producto si existe
+      if (inProduct && currentProduct) {
+        reconstructedLines.push(currentProduct);
       }
       
       console.log('📊 Líneas reconstruidas:', reconstructedLines.length);
-      console.log('✅ ALGORITMO DE RECONSTRUCCIÓN COMPLETADO');
+      console.log('✅ ALGORITMO DE RECONSTRUCCIÓN ROBUSTO COMPLETADO');
       
       // Parsear cada línea reconstruida
       const rows: string[][] = [];
