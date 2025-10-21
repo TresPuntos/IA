@@ -48,39 +48,39 @@ export function Catalog() {
     }
   }, []);
 
-  // Limpieza automática al cargar la página
-  useEffect(() => {
-    const performAutoCleanup = () => {
-      console.log('🗑️ Ejecutando limpieza automática...');
+  // Limpieza automática deshabilitada temporalmente
+  // useEffect(() => {
+  //   const performAutoCleanup = () => {
+  //     console.log('🗑️ Ejecutando limpieza automática...');
       
-      try {
-        // 1. Limpiar CatalogContext (localStorage) primero
-        clearAllProducts();
-        clearAllCategories();
+  //     try {
+  //       // 1. Limpiar CatalogContext (localStorage) primero
+  //       clearAllProducts();
+  //       clearAllCategories();
 
-        // 2. Limpiar localStorage adicional
-        localStorage.removeItem('catalog-csv-files');
-        localStorage.removeItem('catalog-ecommerce-connections');
-        localStorage.removeItem('catalog-last-sync');
+  //       // 2. Limpiar localStorage adicional
+  //       localStorage.removeItem('catalog-csv-files');
+  //       localStorage.removeItem('catalog-ecommerce-connections');
+  //       localStorage.removeItem('catalog-last-sync');
 
-        // 3. Limpiar estado local
-        setCsvFiles([]);
-        setEcommerceConnections([]);
-        setLastSync(undefined);
-        setSyncStatus('idle');
+  //       // 3. Limpiar estado local
+  //       setCsvFiles([]);
+  //       setEcommerceConnections([]);
+  //       setLastSync(undefined);
+  //       setSyncStatus('idle');
 
-        console.log('✅ Limpieza automática completada');
-        toast.success('✅ Catálogo limpiado completamente - Listo para empezar de cero');
+  //       console.log('✅ Limpieza automática completada');
+  //       toast.success('✅ Catálogo limpiado completamente - Listo para empezar de cero');
         
-      } catch (error) {
-        console.error('❌ Error en limpieza automática:', error);
-        toast.error('❌ Error durante la limpieza automática');
-      }
-    };
+  //     } catch (error) {
+  //       console.error('❌ Error en limpieza automática:', error);
+  //       toast.error('❌ Error durante la limpieza automática');
+  //     }
+  //   };
 
-    // Ejecutar limpieza automática
-    performAutoCleanup();
-  }, [clearAllProducts, clearAllCategories]);
+  //   // Ejecutar limpieza automática
+  //   performAutoCleanup();
+  // }, [clearAllProducts, clearAllCategories]);
 
   const handleCSVUploaded = (file: any, products: Product[]) => {
     // Añadir productos del CSV al catálogo
