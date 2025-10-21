@@ -127,6 +127,7 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
         }
         
         console.log('📊 Líneas reconstruidas:', reconstructedLines.length);
+      console.log('🔧 Versión del parser: 2024-12-19-v3');
         
         // Parsear cada línea reconstruida
         reconstructedLines.forEach((line, index) => {
