@@ -21,7 +21,9 @@ export function Catalog() {
     addCategory,
     updateCategory,
     deleteCategory,
-    toggleCategoryActive
+    toggleCategoryActive,
+    clearAllProducts,
+    clearAllCategories
   } = useCatalog();
 
   const [csvFiles, setCsvFiles] = useState<any[]>([]);
@@ -60,12 +62,16 @@ export function Catalog() {
         const historyResult = await clearAllUpdateHistory();
         console.log('📋 Historial eliminado:', historyResult.deletedCount || 0);
 
-        // 3. Limpiar localStorage
+        // 3. Limpiar CatalogContext (localStorage)
+        clearAllProducts();
+        clearAllCategories();
+
+        // 4. Limpiar localStorage adicional
         localStorage.removeItem('catalog-csv-files');
         localStorage.removeItem('catalog-ecommerce-connections');
         localStorage.removeItem('catalog-last-sync');
 
-        // 4. Limpiar estado local
+        // 5. Limpiar estado local
         setCsvFiles([]);
         setEcommerceConnections([]);
         setLastSync(undefined);
@@ -82,7 +88,7 @@ export function Catalog() {
 
     // Ejecutar limpieza automática
     performAutoCleanup();
-  }, []);
+  }, [clearAllProducts, clearAllCategories]);
 
   const handleCSVUploaded = (file: any, products: Product[]) => {
     // Añadir productos del CSV al catálogo

@@ -13,6 +13,8 @@ interface CatalogContextType {
   updateCategory: (id: string, updates: Partial<ProductCategory>) => void;
   deleteCategory: (id: string) => void;
   toggleCategoryActive: (id: string) => void;
+  clearAllProducts: () => void;
+  clearAllCategories: () => void;
   isLoading: boolean;
 }
 
@@ -120,6 +122,20 @@ export const CatalogProvider: React.FC<CatalogProviderProps> = ({ children }) =>
     ));
   };
 
+  const clearAllProducts = () => {
+    console.log('🗑️ Limpiando todos los productos del CatalogContext...');
+    setProducts([]);
+    localStorage.removeItem('catalog-products');
+    console.log('✅ Productos del CatalogContext eliminados');
+  };
+
+  const clearAllCategories = () => {
+    console.log('🗑️ Limpiando todas las categorías del CatalogContext...');
+    setCategories([]);
+    localStorage.removeItem('catalog-categories');
+    console.log('✅ Categorías del CatalogContext eliminadas');
+  };
+
   return (
     <CatalogContext.Provider value={{
       products,
@@ -132,6 +148,8 @@ export const CatalogProvider: React.FC<CatalogProviderProps> = ({ children }) =>
       updateCategory,
       deleteCategory,
       toggleCategoryActive,
+      clearAllProducts,
+      clearAllCategories,
       isLoading
     }}>
       {children}
