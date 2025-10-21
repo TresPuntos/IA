@@ -356,6 +356,97 @@ export const clearCSVProducts = async (): Promise<{ success: boolean; deletedCou
   }
 };
 
+// Cargar productos desde Supabase
+export const loadProductsFromSupabase = async (): Promise<{ success: boolean; products?: Product[]; error?: string }> => {
+  try {
+    console.log('📥 Cargando productos desde Supabase...');
+    
+    const { data, error } = await supabase
+      .from('product_catalog')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('❌ Error al cargar productos:', error);
+      return {
+        success: false,
+        error: `Error al cargar productos: ${error.message}`
+      };
+    }
+
+    console.log('✅ Productos cargados desde Supabase:', data?.length || 0);
+    
+    return {
+      success: true,
+      products: data || []
+    };
+  } catch (error) {
+    console.error('❌ Error inesperado al cargar productos:', error);
+    return {
+      success: false,
+      error: `Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    };
+  }
+};
+
+// Guardar productos CSV en Supabase
+export const saveCSVProducts = async (products: Omit<Product, 'id' | 'created_at' | 'updated_at'>[]): Promise<{ success: boolean; savedCount?: number; error?: string }> => {
+  try {
+    console.log('💾 Guardando productos CSV en Supabase:', products.length);
+    
+    // Preparar productos para Supabase
+    const productsToSave = products.map(product => ({
+      name: product.name,
+      price: product.price,
+      description: product.description || '',
+      category: product.category || '',
+      sku: product.sku || '',
+      stock_quantity: product.stock_quantity || 0,
+      image_url: product.image_url || '',
+      status: product.status || 'active',
+      source: product.source || 'csv',
+      external_id: product.external_id || null
+    }));
+
+    // Insertar productos en lotes de 100 para evitar límites de Supabase
+    const batchSize = 100;
+    let totalSaved = 0;
+    
+    for (let i = 0; i < productsToSave.length; i += batchSize) {
+      const batch = productsToSave.slice(i, i + batchSize);
+      
+      const { data, error } = await supabase
+        .from('product_catalog')
+        .insert(batch)
+        .select('id');
+
+      if (error) {
+        console.error('❌ Error al guardar lote:', error);
+        return {
+          success: false,
+          error: `Error al guardar productos: ${error.message}`
+        };
+      }
+
+      totalSaved += data?.length || 0;
+      console.log(`✅ Lote ${Math.floor(i/batchSize) + 1} guardado: ${data?.length || 0} productos`);
+    }
+
+    console.log('✅ Todos los productos CSV guardados en Supabase:', totalSaved);
+    
+    return {
+      success: true,
+      savedCount: totalSaved
+    };
+  } catch (error) {
+    console.error('❌ Error inesperado al guardar productos:', error);
+    return {
+      success: false,
+      error: `Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    };
+  }
+};
+
 // Eliminar solo productos de WooCommerce
 export const clearWooCommerceProducts = async (): Promise<{ success: boolean; deletedCount?: number; error?: string }> => {
   try {

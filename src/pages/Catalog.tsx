@@ -7,7 +7,7 @@ import { EcommerceConnections } from "../components/EcommerceConnections";
 import { ProductStats } from "../components/ProductStats";
 import { useCatalog } from "../lib/CatalogContext";
 import { Product, ProductCategory } from "../lib/catalog";
-import { clearCSVProducts, clearWooCommerceProducts, clearCatalog, clearAllProducts, clearAllUpdateHistory } from "../lib/productCatalog";
+import { clearCSVProducts, clearWooCommerceProducts, clearCatalog, clearAllProducts, clearAllUpdateHistory, saveCSVProducts, loadProductsFromSupabase } from "../lib/productCatalog";
 import { toast } from "sonner";
 
 export function Catalog() {
@@ -31,21 +31,58 @@ export function Catalog() {
   const [lastSync, setLastSync] = useState<Date | undefined>();
   const [syncStatus, setSyncStatus] = useState<'success' | 'error' | 'pending' | 'idle'>('idle');
 
-  // Cargar datos desde localStorage
+  // Cargar datos desde localStorage y Supabase
   useEffect(() => {
-    const savedCsvFiles = localStorage.getItem('catalog-csv-files');
-    const savedConnections = localStorage.getItem('catalog-ecommerce-connections');
-    const savedLastSync = localStorage.getItem('catalog-last-sync');
+    const loadData = async () => {
+      // Cargar datos de localStorage
+      const savedCsvFiles = localStorage.getItem('catalog-csv-files');
+      const savedConnections = localStorage.getItem('catalog-ecommerce-connections');
+      const savedLastSync = localStorage.getItem('catalog-last-sync');
 
-    if (savedCsvFiles) {
-      setCsvFiles(JSON.parse(savedCsvFiles));
-    }
-    if (savedConnections) {
-      setEcommerceConnections(JSON.parse(savedConnections));
-    }
-    if (savedLastSync) {
-      setLastSync(new Date(savedLastSync));
-    }
+      if (savedCsvFiles) {
+        setCsvFiles(JSON.parse(savedCsvFiles));
+      }
+      if (savedConnections) {
+        setEcommerceConnections(JSON.parse(savedConnections));
+      }
+      if (savedLastSync) {
+        setLastSync(new Date(savedLastSync));
+      }
+
+      // Cargar productos desde Supabase
+      console.log('🔄 Cargando productos desde Supabase...');
+      const loadResult = await loadProductsFromSupabase();
+      
+      if (loadResult.success && loadResult.products) {
+        console.log('✅ Productos cargados desde Supabase:', loadResult.products.length);
+        
+        // Limpiar productos locales y cargar desde Supabase
+        clearAllProducts();
+        
+        // Convertir productos de Supabase al formato del CatalogContext
+        loadResult.products.forEach(product => {
+          addProduct({
+            name: product.name,
+            price: product.price,
+            description: product.description || '',
+            category: product.category || '',
+            sku: product.sku || '',
+            stock_quantity: product.stock_quantity || 0,
+            image_url: product.image_url || '',
+            isActive: product.status === 'active',
+            source: product.source as any
+          });
+        });
+        
+        console.log('✅ Productos sincronizados con CatalogContext');
+      } else {
+        console.error('❌ Error al cargar productos desde Supabase:', loadResult.error);
+      }
+    };
+
+    loadData();
+  }, [clearAllProducts, addProduct]);
+
   // Debug: Mostrar información de productos al cargar
   useEffect(() => {
     console.log('🔍 DEBUG - Estado actual del catálogo:');
@@ -97,36 +134,65 @@ export function Catalog() {
   //   performAutoCleanup();
   // }, [clearAllProducts, clearAllCategories]);
 
-  const handleCSVUploaded = (file: any, products: Product[]) => {
+  const handleCSVUploaded = async (file: any, products: Product[]) => {
     console.log('📥 handleCSVUploaded llamado con:', products.length, 'productos');
     console.log('📊 Estado actual del catálogo ANTES de añadir:', products.length, 'productos');
     
-    // LIMPIAR TODO ANTES DE AÑADIR NUEVOS PRODUCTOS
-    console.log('🗑️ Limpiando catálogo antes de añadir nuevos productos...');
-    clearAllProducts();
-    clearAllCategories();
-    
-    console.log('📊 Estado actual del catálogo DESPUÉS de limpiar:', products.length, 'productos');
-    
-    // Añadir productos del CSV al catálogo
-    products.forEach((product, index) => {
-      if (index < 5) { // Solo log los primeros 5 para no saturar
-        console.log(`➕ Añadiendo producto ${index + 1}:`, product.name);
+    try {
+      // LIMPIAR TODO ANTES DE AÑADIR NUEVOS PRODUCTOS
+      console.log('🗑️ Limpiando catálogo antes de añadir nuevos productos...');
+      
+      // Limpiar productos CSV de Supabase
+      const clearResult = await clearCSVProducts();
+      if (clearResult.success) {
+        console.log('✅ Productos CSV eliminados de Supabase:', clearResult.deletedCount);
+      } else {
+        console.error('❌ Error al limpiar productos CSV:', clearResult.error);
       }
-      addProduct(product);
-    });
+      
+      // Limpiar CatalogContext (localStorage)
+      clearAllProducts();
+      clearAllCategories();
+      
+      console.log('📊 Estado actual del catálogo DESPUÉS de limpiar:', products.length, 'productos');
+      
+      // Guardar productos en Supabase
+      console.log('💾 Guardando productos en Supabase...');
+      const saveResult = await saveCSVProducts(products);
+      
+      if (saveResult.success) {
+        console.log('✅ Productos guardados en Supabase:', saveResult.savedCount);
+        toast.success(`✅ ${saveResult.savedCount} productos guardados correctamente en la base de datos`);
+        
+        // Añadir productos al CatalogContext (localStorage) para la UI
+        products.forEach((product, index) => {
+          if (index < 5) { // Solo log los primeros 5 para no saturar
+            console.log(`➕ Añadiendo producto ${index + 1} al contexto local:`, product.name);
+          }
+          addProduct(product);
+        });
+        
+        console.log('📊 Estado actual del catálogo DESPUÉS de añadir:', products.length, 'productos');
 
-    console.log('📊 Estado actual del catálogo DESPUÉS de añadir:', products.length, 'productos');
+        // Actualizar lista de archivos CSV
+        const updatedFiles = [...csvFiles, file];
+        setCsvFiles(updatedFiles);
+        localStorage.setItem('catalog-csv-files', JSON.stringify(updatedFiles));
 
-    // Actualizar lista de archivos CSV
-    const updatedFiles = [...csvFiles, file];
-    setCsvFiles(updatedFiles);
-    localStorage.setItem('catalog-csv-files', JSON.stringify(updatedFiles));
-
-    // Actualizar estado de sincronización
-    setLastSync(new Date());
-    setSyncStatus('success');
-    localStorage.setItem('catalog-last-sync', new Date().toISOString());
+        // Actualizar estado de sincronización
+        setLastSync(new Date());
+        setSyncStatus('success');
+        localStorage.setItem('catalog-last-sync', new Date().toISOString());
+        
+      } else {
+        console.error('❌ Error al guardar productos en Supabase:', saveResult.error);
+        toast.error(`❌ Error al guardar productos: ${saveResult.error}`);
+      }
+      
+    } catch (error) {
+      console.error('❌ Error inesperado en handleCSVUploaded:', error);
+      toast.error('❌ Error inesperado al procesar productos');
+    }
   };
 
   const handleCSVDeleted = (fileId: string) => {
