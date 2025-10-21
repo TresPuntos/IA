@@ -132,7 +132,14 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
       if (connection.platform === 'prestashop') {
         console.log('Probando conexión Prestashop...');
         // Prueba real de conexión Prestashop
-        const cleanUrl = connection.url.replace(/\/$/, ''); // Quitar barra final si existe
+        const cleanUrl = connection.url.trim().replace(/\/$/, ''); // Quitar espacios y barra final
+        
+        // Validar que la URL esté bien formada
+        if (!cleanUrl.includes('/api/')) {
+          throw new Error('La URL debe contener /api/ para ser una API de Prestashop válida');
+        }
+        
+        console.log('URL limpia:', cleanUrl);
         
         // Probar diferentes formatos de URL
         const testUrls = [
@@ -148,10 +155,13 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
           try {
             console.log('Probando URL:', testUrl);
             
+            const cleanApiKey = connection.apiKey?.trim() || '';
+            console.log('API Key limpia:', cleanApiKey ? '***' : 'undefined');
+            
             const response = await fetch(testUrl, {
               method: 'GET',
               headers: {
-                'Authorization': `Basic ${btoa(`${connection.apiKey}:`)}`,
+                'Authorization': `Basic ${btoa(`${cleanApiKey}:`)}`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
               },
