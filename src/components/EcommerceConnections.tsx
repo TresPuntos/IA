@@ -8,6 +8,13 @@ import { Badge } from './ui/badge';
 import { Switch } from './ui/switch';
 import { Alert, AlertDescription } from './ui/alert';
 import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from './ui/dialog';
+import { 
   ShoppingCart, 
   ExternalLink, 
   CheckCircle, 
@@ -15,8 +22,11 @@ import {
   Info,
   Key,
   Globe,
-  Settings
+  Settings,
+  Package,
+  Scan
 } from 'lucide-react';
+import { PrestashopScanner } from './PrestashopScanner';
 
 interface EcommerceConnection {
   id: string;
@@ -61,6 +71,7 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
 
   const [editingConnection, setEditingConnection] = useState<EcommerceConnection | null>(null);
   const [isTesting, setIsTesting] = useState<string | null>(null);
+  const [showPrestashopScanner, setShowPrestashopScanner] = useState(false);
 
   const platformInfo = {
     woocommerce: {
@@ -135,6 +146,27 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
     } finally {
       setIsTesting(null);
     }
+  };
+
+  const handlePrestashopImportComplete = (importedCount: number) => {
+    // Actualizar la conexión de Prestashop
+    const prestashopConnection = connections.find(c => c.platform === 'prestashop');
+    if (prestashopConnection) {
+      const updatedConnection = {
+        ...prestashopConnection,
+        isConnected: true,
+        lastSync: new Date(),
+        productsCount: (prestashopConnection.productsCount || 0) + importedCount
+      };
+      
+      setConnections(prev => 
+        prev.map(c => c.id === prestashopConnection.id ? updatedConnection : c)
+      );
+      
+      onConnectionUpdate(updatedConnection);
+    }
+    
+    setShowPrestashopScanner(false);
   };
 
   const renderConnectionForm = (connection: EcommerceConnection) => {
@@ -287,6 +319,17 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
                 )}
               </Button>
               
+              {connection.platform === 'prestashop' && connection.url && connection.apiKey && (
+                <Button 
+                  variant="secondary"
+                  onClick={() => setShowPrestashopScanner(true)}
+                  className="flex items-center gap-2"
+                >
+                  <Scan className="h-4 w-4" />
+                  Escanear Productos
+                </Button>
+              )}
+              
               {connection.isConnected && (
                 <Button variant="outline" onClick={() => window.open(connection.url, '_blank')}>
                   <ExternalLink className="h-4 w-4 mr-2" />
@@ -393,6 +436,27 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
           </div>
         ))}
       </div>
+
+      {/* Modal del escáner de Prestashop */}
+      <Dialog open={showPrestashopScanner} onOpenChange={setShowPrestashopScanner}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Escáner de Productos Prestashop
+            </DialogTitle>
+            <DialogDescription>
+              Escanea y revisa todos los productos de tu tienda Prestashop antes de importarlos
+            </DialogDescription>
+          </DialogHeader>
+          
+          <PrestashopScanner
+            onImportComplete={handlePrestashopImportComplete}
+            initialApiUrl={connections.find(c => c.platform === 'prestashop')?.url || ''}
+            initialApiKey={connections.find(c => c.platform === 'prestashop')?.apiKey || ''}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -14,7 +14,7 @@ export interface Product {
   stock_quantity: number;
   image_url?: string;
   status: 'active' | 'inactive' | 'draft';
-  source: 'csv' | 'woocommerce' | 'manual';
+  source: 'csv' | 'woocommerce' | 'prestashop' | 'manual';
   external_id?: string;
   created_at: string;
   updated_at: string;
@@ -22,11 +22,12 @@ export interface Product {
 
 export interface CatalogUpdate {
   id: string;
-  source: 'csv' | 'woocommerce';
+  source: 'csv' | 'woocommerce' | 'prestashop';
   status: 'processing' | 'completed' | 'failed';
   products_count: number;
   error_message?: string;
   woocommerce_url?: string;
+  prestashop_url?: string;
   csv_filename?: string;
   created_at: string;
   completed_at: string;
@@ -37,6 +38,7 @@ export interface CatalogStats {
   active_products: number;
   csv_products: number;
   woocommerce_products: number;
+  prestashop_products: number;
   last_update: string | null;
 }
 
@@ -504,6 +506,272 @@ export const deleteProduct = async (productId: string): Promise<{ success: boole
     return {
       success: true
     };
+  } catch (error) {
+    return {
+      success: false,
+      error: `Error inesperado: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    };
+  }
+};
+
+// Interfaces para Prestashop
+export interface PrestashopProduct {
+  id: number;
+  name: string;
+  price: string;
+  description?: string;
+  description_short?: string;
+  categories?: Array<{ name: string }>;
+  reference?: string;
+  ean13?: string;
+  upc?: string;
+  quantity?: number;
+  images?: Array<{ url: string }>;
+  combinations?: PrestashopCombination[];
+  active?: boolean;
+}
+
+export interface PrestashopCombination {
+  id: number;
+  reference?: string;
+  ean13?: string;
+  upc?: string;
+  price?: string;
+  quantity?: number;
+  attributes?: Array<{
+    id: number;
+    name: string;
+    value: string;
+  }>;
+}
+
+export interface PrestashopScannedProduct {
+  id: number;
+  name: string;
+  price: number;
+  description?: string;
+  category?: string;
+  sku?: string;
+  stock_quantity: number;
+  image_url?: string;
+  combinations: PrestashopScannedCombination[];
+  isActive: boolean;
+}
+
+export interface PrestashopScannedCombination {
+  id: number;
+  reference?: string;
+  price: number;
+  quantity: number;
+  attributes: Array<{
+    name: string;
+    value: string;
+  }>;
+}
+
+// Función para escanear productos de Prestashop
+export const scanPrestashopProducts = async (
+  apiUrl: string,
+  apiKey: string,
+  onProgress?: (progress: number) => void
+): Promise<{ success: boolean; error?: string; products?: PrestashopScannedProduct[] }> => {
+  try {
+    // Validar URL
+    if (!apiUrl.includes('/api/')) {
+      return {
+        success: false,
+        error: 'La URL debe ser una API de Prestashop válida (debe contener /api/)'
+      };
+    }
+
+    onProgress?.(10);
+
+    // Obtener productos
+    const products = await fetchPrestashopProducts(apiUrl, apiKey);
+    onProgress?.(50);
+
+    if (products.length === 0) {
+      return {
+        success: false,
+        error: 'No se encontraron productos en Prestashop'
+      };
+    }
+
+    // Procesar productos y combinaciones
+    const scannedProducts: PrestashopScannedProduct[] = [];
+    
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i];
+      const progress = 50 + (i / products.length) * 40;
+      onProgress?.(progress);
+
+      // Obtener combinaciones del producto
+      const combinations = await fetchPrestashopCombinations(apiUrl, apiKey, product.id);
+      
+      const scannedProduct: PrestashopScannedProduct = {
+        id: product.id,
+        name: product.name,
+        price: parseFloat(product.price) || 0,
+        description: product.description || product.description_short,
+        category: product.categories?.[0]?.name,
+        sku: product.reference || product.ean13 || product.upc,
+        stock_quantity: product.quantity || 0,
+        image_url: product.images?.[0]?.url,
+        combinations: combinations.map(combo => ({
+          id: combo.id,
+          reference: combo.reference,
+          price: parseFloat(combo.price || product.price) || 0,
+          quantity: combo.quantity || 0,
+          attributes: combo.attributes || []
+        })),
+        isActive: product.active !== false
+      };
+
+      scannedProducts.push(scannedProduct);
+    }
+
+    onProgress?.(100);
+
+    return {
+      success: true,
+      products: scannedProducts
+    };
+
+  } catch (error) {
+    return {
+      success: false,
+      error: `Error al escanear productos: ${error instanceof Error ? error.message : 'Error desconocido'}`
+    };
+  }
+};
+
+// Función para obtener productos de Prestashop
+const fetchPrestashopProducts = async (
+  apiUrl: string,
+  apiKey: string
+): Promise<PrestashopProduct[]> => {
+  const url = `${apiUrl}/products?display=full&limit=1000`;
+  
+  const response = await fetch(url, {
+    headers: {
+      'Authorization': `Basic ${btoa(`${apiKey}:`)}`,
+      'Content-Type': 'application/json'
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error de Prestashop API: ${response.status} ${response.statusText}`);
+  }
+
+  const data = await response.json();
+  return data.products || [];
+};
+
+// Función para obtener combinaciones de un producto
+const fetchPrestashopCombinations = async (
+  apiUrl: string,
+  apiKey: string,
+  productId: number
+): Promise<PrestashopCombination[]> => {
+  try {
+    const url = `${apiUrl}/products/${productId}/combinations?display=full`;
+    
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Basic ${btoa(`${apiKey}:`)}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      // Si no hay combinaciones, devolver array vacío
+      if (response.status === 404) {
+        return [];
+      }
+      throw new Error(`Error de Prestashop API: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.combinations || [];
+  } catch (error) {
+    // Si hay error, devolver array vacío (producto sin combinaciones)
+    return [];
+  }
+};
+
+// Función para confirmar y volcar productos de Prestashop
+export const confirmPrestashopImport = async (
+  products: PrestashopScannedProduct[]
+): Promise<{ success: boolean; error?: string; importedCount?: number }> => {
+  try {
+    // Crear registro de actualización
+    const { data: updateRecord, error: updateError } = await supabase
+      .from('catalog_updates')
+      .insert({
+        source: 'prestashop',
+        status: 'processing',
+        prestashop_url: 'imported_from_scan',
+        products_count: products.length
+      })
+      .select()
+      .single();
+
+    if (updateError) {
+      return {
+        success: false,
+        error: `Error al crear registro de actualización: ${updateError.message}`
+      };
+    }
+
+    // Preparar productos para insertar
+    const productsToInsert = products.map(product => ({
+      name: product.name,
+      price: product.price,
+      description: product.description,
+      category: product.category,
+      sku: product.sku,
+      stock_quantity: product.stock_quantity,
+      image_url: product.image_url,
+      source: 'prestashop',
+      external_id: product.id.toString(),
+      status: product.isActive ? 'active' : 'inactive'
+    }));
+
+    // Insertar productos principales
+    const { error: insertError } = await supabase
+      .from('product_catalog')
+      .insert(productsToInsert);
+
+    if (insertError) {
+      await supabase
+        .from('catalog_updates')
+        .update({ 
+          status: 'failed',
+          error_message: insertError.message,
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', updateRecord.id);
+
+      return {
+        success: false,
+        error: `Error al insertar productos: ${insertError.message}`
+      };
+    }
+
+    // Actualizar registro como completado
+    await supabase
+      .from('catalog_updates')
+      .update({ 
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      })
+      .eq('id', updateRecord.id);
+
+    return {
+      success: true,
+      importedCount: products.length
+    };
+
   } catch (error) {
     return {
       success: false,
