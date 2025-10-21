@@ -6,11 +6,16 @@ import { Slider } from "./ui/slider";
 import { Textarea } from "./ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
 import { Badge } from "./ui/badge";
+import { Button } from "./ui/button";
 import { useConfig } from "../lib/ConfigContext";
+import { toast } from "sonner";
+import { Save, CheckCircle } from "lucide-react";
 
 export function ModelParamsCard() {
-  const { config, updateConfig } = useConfig();
+  const { config, updateConfig, saveConfiguration } = useConfig();
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Verificar estado de conexión
   useEffect(() => {
@@ -38,6 +43,23 @@ export function ModelParamsCard() {
     checkConnection();
   }, []);
 
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const result = await saveConfiguration();
+      if (result.success) {
+        setLastSaved(new Date());
+        toast.success('✅ Configuración guardada correctamente');
+      } else {
+        toast.error(`❌ Error al guardar: ${result.error}`);
+      }
+    } catch (error) {
+      toast.error('❌ Error inesperado al guardar');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <Card className="shadow-lg border-border/50">
       <CardHeader className="pb-3">
@@ -45,14 +67,31 @@ export function ModelParamsCard() {
           <div>
             <CardTitle className="text-xl font-semibold text-card-foreground">Parámetros del Modelo</CardTitle>
             <CardDescription className="text-muted-foreground">Ajusta el comportamiento de la IA</CardDescription>
+            {lastSaved && (
+              <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+                <CheckCircle className="h-3 w-3 text-green-500" />
+                Guardado: {lastSaved.toLocaleTimeString()}
+              </div>
+            )}
           </div>
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-            connectionStatus === 'connected' 
-              ? 'bg-green-500 text-white' 
-              : 'bg-red-500 text-white'
-          }`}>
-            {connectionStatus === 'connected' ? 'Conectado' : 'Desconectado'}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+              connectionStatus === 'connected' 
+                ? 'bg-green-500 text-white' 
+                : 'bg-red-500 text-white'
+            }`}>
+              {connectionStatus === 'connected' ? 'Conectado' : 'Desconectado'}
+            </span>
+            <Button 
+              onClick={handleSave}
+              disabled={isSaving}
+              size="sm"
+              className="h-8"
+            >
+              <Save className="h-4 w-4 mr-1" />
+              {isSaving ? 'Guardando...' : 'Guardar'}
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -141,6 +180,44 @@ export function ModelParamsCard() {
               <SelectItem value="de">Deutsch</SelectItem>
             </SelectContent>
           </Select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="tone" className="text-sm font-medium">Tono de Respuesta</Label>
+          <Select 
+            value={config.tone} 
+            onValueChange={(value) => updateConfig({ tone: value as any })}
+          >
+            <SelectTrigger id="tone" className="h-9 bg-input-background border-border/50">
+              <SelectValue placeholder="Seleccionar tono" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="friendly">Amigable</SelectItem>
+              <SelectItem value="professional">Profesional</SelectItem>
+              <SelectItem value="casual">Casual</SelectItem>
+              <SelectItem value="formal">Formal</SelectItem>
+              <SelectItem value="enthusiastic">Entusiasta</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">Define el estilo de comunicación del asistente</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="system-prompt" className="text-sm font-medium">Prompt del Sistema</Label>
+          <Textarea 
+            id="system-prompt" 
+            placeholder="Eres un asistente especializado en ayudar a clientes..."
+            rows={4}
+            value={config.systemPrompts?.default || ''}
+            onChange={(e) => updateConfig({ 
+              systemPrompts: { 
+                ...config.systemPrompts, 
+                default: e.target.value 
+              } 
+            })}
+            className="resize-none bg-input-background border-border/50"
+          />
+          <p className="text-xs text-muted-foreground">Instrucciones específicas para el comportamiento del asistente</p>
         </div>
         
         <div className="border-t border-border/50 pt-3 space-y-3">
