@@ -207,12 +207,13 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
         
         let lastError = null;
         
+        // Declarar cleanApiKey fuera del loop para evitar problemas de scope
+        const cleanApiKey = connection.apiKey?.trim() || '';
+        console.log('API Key limpia:', cleanApiKey ? '***' : 'undefined');
+        
         for (const testUrl of testUrls) {
           try {
             console.log('Probando URL:', testUrl);
-            
-            const cleanApiKey = connection.apiKey?.trim() || '';
-            console.log('API Key limpia:', cleanApiKey ? '***' : 'undefined');
             
             // PrestaShop usa autenticación básica HTTP según la documentación oficial
             const authString = btoa(`${cleanApiKey}:`); // PrestaShop requiere dos puntos después de la API key
