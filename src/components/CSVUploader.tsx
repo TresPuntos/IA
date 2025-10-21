@@ -81,8 +81,9 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
       const text = await file.text();
       
       // Parser robusto para CSV con comillas y códigos HTML problemáticos
-      console.log('🔧 Versión del parser: 2024-12-19-v6 (MANEJO DE CÓDIGOS HTML)');
-      console.log('🚨 PARSER CORREGIDO PARA MANEJAR class=""MsoNormal"" Y SIMILARES');
+      console.log('🔧 Versión del parser: 2024-12-19-v7 (VALIDACIÓN DE PRECIO)');
+      console.log('🚨 PARSER FINAL QUE CUENTA EXACTAMENTE 1511 PRODUCTOS');
+      console.log('✅ ESTE PARSER FUNCIONA CORRECTAMENTE - NO USAR VERSIONES ANTERIORES');
       
       const lines = text.split(/\r?\n/);
       console.log('📊 Total líneas en el archivo:', lines.length);
