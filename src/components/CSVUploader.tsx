@@ -80,55 +80,76 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
       // Leer el contenido del CSV
       const text = await file.text();
       
-      // Parser más simple: usar regex para dividir por líneas que empiezan con comillas
-      const lines = text.split(/\r?\n/);
-      console.log('📊 Total líneas en el archivo:', lines.length);
+      // Detectar formato del CSV (con o sin comillas)
+      const firstLine = text.split('\n')[0];
+      const hasQuotes = firstLine.includes('"');
+      console.log('🔍 Formato detectado:', hasQuotes ? 'Con comillas' : 'Sin comillas');
       
-      // Filtrar solo las líneas que empiezan con comillas (productos reales)
-      const productLines = lines.filter(line => line.trim().startsWith('"'));
-      console.log('📊 Líneas que empiezan con comillas:', productLines.length);
+      let rows: string[][] = [];
       
-      // Parsear cada línea de producto
-      const rows: string[][] = [];
-      
-      productLines.forEach((line, index) => {
-        if (index < 3) { // Log solo las primeras 3 líneas
-          console.log(`📋 Línea ${index + 1}:`, line.substring(0, 100) + '...');
-        }
+      if (hasQuotes) {
+        // Parser para CSV con comillas (pl (2).csv)
+        const lines = text.split(/\r?\n/);
+        console.log('📊 Total líneas en el archivo:', lines.length);
         
-        // Parsear línea CSV simple
-        const fields: string[] = [];
-        let currentField = '';
-        let inQuotes = false;
+        // Filtrar solo las líneas que empiezan con comillas (productos reales)
+        const productLines = lines.filter(line => line.trim().startsWith('"'));
+        console.log('📊 Líneas que empiezan con comillas:', productLines.length);
         
-        for (let i = 0; i < line.length; i++) {
-          const char = line[i];
-          
-          if (char === '"') {
-            if (inQuotes && line[i + 1] === '"') {
-              // Comilla escapada
-              currentField += '"';
-              i++; // Saltar la siguiente comilla
-            } else {
-              // Inicio o fin de comillas
-              inQuotes = !inQuotes;
-            }
-          } else if (char === ',' && !inQuotes) {
-            // Fin de campo
-            fields.push(currentField.trim());
-            currentField = '';
-          } else {
-            currentField += char;
+        // Parsear cada línea de producto
+        productLines.forEach((line, index) => {
+          if (index < 3) { // Log solo las primeras 3 líneas
+            console.log(`📋 Línea ${index + 1}:`, line.substring(0, 100) + '...');
           }
-        }
+          
+          // Parsear línea CSV con comillas
+          const fields: string[] = [];
+          let currentField = '';
+          let inQuotes = false;
+          
+          for (let i = 0; i < line.length; i++) {
+            const char = line[i];
+            
+            if (char === '"') {
+              if (inQuotes && line[i + 1] === '"') {
+                // Comilla escapada
+                currentField += '"';
+                i++; // Saltar la siguiente comilla
+              } else {
+                // Inicio o fin de comillas
+                inQuotes = !inQuotes;
+              }
+            } else if (char === ',' && !inQuotes) {
+              // Fin de campo
+              fields.push(currentField.trim());
+              currentField = '';
+            } else {
+              currentField += char;
+            }
+          }
+          
+          // Agregar el último campo
+          fields.push(currentField.trim());
+          
+          if (fields.length > 0) {
+            rows.push(fields);
+          }
+        });
+      } else {
+        // Parser para CSV sin comillas (template-productos.csv)
+        const lines = text.split(/\r?\n/).filter(line => line.trim());
+        console.log('📊 Total líneas en el archivo:', lines.length);
         
-        // Agregar el último campo
-        fields.push(currentField.trim());
-        
-        if (fields.length > 0) {
+        lines.forEach((line, index) => {
+          if (index < 3) { // Log solo las primeras 3 líneas
+            console.log(`📋 Línea ${index + 1}:`, line);
+          }
+          
+          // Parsear línea CSV simple (sin comillas)
+          const fields = line.split(',').map(field => field.trim());
           rows.push(fields);
-        }
-      });
+        });
+      }
       
       if (rows.length < 2) {
         throw new Error('El CSV debe tener al menos una línea de encabezados y una línea de datos');
