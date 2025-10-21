@@ -168,8 +168,11 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
           cleanUrl.endsWith('/api') ? `${cleanUrl}/products?display=full&limit=1` : `${cleanUrl}/api/products?display=full&limit=1`,
           // Probar con webservice (formato alternativo)
           `${cleanUrl}/webservice/products?display=full&limit=1`,
-          // Prueba básica de conectividad
-          `${cleanUrl}`
+          // Probar sin autenticación para verificar conectividad básica
+          `${cleanUrl}`,
+          // Probar endpoint de información básica
+          `${cleanUrl}/api`,
+          `${cleanUrl}/webservice`
         ];
         
         let lastError = null;
@@ -216,11 +219,19 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
             } else if (response.status === 401) {
               const errorText = await response.text();
               console.log('Error 401 - API Key inválida:', errorText);
-              lastError = new Error(`API Key inválida o sin permisos (401). Verifica la clave en PrestaShop > Webservice`);
+              lastError = new Error(`🔑 API Key inválida o sin permisos (401). 
+
+Pasos para solucionarlo:
+1. Ve a PrestaShop > Parámetros Avanzados > Webservice
+2. Verifica que el Webservice esté habilitado
+3. Genera una nueva API Key con permisos de lectura
+4. Verifica que la API Key sea exactamente: ${cleanApiKey}
+
+URL probada: ${testUrl}`);
             } else if (response.status === 403) {
               const errorText = await response.text();
               console.log('Error 403 - Acceso denegado:', errorText);
-              lastError = new Error(`Acceso denegado (403). Verifica permisos de la API Key`);
+              lastError = new Error(`🚫 Acceso denegado (403). Verifica permisos de la API Key en PrestaShop > Webservice`);
             } else {
               const errorText = await response.text();
               console.log('Error con esta URL:', response.status, errorText);
