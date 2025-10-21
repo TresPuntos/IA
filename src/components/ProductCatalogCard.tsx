@@ -111,7 +111,7 @@ export function ProductCatalogCard() {
   };
 
   const handleDeleteCSVProducts = async () => {
-    if (!window.confirm('¿Estás seguro de que quieres eliminar todos los productos cargados desde CSV?')) {
+    if (!window.confirm('¿Estás seguro de que quieres eliminar TODOS los productos CSV? Esto limpiará el catálogo para una nueva importación.')) {
       return;
     }
 
@@ -120,7 +120,7 @@ export function ProductCatalogCard() {
       const result = await clearCSVProducts();
       
       if (result.success) {
-        toast.success(`${result.deletedCount} productos CSV eliminados`);
+        toast.success(`✅ ${result.deletedCount} productos CSV eliminados. El catálogo está listo para una nueva importación.`);
         await loadData(); // Recargar datos
       } else {
         toast.error(result.error || 'Error al eliminar productos CSV');
