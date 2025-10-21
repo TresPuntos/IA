@@ -50,7 +50,7 @@ export function Catalog() {
 
   // Limpieza automática al cargar la página
   useEffect(() => {
-    const performAutoCleanup = async () => {
+    const performAutoCleanup = () => {
       console.log('🗑️ Ejecutando limpieza automática...');
       
       try {
@@ -68,22 +68,6 @@ export function Catalog() {
         setEcommerceConnections([]);
         setLastSync(undefined);
         setSyncStatus('idle');
-
-        // 4. Intentar eliminar productos de Supabase (opcional)
-        try {
-          const productsResult = await clearAllProducts();
-          console.log('📦 Productos eliminados de Supabase:', productsResult.deletedCount || 0);
-        } catch (supabaseError) {
-          console.warn('⚠️ No se pudieron eliminar productos de Supabase:', supabaseError);
-        }
-
-        // 5. Intentar eliminar historial de actualizaciones (opcional)
-        try {
-          const historyResult = await clearAllUpdateHistory();
-          console.log('📋 Historial eliminado de Supabase:', historyResult.deletedCount || 0);
-        } catch (supabaseError) {
-          console.warn('⚠️ No se pudo eliminar historial de Supabase:', supabaseError);
-        }
 
         console.log('✅ Limpieza automática completada');
         toast.success('✅ Catálogo limpiado completamente - Listo para empezar de cero');
