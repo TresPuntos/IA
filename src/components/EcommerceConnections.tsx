@@ -140,31 +140,34 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
         // Prueba real de conexión Prestashop
         const cleanUrl = connection.url.trim().replace(/\/$/, ''); // Quitar espacios y barra final
         
-        // Validar que la URL esté bien formada
+        // Validar que la URL esté bien formada - PrestaShop puede usar diferentes formatos
         console.log('URL original:', connection.url);
         console.log('URL limpia:', cleanUrl);
-        console.log('Longitud URL:', cleanUrl.length);
-        console.log('¿Contiene /api/?', cleanUrl.includes('/api/'));
-        console.log('¿Contiene /api?', cleanUrl.includes('/api'));
-        console.log('¿Termina en /api?', cleanUrl.endsWith('/api'));
-        console.log('¿Termina en /api/?', cleanUrl.endsWith('/api/'));
         
-        // Validación más robusta
-        const hasApiPath = cleanUrl.includes('/api/') || cleanUrl.includes('/api') || cleanUrl.endsWith('/api');
-        console.log('¿Tiene ruta API?', hasApiPath);
+        // PrestaShop puede usar diferentes formatos de URL para la API
+        // Algunos usan /api/, otros usan /webservice/, otros directamente el dominio
+        const isValidPrestashopUrl = cleanUrl.includes('/api/') || 
+                                   cleanUrl.includes('/webservice/') || 
+                                   cleanUrl.includes('/api') ||
+                                   cleanUrl.includes('/webservice');
         
-        if (!hasApiPath) {
-          console.error('URL no contiene /api/:', cleanUrl);
-          throw new Error(`La URL debe contener /api/ para ser una API de Prestashop válida. URL actual: ${cleanUrl}`);
+        console.log('¿Es URL válida de PrestaShop?', isValidPrestashopUrl);
+        
+        if (!isValidPrestashopUrl) {
+          console.error('URL no es válida para PrestaShop:', cleanUrl);
+          throw new Error(`La URL debe ser una API de PrestaShop válida. Formatos soportados: /api/, /webservice/, /api, /webservice. URL actual: ${cleanUrl}`);
         }
         
-        // Probar diferentes formatos de URL
+        // Probar diferentes formatos de URL según la documentación de PrestaShop
         const testUrls = [
+          // Formato estándar de PrestaShop
           `${cleanUrl}/products?display=full&limit=1`,
           `${cleanUrl}/products?limit=1`,
           `${cleanUrl}/products`,
-          // Solo agregar /api/ si no está ya presente
+          // Si la URL no termina en /api/, probar agregando endpoints comunes
           cleanUrl.endsWith('/api') ? `${cleanUrl}/products?display=full&limit=1` : `${cleanUrl}/api/products?display=full&limit=1`,
+          // Probar con webservice (formato alternativo)
+          `${cleanUrl}/webservice/products?display=full&limit=1`,
           // Prueba básica de conectividad
           `${cleanUrl}`
         ];
@@ -178,10 +181,13 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
             const cleanApiKey = connection.apiKey?.trim() || '';
             console.log('API Key limpia:', cleanApiKey ? '***' : 'undefined');
             
+            // PrestaShop usa autenticación básica HTTP según la documentación oficial
+            const authString = btoa(`${cleanApiKey}:`); // PrestaShop requiere dos puntos después de la API key
+            
             const response = await fetch(testUrl, {
               method: 'GET',
               headers: {
-                'Authorization': `Basic ${btoa(`${cleanApiKey}:`)}`,
+                'Authorization': `Basic ${authString}`,
                 'Content-Type': 'application/json',
                 'Accept': 'application/json',
                 'User-Agent': 'Prestashop-API-Client/1.0'

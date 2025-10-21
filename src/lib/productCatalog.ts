@@ -578,11 +578,16 @@ export const scanPrestashopProducts = async (
   try {
     console.log('Iniciando escaneo Prestashop:', { apiUrl, apiKey: apiKey ? '***' : 'undefined' });
     
-    // Validar URL
-    if (!apiUrl.includes('/api/') && !apiUrl.includes('/api')) {
+    // Validar URL - PrestaShop puede usar diferentes formatos
+    const isValidPrestashopUrl = apiUrl.includes('/api/') || 
+                               apiUrl.includes('/webservice/') || 
+                               apiUrl.includes('/api') ||
+                               apiUrl.includes('/webservice');
+    
+    if (!isValidPrestashopUrl) {
       return {
         success: false,
-        error: 'La URL debe ser una API de Prestashop válida (debe contener /api/)'
+        error: 'La URL debe ser una API de Prestashop válida. Formatos soportados: /api/, /webservice/, /api, /webservice'
       };
     }
 
