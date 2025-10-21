@@ -146,7 +146,10 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
           `${cleanUrl}/products?display=full&limit=1`,
           `${cleanUrl}/products?limit=1`,
           `${cleanUrl}/products`,
-          `${cleanUrl}/api/products?display=full&limit=1`
+          // Solo agregar /api/ si no está ya presente
+          cleanUrl.endsWith('/api') ? `${cleanUrl}/products?display=full&limit=1` : `${cleanUrl}/api/products?display=full&limit=1`,
+          // Prueba básica de conectividad
+          `${cleanUrl}`
         ];
         
         let lastError = null;
@@ -163,9 +166,11 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
               headers: {
                 'Authorization': `Basic ${btoa(`${cleanApiKey}:`)}`,
                 'Content-Type': 'application/json',
-                'Accept': 'application/json'
+                'Accept': 'application/json',
+                'User-Agent': 'Prestashop-API-Client/1.0'
               },
-              mode: 'cors'
+              mode: 'cors',
+              credentials: 'omit'
             });
 
             console.log('Respuesta de prueba:', response.status, response.statusText);
@@ -185,6 +190,14 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
               console.log('Actualizando conexión:', updatedConnection);
               handleConnectionUpdate(updatedConnection);
               return; // Salir si funciona
+            } else if (response.status === 401) {
+              const errorText = await response.text();
+              console.log('Error 401 - API Key inválida:', errorText);
+              lastError = new Error(`API Key inválida o sin permisos (401). Verifica la clave en PrestaShop > Webservice`);
+            } else if (response.status === 403) {
+              const errorText = await response.text();
+              console.log('Error 403 - Acceso denegado:', errorText);
+              lastError = new Error(`Acceso denegado (403). Verifica permisos de la API Key`);
             } else {
               const errorText = await response.text();
               console.log('Error con esta URL:', response.status, errorText);
