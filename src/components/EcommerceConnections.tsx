@@ -125,12 +125,16 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
   };
 
   const handleTestConnection = async (connection: EcommerceConnection) => {
+    console.log('Iniciando prueba de conexión para:', connection.platform, connection.url);
     setIsTesting(connection.id);
     
     try {
       if (connection.platform === 'prestashop') {
+        console.log('Probando conexión Prestashop...');
         // Prueba real de conexión Prestashop
         const testUrl = `${connection.url}/products?display=full&limit=1`;
+        console.log('URL de prueba:', testUrl);
+        
         const response = await fetch(testUrl, {
           headers: {
             'Authorization': `Basic ${btoa(`${connection.apiKey}:`)}`,
@@ -138,11 +142,16 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
           }
         });
 
+        console.log('Respuesta de prueba:', response.status, response.statusText);
+
         if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Error de respuesta:', errorText);
           throw new Error(`Error de conexión: ${response.status} ${response.statusText}`);
         }
 
         const data = await response.json();
+        console.log('Datos de respuesta:', data);
         const productsCount = data.products ? data.products.length : 0;
         
         const updatedConnection = {
@@ -152,8 +161,10 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
           productsCount: productsCount
         };
         
+        console.log('Actualizando conexión:', updatedConnection);
         handleConnectionUpdate(updatedConnection);
       } else {
+        console.log('Probando conexión simulada para:', connection.platform);
         // Simular test de conexión para otras plataformas
         await new Promise(resolve => setTimeout(resolve, 2000));
         
@@ -171,6 +182,7 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
       console.error('Connection test failed:', error);
       // Mantener conexión como desconectada en caso de error
     } finally {
+      console.log('Finalizando prueba de conexión');
       setIsTesting(null);
     }
   };
@@ -330,7 +342,14 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
 
             <div className="flex gap-2">
               <Button
-                onClick={() => handleTestConnection(editingConnection || connection)}
+                onClick={() => {
+                  console.log('Botón Probar Conexión clickeado');
+                  console.log('Connection:', connection);
+                  console.log('EditingConnection:', editingConnection);
+                  console.log('isTesting:', isTesting);
+                  console.log('connection.url:', connection.url);
+                  handleTestConnection(editingConnection || connection);
+                }}
                 disabled={isTesting === connection.id || !connection.url}
               >
                 {isTesting === connection.id ? (
