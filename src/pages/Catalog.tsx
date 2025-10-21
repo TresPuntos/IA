@@ -100,9 +100,18 @@ export function Catalog() {
   };
 
   const handleCSVDeleted = (fileId: string) => {
+    // Eliminar productos del CSV del catálogo
+    const productsToDelete = products.filter(product => product.id.startsWith(`csv-product-${fileId}`));
+    productsToDelete.forEach(product => {
+      deleteProduct(product.id);
+    });
+
+    // Actualizar lista de archivos CSV
     const updatedFiles = csvFiles.filter(f => f.id !== fileId);
     setCsvFiles(updatedFiles);
     localStorage.setItem('catalog-csv-files', JSON.stringify(updatedFiles));
+    
+    console.log(`🗑️ Eliminados ${productsToDelete.length} productos del CSV ${fileId}`);
   };
 
   const handleDeleteCSVProducts = async () => {
@@ -111,15 +120,19 @@ export function Catalog() {
     }
 
     try {
-      const result = await clearCSVProducts();
+      // Eliminar todos los productos CSV del catálogo
+      const csvProducts = products.filter(product => product.id.startsWith('csv-product-'));
+      csvProducts.forEach(product => {
+        deleteProduct(product.id);
+      });
+
+      // Limpiar lista de archivos CSV
+      setCsvFiles([]);
+      localStorage.removeItem('catalog-csv-files');
+
+      console.log(`🗑️ Eliminados ${csvProducts.length} productos CSV del catálogo`);
+      toast.success(`✅ ${csvProducts.length} productos CSV eliminados. El catálogo está listo para una nueva importación.`);
       
-      if (result.success) {
-        toast.success(`✅ ${result.deletedCount} productos CSV eliminados. El catálogo está listo para una nueva importación.`);
-        // Recargar la página para actualizar las estadísticas
-        window.location.reload();
-      } else {
-        toast.error(result.error || 'Error al eliminar productos CSV');
-      }
     } catch (error) {
       toast.error('Error inesperado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
     }
