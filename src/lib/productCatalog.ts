@@ -579,7 +579,7 @@ export const scanPrestashopProducts = async (
     console.log('Iniciando escaneo Prestashop:', { apiUrl, apiKey: apiKey ? '***' : 'undefined' });
     
     // Validar URL
-    if (!apiUrl.includes('/api/')) {
+    if (!apiUrl.includes('/api/') && !apiUrl.includes('/api')) {
       return {
         success: false,
         error: 'La URL debe ser una API de Prestashop válida (debe contener /api/)'
