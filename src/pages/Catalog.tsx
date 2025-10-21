@@ -46,9 +46,24 @@ export function Catalog() {
     if (savedLastSync) {
       setLastSync(new Date(savedLastSync));
     }
-  }, []);
-
-  // Limpieza automática deshabilitada temporalmente
+  // Debug: Mostrar información de productos al cargar
+  useEffect(() => {
+    console.log('🔍 DEBUG - Estado actual del catálogo:');
+    console.log('- Total productos en CatalogContext:', products.length);
+    console.log('- Productos CSV:', products.filter(p => p.id.startsWith('csv-product-')).length);
+    console.log('- Productos manuales:', products.filter(p => !p.id.startsWith('csv-product-')).length);
+    console.log('- Archivos CSV:', csvFiles.length);
+    console.log('- Conexiones ecommerce:', ecommerceConnections.length);
+    
+    // Mostrar algunos productos de ejemplo
+    if (products.length > 0) {
+      console.log('- Primeros 5 productos:', products.slice(0, 5).map(p => ({
+        id: p.id,
+        name: p.name,
+        source: p.id.startsWith('csv-product-') ? 'CSV' : 'Manual'
+      })));
+    }
+  }, [products, csvFiles, ecommerceConnections]);
   // useEffect(() => {
   //   const performAutoCleanup = () => {
   //     console.log('🗑️ Ejecutando limpieza automática...');
@@ -138,36 +153,26 @@ export function Catalog() {
     }
   };
 
-  const handleManualCleanup = () => {
-    if (!window.confirm('⚠️ ¿Estás seguro de que quieres limpiar todo el catálogo?\n\nEsto eliminará:\n- Todos los productos locales\n- Todas las categorías\n- Todos los archivos CSV\n- Todas las conexiones ecommerce\n\nEsta acción NO se puede deshacer.')) {
-      return;
-    }
-
-    try {
-      console.log('🗑️ Ejecutando limpieza manual...');
-      
-      // 1. Limpiar CatalogContext (localStorage)
-      clearAllProducts();
-      clearAllCategories();
-
-      // 2. Limpiar localStorage adicional
-      localStorage.removeItem('catalog-csv-files');
-      localStorage.removeItem('catalog-ecommerce-connections');
-      localStorage.removeItem('catalog-last-sync');
-
-      // 3. Limpiar estado local
-      setCsvFiles([]);
-      setEcommerceConnections([]);
-      setLastSync(undefined);
-      setSyncStatus('idle');
-
-      console.log('✅ Limpieza manual completada');
-      toast.success('✅ Catálogo limpiado completamente - Listo para empezar de cero');
-      
-    } catch (error) {
-      console.error('❌ Error en limpieza manual:', error);
-      toast.error('❌ Error durante la limpieza manual');
-    }
+  // Función para limpiar completamente y mostrar debug
+  const handleDebugCleanup = () => {
+    console.log('🔍 DEBUG - Antes de limpiar:');
+    console.log('- Productos en CatalogContext:', products.length);
+    console.log('- Productos en localStorage:', localStorage.getItem('catalog-products') ? JSON.parse(localStorage.getItem('catalog-products')!).length : 0);
+    
+    // Limpiar todo
+    clearAllProducts();
+    clearAllCategories();
+    localStorage.removeItem('catalog-csv-files');
+    localStorage.removeItem('catalog-ecommerce-connections');
+    localStorage.removeItem('catalog-last-sync');
+    
+    setCsvFiles([]);
+    setEcommerceConnections([]);
+    setLastSync(undefined);
+    setSyncStatus('idle');
+    
+    console.log('✅ Limpieza completa realizada');
+    toast.success('✅ Limpieza completa realizada - Revisa la consola para ver los números');
   };
 
   const handleConnectionUpdate = (connection: any) => {
@@ -215,7 +220,7 @@ export function Catalog() {
         lastSync={lastSync}
         syncStatus={syncStatus}
         onDeleteCSV={handleDeleteCSVProducts}
-        onClearAll={handleManualCleanup}
+        onClearAll={handleDebugCleanup}
       />
 
       {/* Tabs para diferentes funcionalidades */}
