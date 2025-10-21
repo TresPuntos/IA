@@ -75,42 +75,67 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
     setIsUploading(true);
 
     try {
-      console.log('🚀 Iniciando subida real de CSV:', file.name);
+      console.log('🚀 Procesando CSV:', file.name);
       
-      // Usar la función real de subida de CSV
-      const result = await uploadProductsFromCSV(file, (progress) => {
-        console.log('📊 Progreso:', progress);
-      });
-
-      if (result.success) {
-        console.log('✅ CSV subido correctamente:', result.productsCount, 'productos');
-        
-        // Actualizar estado del archivo
-        setUploadedFiles(prev => prev.map(f => 
-          f.id === fileId 
-            ? { ...f, status: 'success', productsCount: result.productsCount }
-            : f
-        ));
-
-        // Notificar al componente padre con datos simulados para compatibilidad
-        const simulatedProducts = Array.from({ length: result.productsCount || 0 }, (_, index) => ({
-          id: `csv-product-${fileId}-${index}`,
-          name: `Producto ${index + 1}`,
-          price: 0,
-          category: '',
-          description: '',
-          sku: `CSV-${index + 1}`,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }));
-        
-        onFileUploaded(newFile, simulatedProducts);
-        
-        toast.success(`✅ CSV procesado correctamente: ${result.productsCount} productos guardados en Supabase`);
-      } else {
-        throw new Error(result.error || 'Error desconocido al procesar CSV');
+      // Leer el contenido del CSV
+      const text = await file.text();
+      const lines = text.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) {
+        throw new Error('El CSV debe tener al menos una línea de encabezados y una línea de datos');
       }
+
+      // Parsear CSV
+      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      console.log('📋 Headers encontrados:', headers);
+
+      // Validar que tenga las columnas necesarias
+      const requiredColumns = ['name', 'price'];
+      const hasRequiredColumns = requiredColumns.every(col => 
+        headers.some(header => header.includes(col))
+      );
+
+      if (!hasRequiredColumns) {
+        throw new Error('El CSV debe contener las columnas: name, price');
+      }
+
+      // Procesar productos
+      const products = lines.slice(1)
+        .filter(line => line.trim())
+        .map((line, index) => {
+          const values = line.split(',').map(v => v.trim());
+          const product: any = {};
+          
+          headers.forEach((header, i) => {
+            product[header] = values[i] || '';
+          });
+          
+          return {
+            id: `csv-product-${fileId}-${index}`,
+            name: product.name || `Producto ${index + 1}`,
+            price: parseFloat(product.price) || 0,
+            category: product.category || '',
+            description: product.description || '',
+            sku: product.sku || `CSV-${index + 1}`,
+            isActive: true,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+        });
+
+      console.log('✅ CSV procesado correctamente:', products.length, 'productos');
+
+      // Actualizar estado del archivo
+      setUploadedFiles(prev => prev.map(f => 
+        f.id === fileId 
+          ? { ...f, status: 'success', productsCount: products.length }
+          : f
+      ));
+
+      // Notificar al componente padre
+      onFileUploaded(newFile, products);
+      
+      toast.success(`✅ CSV procesado correctamente: ${products.length} productos encontrados`);
       
     } catch (error) {
       console.error('❌ Error processing CSV:', error);
