@@ -16,6 +16,7 @@ export function ModelParamsCard() {
   const [connectionStatus, setConnectionStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking');
   const [isSaving, setIsSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [currentPrompt, setCurrentPrompt] = useState('');
 
   // Verificar estado de conexión
   useEffect(() => {
@@ -42,6 +43,13 @@ export function ModelParamsCard() {
 
     checkConnection();
   }, []);
+
+  // Actualizar el prompt cuando cambie el tono
+  useEffect(() => {
+    if (config.systemPrompts && config.tone) {
+      setCurrentPrompt(config.systemPrompts[config.tone] || '');
+    }
+  }, [config.tone, config.systemPrompts]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -208,16 +216,19 @@ export function ModelParamsCard() {
             id="system-prompt" 
             placeholder="Eres un asistente especializado en ayudar a clientes..."
             rows={4}
-            value={config.systemPrompts?.default || ''}
-            onChange={(e) => updateConfig({ 
-              systemPrompts: { 
-                ...config.systemPrompts, 
-                default: e.target.value 
-              } 
-            })}
+            value={currentPrompt}
+            onChange={(e) => {
+              setCurrentPrompt(e.target.value);
+              updateConfig({ 
+                systemPrompts: { 
+                  ...config.systemPrompts, 
+                  [config.tone]: e.target.value 
+                } 
+              });
+            }}
             className="resize-none bg-input-background border-border/50"
           />
-          <p className="text-xs text-muted-foreground">Instrucciones específicas para el comportamiento del asistente</p>
+          <p className="text-xs text-muted-foreground">Instrucciones específicas para el comportamiento del asistente (se actualiza según el tono seleccionado)</p>
         </div>
         
         <div className="border-t border-border/50 pt-3 space-y-3">
