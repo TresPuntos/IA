@@ -576,6 +576,8 @@ export const scanPrestashopProducts = async (
   onProgress?: (progress: number) => void
 ): Promise<{ success: boolean; error?: string; products?: PrestashopScannedProduct[] }> => {
   try {
+    console.log('Iniciando escaneo Prestashop:', { apiUrl, apiKey: apiKey ? '***' : 'undefined' });
+    
     // Validar URL
     if (!apiUrl.includes('/api/')) {
       return {
@@ -587,7 +589,9 @@ export const scanPrestashopProducts = async (
     onProgress?.(10);
 
     // Obtener productos
+    console.log('Obteniendo productos...');
     const products = await fetchPrestashopProducts(apiUrl, apiKey);
+    console.log('Productos obtenidos:', products.length);
     onProgress?.(50);
 
     if (products.length === 0) {
@@ -631,6 +635,7 @@ export const scanPrestashopProducts = async (
     }
 
     onProgress?.(100);
+    console.log('Escaneo completado:', scannedProducts.length, 'productos');
 
     return {
       success: true,
@@ -638,6 +643,7 @@ export const scanPrestashopProducts = async (
     };
 
   } catch (error) {
+    console.error('Error en escaneo Prestashop:', error);
     return {
       success: false,
       error: `Error al escanear productos: ${error instanceof Error ? error.message : 'Error desconocido'}`
@@ -651,6 +657,7 @@ const fetchPrestashopProducts = async (
   apiKey: string
 ): Promise<PrestashopProduct[]> => {
   const url = `${apiUrl}/products?display=full&limit=1000`;
+  console.log('Fetching Prestashop products from:', url);
   
   const response = await fetch(url, {
     headers: {
@@ -659,11 +666,16 @@ const fetchPrestashopProducts = async (
     }
   });
 
+  console.log('Response status:', response.status);
+  
   if (!response.ok) {
+    const errorText = await response.text();
+    console.error('Error response:', errorText);
     throw new Error(`Error de Prestashop API: ${response.status} ${response.statusText}`);
   }
 
   const data = await response.json();
+  console.log('Response data:', data);
   return data.products || [];
 };
 

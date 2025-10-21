@@ -128,21 +128,48 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
     setIsTesting(connection.id);
     
     try {
-      // Simular test de conexión
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Simular respuesta exitosa
-      const updatedConnection = {
-        ...connection,
-        isConnected: true,
-        lastSync: new Date(),
-        productsCount: Math.floor(Math.random() * 1000) + 100
-      };
-      
-      handleConnectionUpdate(updatedConnection);
+      if (connection.platform === 'prestashop') {
+        // Prueba real de conexión Prestashop
+        const testUrl = `${connection.url}/products?display=full&limit=1`;
+        const response = await fetch(testUrl, {
+          headers: {
+            'Authorization': `Basic ${btoa(`${connection.apiKey}:`)}`,
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error de conexión: ${response.status} ${response.statusText}`);
+        }
+
+        const data = await response.json();
+        const productsCount = data.products ? data.products.length : 0;
+        
+        const updatedConnection = {
+          ...connection,
+          isConnected: true,
+          lastSync: new Date(),
+          productsCount: productsCount
+        };
+        
+        handleConnectionUpdate(updatedConnection);
+      } else {
+        // Simular test de conexión para otras plataformas
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        const updatedConnection = {
+          ...connection,
+          isConnected: true,
+          lastSync: new Date(),
+          productsCount: Math.floor(Math.random() * 1000) + 100
+        };
+        
+        handleConnectionUpdate(updatedConnection);
+      }
       
     } catch (error) {
       console.error('Connection test failed:', error);
+      // Mantener conexión como desconectada en caso de error
     } finally {
       setIsTesting(null);
     }
