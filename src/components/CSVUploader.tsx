@@ -79,15 +79,68 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
       
       // Leer el contenido del CSV
       const text = await file.text();
-      const lines = text.split('\n').filter(line => line.trim());
       
-      if (lines.length < 2) {
+      // Función para parsear CSV correctamente manejando comillas y saltos de línea
+      const parseCSV = (csvText: string): string[][] => {
+        const result: string[][] = [];
+        let currentRow: string[] = [];
+        let currentField = '';
+        let inQuotes = false;
+        let i = 0;
+        
+        while (i < csvText.length) {
+          const char = csvText[i];
+          
+          if (char === '"') {
+            if (inQuotes && csvText[i + 1] === '"') {
+              // Comilla escapada
+              currentField += '"';
+              i += 2;
+            } else {
+              // Inicio o fin de comillas
+              inQuotes = !inQuotes;
+              i++;
+            }
+          } else if (char === ',' && !inQuotes) {
+            // Fin de campo
+            currentRow.push(currentField.trim());
+            currentField = '';
+            i++;
+          } else if ((char === '\n' || char === '\r') && !inQuotes) {
+            // Fin de fila
+            currentRow.push(currentField.trim());
+            if (currentRow.length > 0) {
+              result.push(currentRow);
+            }
+            currentRow = [];
+            currentField = '';
+            i++;
+          } else {
+            currentField += char;
+            i++;
+          }
+        }
+        
+        // Agregar la última fila si no termina con salto de línea
+        if (currentField.trim() || currentRow.length > 0) {
+          currentRow.push(currentField.trim());
+          if (currentRow.length > 0) {
+            result.push(currentRow);
+          }
+        }
+        
+        return result;
+      };
+
+      const rows = parseCSV(text);
+      
+      if (rows.length < 2) {
         throw new Error('El CSV debe tener al menos una línea de encabezados y una línea de datos');
       }
 
-      // Parsear CSV
-      const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+      const headers = rows[0].map(h => h.replace(/"/g, '').trim().toLowerCase());
       console.log('📋 Headers encontrados:', headers);
+      console.log('📊 Total filas parseadas:', rows.length);
 
       // Validar que tenga las columnas necesarias
       const requiredColumns = ['name', 'price'];
@@ -100,14 +153,13 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
       }
 
       // Procesar productos
-      const products = lines.slice(1)
-        .filter(line => line.trim())
-        .map((line, index) => {
-          const values = line.split(',').map(v => v.trim());
+      const products = rows.slice(1)
+        .filter(row => row.length > 0 && row[0].trim() !== '') // Filtrar filas vacías
+        .map((row, index) => {
           const product: any = {};
           
           headers.forEach((header, i) => {
-            product[header] = values[i] || '';
+            product[header] = row[i] || '';
           });
           
           return {
