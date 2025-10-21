@@ -126,6 +126,8 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
 
   const handleTestConnection = async (connection: EcommerceConnection) => {
     console.log('=== INICIANDO PRUEBA DE CONEXIÓN ===');
+    console.log('Timestamp:', new Date().toISOString());
+    console.log('Versión del código: 2024-12-19-v2');
     console.log('Iniciando prueba de conexión para:', connection.platform);
     console.log('Connection completa:', connection);
     console.log('URL:', connection.url);
@@ -141,10 +143,17 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
         // Validar que la URL esté bien formada
         console.log('URL original:', connection.url);
         console.log('URL limpia:', cleanUrl);
+        console.log('Longitud URL:', cleanUrl.length);
         console.log('¿Contiene /api/?', cleanUrl.includes('/api/'));
         console.log('¿Contiene /api?', cleanUrl.includes('/api'));
+        console.log('¿Termina en /api?', cleanUrl.endsWith('/api'));
+        console.log('¿Termina en /api/?', cleanUrl.endsWith('/api/'));
         
-        if (!cleanUrl.includes('/api/') && !cleanUrl.includes('/api')) {
+        // Validación más robusta
+        const hasApiPath = cleanUrl.includes('/api/') || cleanUrl.includes('/api') || cleanUrl.endsWith('/api');
+        console.log('¿Tiene ruta API?', hasApiPath);
+        
+        if (!hasApiPath) {
           console.error('URL no contiene /api/:', cleanUrl);
           throw new Error(`La URL debe contener /api/ para ser una API de Prestashop válida. URL actual: ${cleanUrl}`);
         }
