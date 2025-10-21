@@ -175,6 +175,36 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
           `${cleanUrl}/webservice`
         ];
         
+        // Primero probar sin autenticación para verificar conectividad básica
+        console.log('🔍 Probando conectividad básica sin autenticación...');
+        try {
+          const basicTestUrl = `${cleanUrl}`;
+          console.log('Probando URL básica:', basicTestUrl);
+          
+          const basicResponse = await fetch(basicTestUrl, {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'User-Agent': 'Prestashop-API-Client/1.0'
+            },
+            mode: 'cors',
+            credentials: 'omit'
+          });
+          
+          console.log('Respuesta básica:', basicResponse.status, basicResponse.statusText);
+          
+          if (basicResponse.status === 200) {
+            console.log('✅ Conectividad básica OK - El servidor responde');
+          } else if (basicResponse.status === 401) {
+            console.log('🔑 Servidor requiere autenticación - Esto es normal para PrestaShop');
+          } else {
+            console.log('⚠️ Respuesta inesperada del servidor:', basicResponse.status);
+          }
+        } catch (error) {
+          console.log('❌ Error de conectividad básica:', error);
+        }
+        
         let lastError = null;
         
         for (const testUrl of testUrls) {
@@ -244,7 +274,28 @@ URL probada: ${testUrl}`);
         }
         
         // Si llegamos aquí, ninguna URL funcionó
-        throw lastError || new Error('No se pudo conectar con ninguna URL de prueba');
+        console.log('❌ Todas las URLs fallaron con Error 401');
+        console.log('📋 DIAGNÓSTICO DEL PROBLEMA:');
+        console.log('1. El Webservice de PrestaShop NO está habilitado');
+        console.log('2. La API Key NO existe o es incorrecta');
+        console.log('3. La API Key NO tiene permisos de lectura');
+        console.log('');
+        console.log('🔧 SOLUCIÓN:');
+        console.log('1. Ve a PrestaShop > Parámetros Avanzados > Webservice');
+        console.log('2. Habilita "Activar el servicio web de PrestaShop"');
+        console.log('3. Genera una nueva API Key con permisos de lectura');
+        console.log('4. Copia la nueva API Key y úsala aquí');
+        
+        throw lastError || new Error(`🔑 Error 401 - API Key inválida o Webservice no habilitado
+
+SOLUCIÓN:
+1. Ve a PrestaShop > Parámetros Avanzados > Webservice
+2. Habilita "Activar el servicio web de PrestaShop"
+3. Genera una nueva API Key con permisos de lectura
+4. Copia la nueva API Key y úsala aquí
+
+API Key actual: ${cleanApiKey}
+URL probada: ${cleanUrl}`);
       } else {
         console.log('Probando conexión simulada para:', connection.platform);
         // Simular test de conexión para otras plataformas
