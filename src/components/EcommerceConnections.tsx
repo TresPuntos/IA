@@ -217,6 +217,11 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
             // PrestaShop usa autenticación básica HTTP según la documentación oficial
             const authString = btoa(`${cleanApiKey}:`); // PrestaShop requiere dos puntos después de la API key
             
+            console.log('🔐 Información de autenticación:');
+            console.log('- API Key:', cleanApiKey ? '***' : 'undefined');
+            console.log('- Auth String:', authString ? '***' : 'undefined');
+            console.log('- URL completa:', testUrl);
+            
             const response = await fetch(testUrl, {
               method: 'GET',
               headers: {
