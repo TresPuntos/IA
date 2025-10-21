@@ -89,25 +89,18 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
       
       // Función para detectar si una línea es el inicio de un nuevo producto
       const isProductStart = (line: string): boolean => {
-        // Una línea es inicio de producto si:
-        // 1. Empieza con comilla
-        // 2. Contiene al menos 3 comillas (name, price, category)
-        // 3. No es continuación de una descripción HTML
         const trimmedLine = line.trim();
         if (!trimmedLine.startsWith('"')) return false;
         
-        // Contar comillas en la línea
-        const quoteCount = (trimmedLine.match(/"/g) || []).length;
-        
-        // Si tiene 6 o más comillas, probablemente es un producto completo en una línea
-        if (quoteCount >= 6) return true;
-        
-        // Si tiene 2 comillas y contiene campos típicos de producto, es inicio
-        if (quoteCount >= 2 && trimmedLine.includes('","')) {
-          // Verificar que no sea una línea de continuación HTML
-          const firstField = trimmedLine.split('","')[0];
-          if (firstField && firstField.length > 0 && !firstField.includes('<')) {
-            return true;
+        // Si tiene comillas y contiene campos separados por comillas
+        if (trimmedLine.includes('","')) {
+          const parts = trimmedLine.split('","');
+          if (parts.length >= 2) {
+            // Verificar que el segundo campo (precio) sea un número válido
+            const priceField = parts[1];
+            if (priceField && !isNaN(parseFloat(priceField))) {
+              return true;
+            }
           }
         }
         
