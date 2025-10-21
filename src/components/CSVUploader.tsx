@@ -176,6 +176,11 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
         });
 
       console.log('✅ CSV procesado correctamente:', products.length, 'productos');
+      console.log('🔍 DEBUG - Detalles del procesamiento:');
+      console.log('- Filas totales parseadas:', rows.length);
+      console.log('- Filas de datos (sin header):', rows.length - 1);
+      console.log('- Productos válidos procesados:', products.length);
+      console.log('- Primeros 3 productos:', products.slice(0, 3).map(p => ({ id: p.id, name: p.name })));
 
       // Actualizar estado del archivo
       setUploadedFiles(prev => prev.map(f => 

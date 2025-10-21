@@ -98,10 +98,25 @@ export function Catalog() {
   // }, [clearAllProducts, clearAllCategories]);
 
   const handleCSVUploaded = (file: any, products: Product[]) => {
+    console.log('📥 handleCSVUploaded llamado con:', products.length, 'productos');
+    console.log('📊 Estado actual del catálogo ANTES de añadir:', products.length, 'productos');
+    
+    // LIMPIAR TODO ANTES DE AÑADIR NUEVOS PRODUCTOS
+    console.log('🗑️ Limpiando catálogo antes de añadir nuevos productos...');
+    clearAllProducts();
+    clearAllCategories();
+    
+    console.log('📊 Estado actual del catálogo DESPUÉS de limpiar:', products.length, 'productos');
+    
     // Añadir productos del CSV al catálogo
-    products.forEach(product => {
+    products.forEach((product, index) => {
+      if (index < 5) { // Solo log los primeros 5 para no saturar
+        console.log(`➕ Añadiendo producto ${index + 1}:`, product.name);
+      }
       addProduct(product);
     });
+
+    console.log('📊 Estado actual del catálogo DESPUÉS de añadir:', products.length, 'productos');
 
     // Actualizar lista de archivos CSV
     const updatedFiles = [...csvFiles, file];
