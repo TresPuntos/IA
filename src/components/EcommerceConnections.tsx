@@ -280,22 +280,37 @@ URL probada: ${testUrl}`);
         console.log('2. La API Key NO existe o es incorrecta');
         console.log('3. La API Key NO tiene permisos de lectura');
         console.log('');
-        console.log('🔧 SOLUCIÓN:');
-        console.log('1. Ve a PrestaShop > Parámetros Avanzados > Webservice');
-        console.log('2. Habilita "Activar el servicio web de PrestaShop"');
-        console.log('3. Genera una nueva API Key con permisos de lectura');
-        console.log('4. Copia la nueva API Key y úsala aquí');
+        console.log('🔧 SOLUCIÓN PASO A PASO:');
+        console.log('1. Ve a tu panel de PrestaShop');
+        console.log('2. Navega a: Parámetros Avanzados > Webservice');
+        console.log('3. Habilita "Activar el servicio web de PrestaShop"');
+        console.log('4. Haz clic en "Generar nueva clave"');
+        console.log('5. Asigna permisos de LECTURA para productos');
+        console.log('6. Copia la nueva API Key');
+        console.log('7. Úsala en esta aplicación');
+        console.log('');
+        console.log('🔗 URL de tu PrestaShop:', cleanUrl);
+        console.log('🔑 API Key actual:', cleanApiKey);
         
-        throw lastError || new Error(`🔑 Error 401 - API Key inválida o Webservice no habilitado
+        // Mostrar un mensaje más útil al usuario
+        const errorMessage = `🔑 Error 401 - Webservice de PrestaShop no configurado correctamente
+
+DIAGNÓSTICO:
+• El Webservice NO está habilitado en PrestaShop
+• La API Key NO existe o es incorrecta
+• La API Key NO tiene permisos de lectura
 
 SOLUCIÓN:
-1. Ve a PrestaShop > Parámetros Avanzados > Webservice
-2. Habilita "Activar el servicio web de PrestaShop"
-3. Genera una nueva API Key con permisos de lectura
-4. Copia la nueva API Key y úsala aquí
+1. Ve a tu panel de PrestaShop
+2. Navega a: Parámetros Avanzados > Webservice
+3. Habilita "Activar el servicio web de PrestaShop"
+4. Genera una nueva API Key con permisos de lectura
+5. Copia la nueva API Key y úsala aquí
 
-API Key actual: ${cleanApiKey}
-URL probada: ${cleanUrl}`);
+URL: ${cleanUrl}
+API Key actual: ${cleanApiKey}`;
+
+        throw new Error(errorMessage);
       } else {
         console.log('Probando conexión simulada para:', connection.platform);
         // Simular test de conexión para otras plataformas
