@@ -88,18 +88,50 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
       let rows: string[][] = [];
       
       if (hasQuotes) {
-        // Parser para CSV con comillas (pl (2).csv)
+        // Parser para CSV con comillas y saltos de línea dentro de campos (pl (2).csv)
         const lines = text.split(/\r?\n/);
         console.log('📊 Total líneas en el archivo:', lines.length);
         
-        // Filtrar solo las líneas que empiezan con comillas (productos reales)
-        const productLines = lines.filter(line => line.trim().startsWith('"'));
-        console.log('📊 Líneas que empiezan con comillas:', productLines.length);
+        // Reconstruir líneas completas de productos (pueden estar en múltiples líneas físicas)
+        const reconstructedLines: string[] = [];
+        let currentLine = '';
+        let inQuotes = false;
+        let quoteCount = 0;
         
-        // Parsear cada línea de producto
-        productLines.forEach((line, index) => {
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          
+          // Contar comillas en la línea
+          const lineQuoteCount = (line.match(/"/g) || []).length;
+          quoteCount += lineQuoteCount;
+          
+          if (currentLine === '') {
+            // Empezar nueva línea
+            currentLine = line;
+          } else {
+            // Continuar línea existente
+            currentLine += '\n' + line;
+          }
+          
+          // Si el número de comillas es par, la línea está completa
+          if (quoteCount % 2 === 0 && quoteCount > 0) {
+            reconstructedLines.push(currentLine);
+            currentLine = '';
+            quoteCount = 0;
+          }
+        }
+        
+        // Agregar la última línea si existe
+        if (currentLine.trim()) {
+          reconstructedLines.push(currentLine);
+        }
+        
+        console.log('📊 Líneas reconstruidas:', reconstructedLines.length);
+        
+        // Parsear cada línea reconstruida
+        reconstructedLines.forEach((line, index) => {
           if (index < 3) { // Log solo las primeras 3 líneas
-            console.log(`📋 Línea ${index + 1}:`, line.substring(0, 100) + '...');
+            console.log(`📋 Línea ${index + 1}:`, line.substring(0, 150) + '...');
           }
           
           // Parsear línea CSV con comillas
