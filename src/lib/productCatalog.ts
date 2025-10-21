@@ -413,6 +413,10 @@ const parseCSV = (csvContent: string): Omit<Product, 'id' | 'created_at' | 'upda
   const lines = csvContent.split('\n').filter(line => line.trim());
   if (lines.length < 2) return [];
 
+  console.log('📊 CSV Analysis:');
+  console.log('- Total lines:', lines.length);
+  console.log('- Expected products:', lines.length - 1);
+
   // Función para parsear CSV correctamente manejando comillas
   const parseCSVLine = (line: string): string[] => {
     const result: string[] = [];
@@ -437,31 +441,61 @@ const parseCSV = (csvContent: string): Omit<Product, 'id' | 'created_at' | 'upda
   };
 
   const headers = parseCSVLine(lines[0]).map(h => h.replace(/"/g, '').trim().toLowerCase());
+  console.log('- Headers found:', headers);
+  
   const products: Omit<Product, 'id' | 'created_at' | 'updated_at'>[] = [];
+  let validProductsCount = 0;
+  let invalidProductsCount = 0;
 
   for (let i = 1; i < lines.length; i++) {
     const values = parseCSVLine(lines[i]).map(v => v.replace(/"/g, '').trim());
-    if (values.length !== headers.length) continue;
+    if (values.length !== headers.length) {
+      console.log(`⚠️ Line ${i + 1}: Mismatched columns (${values.length} vs ${headers.length})`);
+      invalidProductsCount++;
+      continue;
+    }
 
     const product: any = {};
     headers.forEach((header, index) => {
       product[header] = values[index];
     });
 
-    // Validar campos requeridos
-    if (!product.nombre || !product.precio) continue;
+    // Validar campos requeridos - usar nombres en inglés
+    const hasName = product.name && product.name.trim() !== '';
+    const hasPrice = product.price && product.price.trim() !== '';
+    
+    if (!hasName || !hasPrice) {
+      console.log(`⚠️ Line ${i + 1}: Missing required fields - Name: ${hasName}, Price: ${hasPrice}`);
+      invalidProductsCount++;
+      continue;
+    }
+
+    // Convertir precio a número
+    const priceValue = parseFloat(product.price);
+    if (isNaN(priceValue) || priceValue < 0) {
+      console.log(`⚠️ Line ${i + 1}: Invalid price: ${product.price}`);
+      invalidProductsCount++;
+      continue;
+    }
 
     products.push({
-      name: product.nombre,
-      price: parseFloat(product.precio) || 0,
-      description: product.descripcion || '',
-      category: product.categoria || '',
+      name: product.name.trim(),
+      price: priceValue,
+      description: product.description || '',
+      category: product.category || '',
       sku: product.sku || '',
       stock_quantity: parseInt(product.stock) || 0,
       status: 'active',
       source: 'csv'
     });
+    
+    validProductsCount++;
   }
+
+  console.log('📈 CSV Processing Results:');
+  console.log('- Valid products:', validProductsCount);
+  console.log('- Invalid products:', invalidProductsCount);
+  console.log('- Total processed:', validProductsCount + invalidProductsCount);
 
   return products;
 };
