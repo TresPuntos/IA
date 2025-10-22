@@ -88,7 +88,7 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
       const lines = text.split(/\r?\n/);
       console.log('📊 Total líneas en el archivo:', lines.length);
       
-      // Función para detectar si una línea es el inicio de un nuevo producto
+      // Función para detectar si una línea es el inicio de un nuevo producto o header
       const isProductStart = (line: string): boolean => {
         const trimmedLine = line.trim();
         if (!trimmedLine.startsWith('"')) return false;
@@ -97,8 +97,14 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
         if (trimmedLine.includes('","')) {
           const parts = trimmedLine.split('","');
           if (parts.length >= 2) {
-            // Verificar que el segundo campo (precio) sea un número válido
             const priceField = parts[1];
+            
+            // Si el segundo campo es "price", es el header
+            if (priceField === 'price') {
+              return true;
+            }
+            
+            // Si el segundo campo es un número válido, es un producto
             if (priceField && !isNaN(parseFloat(priceField))) {
               return true;
             }
