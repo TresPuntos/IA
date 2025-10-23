@@ -12,8 +12,8 @@ interface ConfigurationProps {
 export function Configuration({ onDuplicate }: ConfigurationProps) {
   const { config, updateConfig, isLoading } = useConfig();
 
-  // Verificación de seguridad para systemPrompts
-  if (isLoading || !config || !config.systemPrompts) {
+  // Verificación de seguridad para systemPrompt
+  if (isLoading || !config || !config.systemPrompt) {
     return (
       <div className="space-y-6">
         <div>
@@ -96,53 +96,28 @@ export function Configuration({ onDuplicate }: ConfigurationProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Tone and Style</CardTitle>
-          <CardDescription>Define how the AI should communicate</CardDescription>
+          <CardTitle>System Prompt Principal</CardTitle>
+          <CardDescription>Configura el comportamiento principal de la IA</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="tone">Tone</Label>
-            <Select 
-              value={config.tone}
-              onValueChange={(value) => updateConfig({ tone: value as any })}
-            >
-              <SelectTrigger id="tone">
-                <SelectValue placeholder="Select tone" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="friendly">Friendly</SelectItem>
-                <SelectItem value="premium">Premium</SelectItem>
-                <SelectItem value="technical">Technical</SelectItem>
-                <SelectItem value="casual">Casual</SelectItem>
-                <SelectItem value="professional">Professional</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <div className="space-y-4">
-            <Label>System Prompts por Tono</Label>
-            <div className="space-y-4">
-              {Object.entries(config.systemPrompts).map(([toneKey, prompt]) => (
-                <div key={toneKey} className="space-y-2">
-                  <Label htmlFor={`prompt-${toneKey}`} className="capitalize">
-                    {toneKey} Prompt
-                  </Label>
-                  <Textarea 
-                    id={`prompt-${toneKey}`}
-                    placeholder={`System prompt for ${toneKey} tone...`}
-                    rows={6}
-                    value={prompt}
-                    onChange={(e) => updateConfig({ 
-                      systemPrompts: { 
-                        ...config.systemPrompts, 
-                        [toneKey]: e.target.value 
-                      } 
-                    })}
-                    className="resize-none font-mono text-sm"
-                  />
-                </div>
-              ))}
-            </div>
+            <Label htmlFor="main-system-prompt" className="text-sm font-medium">
+              Prompt Principal ÚNICO
+            </Label>
+            <Textarea 
+              id="main-system-prompt"
+              placeholder="Eres un asistente especializado en ayudar a clientes..."
+              rows={8}
+              value={config.systemPrompt}
+              onChange={(e) => updateConfig({ 
+                systemPrompt: e.target.value 
+              })}
+              className="resize-none font-mono text-sm"
+            />
+            <p className="text-xs text-muted-foreground">
+              Este es el ÚNICO prompt que seguirá OpenAI para todas las respuestas. 
+              Incluye aquí todas las instrucciones sobre cómo debe comportarse la IA.
+            </p>
           </div>
         </CardContent>
       </Card>

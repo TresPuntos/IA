@@ -403,9 +403,9 @@ export const saveCSVProducts = async (products: Omit<Product, 'id' | 'created_at
       sku: product.sku || '',
       stock_quantity: product.stock_quantity || 0,
       image_url: product.image_url || '',
+      external_id: product.external_id || '',
       status: product.status || 'active',
-      source: product.source || 'csv',
-      external_id: product.external_id || null
+      source: product.source || 'csv'
     }));
 
     // Insertar productos en lotes de 100 para evitar límites de Supabase
@@ -642,6 +642,8 @@ const parseCSV = (csvContent: string): Omit<Product, 'id' | 'created_at' | 'upda
       category: product.category || '',
       sku: product.sku || '',
       stock_quantity: parseInt(product.stock) || 0,
+      image_url: product.image_url || product.image || '',
+      external_id: product.product_url || product.url || '',
       status: 'active',
       source: 'csv'
     });

@@ -44,12 +44,12 @@ export function ModelParamsCard() {
     checkConnection();
   }, []);
 
-  // Actualizar el prompt cuando cambie el tono
+  // Actualizar el prompt cuando cambie la configuración
   useEffect(() => {
-    if (config.systemPrompts && config.tone) {
-      setCurrentPrompt(config.systemPrompts[config.tone] || '');
+    if (config.systemPrompt) {
+      setCurrentPrompt(config.systemPrompt);
     }
-  }, [config.tone, config.systemPrompts]);
+  }, [config.systemPrompt]);
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -220,10 +220,7 @@ export function ModelParamsCard() {
             onChange={(e) => {
               setCurrentPrompt(e.target.value);
               updateConfig({ 
-                systemPrompts: { 
-                  ...config.systemPrompts, 
-                  [config.tone]: e.target.value 
-                } 
+                systemPrompt: e.target.value
               });
             }}
             className="resize-none bg-input-background border-border/50"

@@ -37,12 +37,12 @@ export const ConfigProvider: React.FC<ConfigProviderProps> = ({ children }) => {
         const savedConfig = await loadConfig('default');
         console.log('🔍 DEBUG: savedConfig:', savedConfig);
         
-        if (savedConfig && savedConfig.systemPrompts) {
+        if (savedConfig && savedConfig.systemPrompt) {
           setConfig(savedConfig);
           console.log('✅ Configuración cargada desde almacenamiento');
         } else {
           console.log('ℹ️ No hay configuración guardada o estructura incorrecta, usando defaultConfig');
-          console.log('🔍 DEBUG: defaultConfig.systemPrompts:', defaultConfig.systemPrompts);
+          console.log('🔍 DEBUG: defaultConfig.systemPrompt:', defaultConfig.systemPrompt);
           setConfig(defaultConfig);
         }
       } catch (error) {

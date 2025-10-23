@@ -1,0 +1,16 @@
+#!/bin/bash
+
+echo "✅ CSV Uploader corregido - mapeo de URLs añadido"
+echo ""
+echo "🔧 Cambios realizados en CSVUploader.tsx:"
+echo "- ✅ Añadido mapeo: product_url → external_id"
+echo "- ✅ Añadido mapeo: image_url → image_url"  
+echo "- ✅ Añadido campos: stock_quantity, status, source"
+echo ""
+echo "📋 Ahora puedes:"
+echo "1. Ir a la página de Catálogo"
+echo "2. Subir tu archivo CSV"
+echo "3. Las URLs del campo 'product_url' se mapearán correctamente"
+echo ""
+echo "🧪 Para probar después de subir:"
+echo "./test-csv-mapping.sh"

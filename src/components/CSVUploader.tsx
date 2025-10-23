@@ -230,6 +230,11 @@ export function CSVUploader({ onFileUploaded, onFileDeleted }: CSVUploaderProps)
             category: product.category || '',
             description: product.description || '',
             sku: product.sku || `CSV-${index + 1}`,
+            stock_quantity: parseInt(product.stock) || 0,
+            image_url: product.image_url || product.image || '',
+            external_id: product.product_url || product.url || '',
+            status: 'active',
+            source: 'csv',
             isActive: true,
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
