@@ -27,11 +27,6 @@ export const callSupabaseChat = async (
   message: string,
   systemPrompt?: string
 ): Promise<ChatResponse | ChatError> => {
-  // SOLUCIÓN TEMPORAL: Deshabilitar chat AI hasta desplegar Edge Function corregida
-  return {
-    error: 'Chat AI temporalmente deshabilitado. El CSV upload funciona correctamente. Despliega la Edge Function corregida para habilitar el chat.'
-  };
-  
   try {
     // Cargar la configuración actual del usuario
     console.log('🔍 DEBUG: Cargando configuración del usuario...');
