@@ -151,7 +151,7 @@ export function PrestashopScanner({
             <Input
               id="api-key"
               type="password"
-              placeholder=Insert API Key hereZ"
+              placeholder="Insert API Key here"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               disabled={isScanning || isImporting}
