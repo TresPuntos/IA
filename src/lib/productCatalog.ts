@@ -68,6 +68,7 @@ export const getCatalogStats = async (): Promise<CatalogStats> => {
         active_products: 0,
         csv_products: 0,
         woocommerce_products: 0,
+        prestashop_products: 0,
         last_update: null
       };
     }
@@ -75,6 +76,7 @@ export const getCatalogStats = async (): Promise<CatalogStats> => {
     // Contar productos por fuente y estado
     const csvProducts = products?.filter(p => p.source === 'csv') || [];
     const woocommerceProducts = products?.filter(p => p.source === 'woocommerce') || [];
+    const prestashopProducts = products?.filter(p => p.source === 'prestashop') || [];
     const activeProducts = products?.filter(p => p.status === 'active') || [];
 
     // Obtener la última actualización
@@ -90,6 +92,7 @@ export const getCatalogStats = async (): Promise<CatalogStats> => {
       active_products: activeProducts.length,
       csv_products: csvProducts.length,
       woocommerce_products: woocommerceProducts.length,
+      prestashop_products: prestashopProducts.length,
       last_update: lastUpdate?.completed_at || null
     };
   } catch (error) {
@@ -771,24 +774,22 @@ export const scanPrestashopProducts = async (
   try {
     console.log('Iniciando escaneo Prestashop:', { apiUrl, apiKey: apiKey ? '***' : 'undefined' });
     
-    // Validar URL - PrestaShop puede usar diferentes formatos
-    const isValidPrestashopUrl = apiUrl.includes('/api/') || 
-                               apiUrl.includes('/webservice/') || 
-                               apiUrl.includes('/api') ||
-                               apiUrl.includes('/webservice');
+    // SOLUCIÓN SIMPLE: Construir automáticamente la URL de API
+    let finalApiUrl = apiUrl;
     
-    if (!isValidPrestashopUrl) {
-      return {
-        success: false,
-        error: 'La URL debe ser una API de Prestashop válida. Formatos soportados: /api/, /webservice/, /api, /webservice'
-      };
+    // Si la URL no contiene /api/ o /webservice/, agregar /api/ automáticamente
+    if (!apiUrl.includes('/api/') && !apiUrl.includes('/webservice/')) {
+      finalApiUrl = `${apiUrl}/api/`;
+      console.log('🔧 URL construida automáticamente:', finalApiUrl);
+    } else {
+      console.log('✅ URL ya contiene endpoint de API:', apiUrl);
     }
 
     onProgress?.(10);
 
     // Obtener productos
     console.log('Obteniendo productos...');
-    const products = await fetchPrestashopProducts(apiUrl, apiKey);
+    const products = await fetchPrestashopProducts(finalApiUrl, apiKey);
     console.log('Productos obtenidos:', products.length);
     onProgress?.(50);
 
@@ -808,7 +809,7 @@ export const scanPrestashopProducts = async (
       onProgress?.(progress);
 
       // Obtener combinaciones del producto
-      const combinations = await fetchPrestashopCombinations(apiUrl, apiKey, product.id);
+      const combinations = await fetchPrestashopCombinations(finalApiUrl, apiKey, product.id);
       
       const scannedProduct: PrestashopScannedProduct = {
         id: product.id,
