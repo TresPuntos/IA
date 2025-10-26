@@ -855,15 +855,21 @@ const fetchPrestashopProducts = async (
   apiUrl: string,
   apiKey: string
 ): Promise<PrestashopProduct[]> => {
-  const cleanUrl = apiUrl.trim().replace(/\/$/, ''); // Quitar espacios y barra final
-  const url = `${cleanUrl}/products?display=full&limit=1000`;
-  console.log('Fetching Prestashop products from:', url);
+  // Usar el proxy de Netlify en lugar de llamar directamente
+  const proxyUrl = `/api/prestashop/products?display=full&limit=1000`;
+  console.log('Fetching Prestashop products via proxy:', proxyUrl);
+  console.log('API URL:', apiUrl);
+  console.log('API Key:', apiKey ? '***' : 'undefined');
   
-  const response = await fetch(url, {
+  const response = await fetch(proxyUrl, {
+    method: 'POST',
     headers: {
-      'Authorization': `Basic ${btoa(`${apiKey}:`)}`,
       'Content-Type': 'application/json'
-    }
+    },
+    body: JSON.stringify({
+      apiUrl,
+      apiKey
+    })
   });
 
   console.log('Response status:', response.status);

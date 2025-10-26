@@ -3,8 +3,30 @@ export const handler = async (event, context) => {
   try {
     console.log('🔍 Prestashop function called:', event.path, event.httpMethod);
     
-    const base = process.env.PRESTASHOP_BASE_URL?.replace(/\/+$/, ""); // sin barra final
-    const path = event.path.replace(/^\/?api\/prestashop\/?/, "");     // lo que venga tras /api/prestashop/
+    // Si es POST, el frontend envía las credenciales en el body
+    let base, apiKey;
+    
+    if (event.httpMethod === 'POST') {
+      const body = JSON.parse(event.body || '{}');
+      base = body.apiUrl?.replace(/\/+$/, '');
+      apiKey = body.apiKey;
+      console.log('📥 Credenciales recibidas del frontend:', { base: !!base, apiKey: !!apiKey });
+    } else {
+      // Si es GET, usar credenciales de entorno (para pruebas)
+      base = process.env.PRESTASHOP_BASE_URL?.replace(/\/+$/, '');
+      apiKey = process.env.PRESTASHOP_API_KEY;
+      console.log('📥 Usando credenciales de entorno:', { base: !!base, apiKey: !!apiKey });
+    }
+    
+    if (!base || !apiKey) {
+      return {
+        statusCode: 500,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify({ error: true, message: 'Missing credentials' })
+      };
+    }
+    
+    const path = event.path.replace(/^\/?api\/prestashop\/?/, "") || event.path;     // lo que venga tras /api/prestashop/
     const url = new URL(`${base}/${path}`);
 
     // Pasa querystring del cliente
@@ -13,20 +35,8 @@ export const handler = async (event, context) => {
     // qp.set("ws_key", process.env.PRESTASHOP_API_KEY);
     url.search = qp.toString();
 
-    // Si usas Basic Auth (recomendado para Webservice PS):
-    const key = process.env.PRESTASHOP_API_KEY || "";
-    console.log('🔑 API Key present:', !!key, 'Base URL:', base);
-    
-    if (!key || !base) {
-      console.error('❌ Missing credentials:', { key: !!key, base: !!base });
-      return {
-        statusCode: 500,
-        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-        body: JSON.stringify({ error: true, message: 'Server configuration error' })
-      };
-    }
-    
-    const basic = "Basic " + Buffer.from(`${key}:`).toString("base64");
+    // Usar Basic Auth con las credenciales obtenidas
+    const basic = "Basic " + Buffer.from(`${apiKey}:`).toString("base64");
 
     // Construye headers hacia PrestaShop
     const outgoingHeaders = new Headers();
