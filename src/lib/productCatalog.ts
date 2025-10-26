@@ -873,6 +873,7 @@ const fetchPrestashopProducts = async (
   });
 
   console.log('Response status:', response.status);
+  console.log('Response headers:', response.headers.get('content-type'));
   
   if (!response.ok) {
     const errorText = await response.text();
@@ -880,8 +881,19 @@ const fetchPrestashopProducts = async (
     throw new Error(`Error de Prestashop API: ${response.status} ${response.statusText}`);
   }
 
-  const data = await response.json();
-  console.log('Response data:', data);
+  const contentType = response.headers.get('content-type') || '';
+  console.log('Content type:', contentType);
+  
+  let data;
+  if (contentType.includes('xml')) {
+    // Si es XML, retornar array vacío por ahora (requeriría parseo)
+    console.log('⚠️ PrestaShop devolvió XML, no JSON');
+    return [];
+  } else {
+    data = await response.json();
+    console.log('Response data:', data);
+  }
+  
   return data.products || [];
 };
 
