@@ -26,14 +26,21 @@ export const handler = async (event, context) => {
       };
     }
     
-    const path = event.path.replace(/^\/?api\/prestashop\/?/, "") || event.path;     // lo que venga tras /api/prestashop/
-    const url = new URL(`${base}/${path}`);
+    // Extraer el endpoint de la ruta
+    // event.path: /api/prestashop/products
+    const path = event.path.replace(/^\/?api\/prestashop\/?/, ""); // products
+    console.log('📍 Path extraído:', path);
+    
+    // Construir URL completa con el endpoint
+    const url = `${base}/${path}`;
+    console.log('🔗 URL final:', url);
 
-    // Pasa querystring del cliente
+    // Pasa querystring del cliente (como display=full&limit=1)
     const qp = new URLSearchParams(event.queryStringParameters || {});
-    // Si tu tienda usa ws_key por query en vez de Basic Auth, descomenta:
-    // qp.set("ws_key", process.env.PRESTASHOP_API_KEY);
-    url.search = qp.toString();
+    const queryString = qp.toString();
+    const fullUrl = queryString ? `${url}?${queryString}` : url;
+    
+    console.log('🌐 URL completa con query:', fullUrl);
 
     // Usar Basic Auth con las credenciales obtenidas
     const basic = "Basic " + Buffer.from(`${apiKey}:`).toString("base64");
@@ -49,11 +56,13 @@ export const handler = async (event, context) => {
 
     // Body sólo para métodos con payload
     const hasBody = ["POST","PUT","PATCH","DELETE"].includes(event.httpMethod);
-    const resp = await fetch(url.toString(), {
+    console.log('📡 Llamando a PrestaShop:', fullUrl);
+    const resp = await fetch(fullUrl, {
       method: event.httpMethod === "OPTIONS" ? "GET" : event.httpMethod, // Netlify maneja OPTIONS, evitamos confusiones
       headers: outgoingHeaders,
       body: hasBody ? event.body : undefined,
     });
+    console.log('📥 Respuesta de PrestaShop:', resp.status, resp.statusText);
 
     const buf = await resp.arrayBuffer();
     // Copiamos tipo de contenido del backend (JSON o XML)
