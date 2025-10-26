@@ -150,9 +150,9 @@ export function Configuration({ onDuplicate }: ConfigurationProps) {
  onChange={(e) => updateConfig({ prestashopApiKey: e.target.value })}
  placeholder="Tu API Key aquí"
  />
- <p className="text-sm text-muted-foreground">
- Genera tu API Key en PrestaShop > Avanzado > Web service
- </p>
+<p className="text-sm text-muted-foreground">
+Genera tu API Key en PrestaShop &gt; Avanzado &gt; Web service
+</p>
  </div>
  </CardContent>
  </Card>
