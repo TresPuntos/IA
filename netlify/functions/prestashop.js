@@ -1,28 +1,38 @@
 // Proxy sólido para PrestaShop Webservice
 export const handler = async (event, context) => {
   try {
-    console.log('🔍 Prestashop function called:', event.path, event.httpMethod);
+    console.log('🔍 Prestashop function called:', JSON.stringify({ path: event.path, method: event.httpMethod }));
     
     // Si es POST, el frontend envía las credenciales en el body
     let base, apiKey;
     
     if (event.httpMethod === 'POST') {
-      const body = JSON.parse(event.body || '{}');
-      base = body.apiUrl?.replace(/\/+$/, '');
-      apiKey = body.apiKey;
-      console.log('📥 Credenciales recibidas del frontend:', { base: !!base, apiKey: !!apiKey });
+      try {
+        const body = JSON.parse(event.body || '{}');
+        base = body.apiUrl?.replace(/\/+$/, '');
+        apiKey = body.apiKey;
+        console.log('📥 Credenciales recibidas:', { base: base || 'MISSING', apiKey: apiKey ? 'PRESENT' : 'MISSING' });
+      } catch (parseError) {
+        console.error('❌ Error parseando body:', parseError);
+        return {
+          statusCode: 400,
+          headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+          body: JSON.stringify({ error: true, message: 'Invalid request body' })
+        };
+      }
     } else {
       // Si es GET, usar credenciales de entorno (para pruebas)
       base = process.env.PRESTASHOP_BASE_URL?.replace(/\/+$/, '');
       apiKey = process.env.PRESTASHOP_API_KEY;
-      console.log('📥 Usando credenciales de entorno:', { base: !!base, apiKey: !!apiKey });
+      console.log('📥 Usando credenciales de entorno:', { base: base || 'MISSING', apiKey: apiKey ? 'PRESENT' : 'MISSING' });
     }
     
     if (!base || !apiKey) {
+      console.error('❌ Missing credentials:', { base: !!base, apiKey: !!apiKey });
       return {
         statusCode: 500,
         headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
-        body: JSON.stringify({ error: true, message: 'Missing credentials' })
+        body: JSON.stringify({ error: true, message: 'Missing credentials', details: { base: !!base, apiKey: !!apiKey } })
       };
     }
     
@@ -86,13 +96,18 @@ export const handler = async (event, context) => {
       body: Buffer.from(buf).toString("base64"),
     };
   } catch (e) {
+    console.error('❌ Error en Netlify Function:', e);
     return {
       statusCode: 500,
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
       },
-      body: JSON.stringify({ error: true, message: e.message }),
+      body: JSON.stringify({ 
+        error: true, 
+        message: e.message,
+        stack: e.stack 
+      }),
     };
   }
 };
