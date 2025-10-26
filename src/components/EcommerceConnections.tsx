@@ -228,99 +228,35 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
         apiUrl = `${cleanUrl}/api/`;
       }
 
-      // SOLUCIÓN CORS: Usar proxy o verificación alternativa
-      console.log('🔍 Verificando conectividad con manejo de CORS...');
+      // SOLUCIÓN: Usar solo el proxy de Netlify (evitar CORS)
+      console.log('🔍 Verificando conectividad via proxy...');
       
-      // Intentar diferentes métodos para evitar CORS
-      const testUrls = [
-        `${apiUrl}`,
-        `${apiUrl}/products`,
-        `${apiUrl}/products?limit=1`,
-        `${cleanUrl}/api/products`,
-        `${cleanUrl}/webservice/products`
-      ];
-
       let connectionSuccessful = false;
-      let lastError = null;
-
-      for (const testUrl of testUrls) {
-        try {
-          console.log('Probando URL:', testUrl);
-          
-          // Método 1: Fetch con headers mínimos
-          const response = await fetch(testUrl, {
-            method: 'GET',
-            headers: {
-              'Accept': 'application/json',
-              'User-Agent': 'Prestashop-API-Client/1.0'
-            },
-            mode: 'cors',
-            credentials: 'omit'
-          });
-
-          console.log('Respuesta:', response.status, response.statusText);
-          
-          if (response.status === 200 || response.status === 401 || response.status === 403) {
-            connectionSuccessful = true;
-            break;
-          }
-        } catch (error) {
-          console.log('Error con esta URL:', error);
-          lastError = error;
-          
-          // Si es error de CORS, intentar método alternativo
-          if (error.message.includes('CORS') || error.message.includes('Access-Control-Allow-Origin')) {
-            console.log('🔄 Detectado error de CORS, intentando método alternativo...');
-            
-            try {
-              // Método alternativo 1: Usar proxy público
-              console.log('🔧 Intentando con proxy público...');
-              const proxyResult = await checkWithProxy(testUrl);
-              
-              if (proxyResult) {
-                console.log('✅ Servidor responde (via proxy)');
-                setConnectionStatus(prev => ({
-                  ...prev,
-                  [connection.id]: 'connected'
-                }));
-                return;
-              }
-              
-              // Método alternativo 2: Verificación básica con imagen
-              console.log('🔧 Intentando verificación básica...');
-              const img = new Image();
-              img.onload = () => {
-                console.log('✅ Servidor responde (método alternativo)');
-                setConnectionStatus(prev => ({
-                  ...prev,
-                  [connection.id]: 'connected'
-                }));
-              };
-              img.onerror = () => {
-                console.log('❌ Servidor no responde (método alternativo)');
-                setConnectionStatus(prev => ({
-                  ...prev,
-                  [connection.id]: 'cors-error'
-                }));
-              };
-              img.src = `${cleanUrl}/favicon.ico?t=${Date.now()}`;
-              return; // Salir del loop
-            } catch (altError) {
-              console.log('Error en método alternativo:', altError);
-            }
-          }
+      
+      // Usar solo el proxy de Netlify para evitar CORS
+      try {
+        const proxyResponse = await fetch(`/api/prestashop/products?display=full&limit=1`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            apiUrl: cleanUrl,
+            apiKey: connection.apiKey || ''
+          })
+        });
+        
+        if (proxyResponse.ok || proxyResponse.status === 401 || proxyResponse.status === 403) {
+          connectionSuccessful = true;
         }
+      } catch (proxyError) {
+        console.log('❌ Error con proxy:', proxyError);
       }
 
       if (connectionSuccessful) {
         setConnectionStatus(prev => ({
           ...prev,
           [connection.id]: 'connected'
-        }));
-      } else if (lastError && lastError.message.includes('CORS')) {
-        setConnectionStatus(prev => ({
-          ...prev,
-          [connection.id]: 'cors-error'
         }));
       } else {
         setConnectionStatus(prev => ({
@@ -399,10 +335,15 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
           const localProxyUrl = `/api/prestashop/products?display=full&limit=1`;
           
           const proxyResponse = await fetch(localProxyUrl, {
-            method: 'GET',
+            method: 'POST',
             headers: {
+              'Content-Type': 'application/json',
               'Accept': 'application/json, application/xml, */*'
-            }
+            },
+            body: JSON.stringify({
+              apiUrl: cleanUrl,
+              apiKey: connection.apiKey
+            })
           });
           
           if (proxyResponse.ok) {
@@ -410,10 +351,10 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
             connectionSuccessful = true;
           } else {
             console.log('⚠️ Proxy local respondió con:', proxyResponse.status, proxyResponse.statusText);
-            // Si es 401, significa que el proxy funciona pero falta API key
-            if (proxyResponse.status === 401) {
-              console.log('🔑 Proxy funciona pero requiere API key en variables de entorno');
-              connectionSuccessful = true; // El proxy funciona, solo falta configurar la API key
+            // Si es 401, significa que las credenciales son incorrectas
+            if (proxyResponse.status === 401 || proxyResponse.status === 403) {
+              console.log('🔑 Credenciales incorrectas o faltantes');
+              throw new Error('Credenciales incorrectas o la API key no tiene permisos');
             }
           }
         } catch (proxyError) {
