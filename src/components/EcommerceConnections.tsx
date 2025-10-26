@@ -140,7 +140,7 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
       steps: [
         'Ve a tu panel de WordPress',
         'Instala el plugin WooCommerce si no lo tienes',
-        'Ve a WooCommerce > Configuración > Avanzado > REST API',
+        'Ve a WooCommerce &gt; Configuración &gt; Avanzado &gt; REST API',
         'Haz clic en "Crear una clave API"',
         'Copia la URL de tu tienda y las credenciales generadas'
       ]
@@ -152,9 +152,9 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
       color: 'bg-orange-500',
       steps: [
         'Ve a tu panel de administración de PrestaShop',
-        'Navega a Configuración > Avanzado > Web Service',
+        'Navega a Configuración &gt; Avanzado &gt; Web Service',
         'Habilita el Web Service',
-        'Ve a Configuración > Avanzado > API Keys',
+        'Ve a Configuración &gt; Avanzado &gt; API Keys',
         'Genera una nueva API Key con permisos de lectura',
         'Copia la URL de tu tienda y la API Key'
       ]
