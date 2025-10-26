@@ -1,6 +1,8 @@
 // Proxy sólido para PrestaShop Webservice
-export default async (event, context) => {
+export const handler = async (event, context) => {
   try {
+    console.log('🔍 Prestashop function called:', event.path, event.httpMethod);
+    
     const base = process.env.PRESTASHOP_BASE_URL?.replace(/\/+$/, ""); // sin barra final
     const path = event.path.replace(/^\/?api\/prestashop\/?/, "");     // lo que venga tras /api/prestashop/
     const url = new URL(`${base}/${path}`);
@@ -13,6 +15,17 @@ export default async (event, context) => {
 
     // Si usas Basic Auth (recomendado para Webservice PS):
     const key = process.env.PRESTASHOP_API_KEY || "";
+    console.log('🔑 API Key present:', !!key, 'Base URL:', base);
+    
+    if (!key || !base) {
+      console.error('❌ Missing credentials:', { key: !!key, base: !!base });
+      return {
+        statusCode: 500,
+        headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" },
+        body: JSON.stringify({ error: true, message: 'Server configuration error' })
+      };
+    }
+    
     const basic = "Basic " + Buffer.from(`${key}:`).toString("base64");
 
     // Construye headers hacia PrestaShop
