@@ -1,5 +1,5 @@
 // Proxy sólido para PrestaShop Webservice
-export const handler = async (event, context) => {
+exports.handler = async (event, context) => {
   try {
     console.log('🔍 Prestashop function called:', JSON.stringify({ path: event.path, method: event.httpMethod }));
     
