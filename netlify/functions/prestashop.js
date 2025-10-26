@@ -31,7 +31,8 @@ exports.handler = async (event, context) => {
       method: 'GET',
       headers: {
         'Authorization': basicAuth,
-        'Accept': 'application/json'
+        'Accept': 'application/json',
+        'Io-Format': 'JSON'
       }
     });
     
