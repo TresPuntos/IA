@@ -532,11 +532,13 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
                 <h3 className="font-medium">{connection.name}</h3>
                 <p className="text-sm text-muted-foreground">No configurado</p>
               </div>
-              <Badge variant="secondary" className="flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                Sin configurar
-              </Badge>
-            </div>
+              <Button
+                                    variant="outline"
+                                    onClick={() => setEditingConnection(connection)}
+                                  >
+                                    Sin configurar
+                                  </Button>
+                              </div>
           </CardContent>
         </Card>
       );

@@ -4,8 +4,6 @@
 # URL base de PrestaShop (sin barra final)
 PRESTASHOP_BASE_URL=https://100x100chef.com/shop/api
 
-# API Key de PrestaShop Webservice
-PRESTASHOP_API_KEY=E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ
 
 # Credenciales de Supabase (para el frontend)
 VITE_SUPABASE_PROJECT_ID=akwobmrcwqbbrdvzyiul
