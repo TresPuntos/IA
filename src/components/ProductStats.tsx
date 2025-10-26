@@ -24,7 +24,6 @@ interface ProductStatsProps {
   syncStatus: 'success' | 'error' | 'pending' | 'idle';
   onDeleteCSV?: () => void;
   onDeleteWooCommerce?: () => void;
-  onDeleteManual?: () => void;
   onClearAll?: () => void;
 }
 
@@ -37,7 +36,6 @@ export function ProductStats({
   syncStatus,
   onDeleteCSV,
   onDeleteWooCommerce,
-  onDeleteManual,
   onClearAll
 }: ProductStatsProps) {
   const getSyncStatusInfo = () => {
@@ -198,14 +196,6 @@ export function ProductStats({
                 <span className="font-medium">Conexiones Ecommerce</span>
               </div>
               <Badge variant="outline">{ecommerceConnections} plataformas</Badge>
-            </div>
-            
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div className="flex items-center gap-2">
-                <Package className="h-4 w-4 text-green-500" />
-                <span className="font-medium">Productos Manuales</span>
-              </div>
-              <Badge variant="outline">{totalProducts - (csvFiles * 10)} productos</Badge>
             </div>
           </div>
         </CardContent>

@@ -1,6 +1,5 @@
 // src/lib/chat.ts
 import { callSupabaseChat } from './supabaseChat';
-import { applyLanguageToResponse, limitTokens } from './config';
 import { loadConfig } from './configStorage';
 
 export async function testChat(site_id: string, message: string) {
@@ -42,17 +41,14 @@ export async function testChat(site_id: string, message: string) {
     const response = `${configSummary}\n\n📝 System Prompt Principal:\n"${promptPreview}"`;
     
     return { 
-      answer: limitTokens(response, config.maxTokens)
+      answer: response
     };
   }
   
   // Verificar si el chat está activo
   if (config.chatStatus === 'inactive') {
     return { 
-      answer: applyLanguageToResponse(
-        "El chat está actualmente desactivado. Por favor, activa el chat en la configuración para poder ayudarte.",
-        config.language
-      )
+      answer: "El chat está actualmente desactivado. Por favor, activa el chat en la configuración para poder ayudarte."
     };
   }
 
@@ -68,14 +64,9 @@ export async function testChat(site_id: string, message: string) {
       };
     }
 
-    // Aplicar configuración de idioma a la respuesta
-    const processedResponse = applyLanguageToResponse(
-      chatResponse.answer, 
-      config.language
-    );
-
+    // La respuesta ya viene procesada desde la Edge Function
     return { 
-      answer: limitTokens(processedResponse, config.maxTokens),
+      answer: chatResponse.answer,
       usage: chatResponse.usage
     };
 

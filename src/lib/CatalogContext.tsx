@@ -1,5 +1,5 @@
 // src/lib/CatalogContext.tsx
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Product, ProductCategory, defaultProducts, defaultCategories } from './catalog';
 
 interface CatalogContextType {
@@ -68,7 +68,7 @@ export const CatalogProvider: React.FC<CatalogProviderProps> = ({ children }) =>
     localStorage.setItem('catalog-categories', JSON.stringify(categories));
   }, [categories]);
 
-  const addProduct = (productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
+  const addProduct = useCallback((productData: Omit<Product, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newProduct: Product = {
       ...productData,
       id: `product-${Date.now()}`,
@@ -76,7 +76,7 @@ export const CatalogProvider: React.FC<CatalogProviderProps> = ({ children }) =>
       updatedAt: new Date().toISOString()
     };
     setProducts(prev => [...prev, newProduct]);
-  };
+  }, []);
 
   const updateProduct = (id: string, updates: Partial<Product>) => {
     setProducts(prev => prev.map(product => 
@@ -122,12 +122,12 @@ export const CatalogProvider: React.FC<CatalogProviderProps> = ({ children }) =>
     ));
   };
 
-  const clearAllProducts = () => {
+  const clearAllProducts = useCallback(() => {
     console.log('🗑️ Limpiando todos los productos del CatalogContext...');
     setProducts([]);
     localStorage.removeItem('catalog-products');
     console.log('✅ Productos del CatalogContext eliminados');
-  };
+  }, []);
 
   const clearAllCategories = () => {
     console.log('🗑️ Limpiando todas las categorías del CatalogContext...');

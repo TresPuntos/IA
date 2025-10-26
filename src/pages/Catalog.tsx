@@ -31,75 +31,94 @@ export function Catalog() {
   const [lastSync, setLastSync] = useState<Date | undefined>();
   const [syncStatus, setSyncStatus] = useState<'success' | 'error' | 'pending' | 'idle'>('idle');
 
-  // Cargar datos desde localStorage y Supabase
+  // Cargar datos desde localStorage y Supabase - SOLO UNA VEZ
   useEffect(() => {
+    let isMounted = true;
+    
     const loadData = async () => {
-      // Cargar datos de localStorage
-      const savedCsvFiles = localStorage.getItem('catalog-csv-files');
-      const savedConnections = localStorage.getItem('catalog-ecommerce-connections');
-      const savedLastSync = localStorage.getItem('catalog-last-sync');
+      try {
+        // Cargar datos de localStorage
+        const savedCsvFiles = localStorage.getItem('catalog-csv-files');
+        const savedConnections = localStorage.getItem('catalog-ecommerce-connections');
+        const savedLastSync = localStorage.getItem('catalog-last-sync');
 
-      if (savedCsvFiles) {
-        setCsvFiles(JSON.parse(savedCsvFiles));
-      }
-      if (savedConnections) {
-        setEcommerceConnections(JSON.parse(savedConnections));
-      }
-      if (savedLastSync) {
-        setLastSync(new Date(savedLastSync));
-      }
+        if (savedCsvFiles && isMounted) {
+          setCsvFiles(JSON.parse(savedCsvFiles));
+        }
+        if (savedConnections && isMounted) {
+          setEcommerceConnections(JSON.parse(savedConnections));
+        }
+        if (savedLastSync && isMounted) {
+          setLastSync(new Date(savedLastSync));
+        }
 
-      // Cargar productos desde Supabase
-      console.log('🔄 Cargando productos desde Supabase...');
-      const loadResult = await loadProductsFromSupabase();
-      
-      if (loadResult.success && loadResult.products) {
-        console.log('✅ Productos cargados desde Supabase:', loadResult.products.length);
-        
-        // Limpiar productos locales y cargar desde Supabase
-        clearAllProducts();
-        
-        // Convertir productos de Supabase al formato del CatalogContext
-        loadResult.products.forEach(product => {
-          addProduct({
-            name: product.name,
-            price: product.price,
-            description: product.description || '',
-            category: product.category || '',
-            sku: product.sku || '',
-            stock_quantity: product.stock_quantity || 0,
-            image_url: product.image_url || '',
-            isActive: product.status === 'active',
-            source: product.source as any
-          });
-        });
-        
-        console.log('✅ Productos sincronizados con CatalogContext');
-      } else {
-        console.error('❌ Error al cargar productos desde Supabase:', loadResult.error);
+        // Cargar productos desde Supabase SOLO si no hay productos ya cargados
+        if (products.length === 0 && isMounted) {
+          console.log('🔄 Cargando productos desde Supabase...');
+          const loadResult = await loadProductsFromSupabase();
+          
+          if (loadResult.success && loadResult.products && isMounted) {
+            console.log('✅ Productos cargados desde Supabase:', loadResult.products.length);
+            
+            // Limpiar productos locales y cargar desde Supabase
+            clearAllProducts();
+            
+            // Convertir productos de Supabase al formato del CatalogContext
+            loadResult.products.forEach(product => {
+              if (isMounted) {
+                addProduct({
+                  name: product.name,
+                  price: product.price,
+                  description: product.description || '',
+                  category: product.category || '',
+                  sku: product.sku || '',
+                  stock_quantity: product.stock_quantity || 0,
+                  image_url: product.image_url || '',
+                  isActive: product.status === 'active',
+                  source: product.source as any
+                });
+              }
+            });
+            
+            console.log('✅ Productos sincronizados con CatalogContext');
+          } else if (!loadResult.success && isMounted) {
+            console.error('❌ Error al cargar productos desde Supabase:', loadResult.error);
+          }
+        }
+      } catch (error) {
+        console.error('❌ Error en loadData:', error);
       }
     };
 
     loadData();
-  }, [clearAllProducts, addProduct]);
-
-  // Debug: Mostrar información de productos al cargar
-  useEffect(() => {
-    console.log('🔍 DEBUG - Estado actual del catálogo:');
-    console.log('- Total productos en CatalogContext:', products.length);
-    console.log('- Productos CSV:', products.filter(p => p.id.startsWith('csv-product-')).length);
-    console.log('- Productos manuales:', products.filter(p => !p.id.startsWith('csv-product-')).length);
-    console.log('- Archivos CSV:', csvFiles.length);
-    console.log('- Conexiones ecommerce:', ecommerceConnections.length);
     
-    // Mostrar algunos productos de ejemplo
-    if (products.length > 0) {
-      console.log('- Primeros 5 productos:', products.slice(0, 5).map(p => ({
-        id: p.id,
-        name: p.name,
-        source: p.id.startsWith('csv-product-') ? 'CSV' : 'Manual'
-      })));
-    }
+    // Cleanup function para evitar actualizaciones en componentes desmontados
+    return () => {
+      isMounted = false;
+    };
+  }, []); // SIN DEPENDENCIAS - Solo se ejecuta una vez
+
+  // Debug: Mostrar información de productos al cargar - CON DEBOUNCE
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      console.log('🔍 DEBUG - Estado actual del catálogo:');
+      console.log('- Total productos en CatalogContext:', products.length);
+      console.log('- Productos CSV:', products.filter(p => p.id.startsWith('csv-product-')).length);
+      console.log('- Productos manuales:', products.filter(p => !p.id.startsWith('csv-product-')).length);
+      console.log('- Archivos CSV:', csvFiles.length);
+      console.log('- Conexiones ecommerce:', ecommerceConnections.length);
+      
+      // Mostrar algunos productos de ejemplo
+      if (products.length > 0) {
+        console.log('- Primeros 5 productos:', products.slice(0, 5).map(p => ({
+          id: p.id,
+          name: p.name,
+          source: p.id.startsWith('csv-product-') ? 'CSV' : 'Manual'
+        })));
+      }
+    }, 500); // Debounce de 500ms
+
+    return () => clearTimeout(timeoutId);
   }, [products, csvFiles, ecommerceConnections]);
   // useEffect(() => {
   //   const performAutoCleanup = () => {
@@ -288,7 +307,7 @@ export function Catalog() {
       <div>
         <h1 className="tracking-tight mb-2">Gestión de Catálogo</h1>
         <p className="text-muted-foreground">
-          Administra tu catálogo de productos desde múltiples fuentes: CSV, ecommerce y manual
+          Administra tu catálogo de productos desde múltiples fuentes: CSV y ecommerce
         </p>
       </div>
 
@@ -306,10 +325,9 @@ export function Catalog() {
 
       {/* Tabs para diferentes funcionalidades */}
       <Tabs defaultValue="upload" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="upload">Subir CSV</TabsTrigger>
           <TabsTrigger value="ecommerce">Conexiones Ecommerce</TabsTrigger>
-          <TabsTrigger value="manual">Gestión Manual</TabsTrigger>
         </TabsList>
 
         <TabsContent value="upload" className="space-y-4">
@@ -332,53 +350,6 @@ export function Catalog() {
         <TabsContent value="ecommerce" className="space-y-4">
           <EcommerceConnections onConnectionUpdate={handleConnectionUpdate} />
         </TabsContent>
-
-        <TabsContent value="manual" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Gestión Manual de Productos</CardTitle>
-              <CardDescription>
-                Añade, edita o elimina productos manualmente. Estos productos se sincronizarán con el AI automáticamente.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {/* Resumen de productos por categoría */}
-                {categories.map(category => {
-                  const categoryProducts = products.filter(p => p.category === category.id);
-                  return (
-                    <div key={category.id} className="p-4 border rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-medium">{category.name}</h3>
-                        <span className="text-sm text-muted-foreground">
-                          {categoryProducts.length} productos
-                        </span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {category.description}
-                      </div>
-                      {categoryProducts.length > 0 && (
-                        <div className="mt-2 space-y-1">
-                          {categoryProducts.slice(0, 3).map(product => (
-                            <div key={product.id} className="flex items-center justify-between text-sm">
-                              <span>{product.name}</span>
-                              <span className="text-muted-foreground">{product.price}€</span>
-                            </div>
-                          ))}
-                          {categoryProducts.length > 3 && (
-                            <div className="text-xs text-muted-foreground">
-                              ... y {categoryProducts.length - 3} productos más
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       {/* Información adicional */}
@@ -395,7 +366,6 @@ export function Catalog() {
                 <li>• WooCommerce (WordPress)</li>
                 <li>• PrestaShop</li>
                 <li>• Shopify</li>
-                <li>• Gestión manual</li>
               </ul>
             </div>
             <div>

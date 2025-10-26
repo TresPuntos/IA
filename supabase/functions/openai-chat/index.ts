@@ -78,6 +78,7 @@ serve(async (req) => {
       .from('product_catalog')
       .select('name, price, description, category, sku, image_url, external_id, stock_quantity')
       .eq('status', 'active')
+      .limit(10000) // Asegurar que obtenemos todos los productos
 
     if (productsError) {
       console.error('Error fetching products:', productsError)
@@ -201,19 +202,32 @@ INSTRUCCIONES CRÍTICAS DEL PROMPT PRINCIPAL:
    - Usa palabras clave del nombre del producto
    - Busca variaciones del nombre (ej: "noodle" para "Noodle Boxes")
    - Revisa categorías relacionadas
-5. CONTROL TOTAL DESDE EL PROMPT: 
-   - NO generes tarjetas de producto automáticamente
-   - Solo crea tarjetas visuales si el usuario lo solicita EXPLÍCITAMENTE en su mensaje
-   - El usuario tiene control total sobre el formato de la respuesta
-   - Si el usuario dice "muestra una tarjeta" o "crea una tarjeta visual", entonces sí genera la tarjeta HTML
-6. Si el usuario solicita una tarjeta visual del producto:
-   - Usa la información del catálogo (imagen, URL, precio, descripción)
-   - Crea formato HTML para mostrar la tarjeta correctamente
-7. Después de cualquier tarjeta solicitada, proporciona información adicional:
-   - Categoría del catálogo
-   - SKU del catálogo
-   - Stock del catálogo (si disponible)
-   - SOLO DESPUÉS puedes añadir información web como complemento
+5. GENERACIÓN AUTOMÁTICA DE TARJETAS: 
+   - El sistema automáticamente genera una tarjeta visual cuando encuentra un producto
+   - La tarjeta ya incluye: imagen, precio, descripción y botón de compra
+   - NO repitas información que ya está en la tarjeta
+6. RESPUESTA CONVERSACIONAL OBLIGATORIA:
+   - SOLO da una respuesta conversacional sobre el producto
+   - NO incluyas NUNCA: precio, descripción técnica, SKU, categoría, imagen o enlaces
+   - NO uses formato de lista con guiones (-) o asteriscos (*)
+   - NO uses encabezados con ### o ##
+   - Habla de los beneficios, usos, características especiales
+   - Sugiere casos de uso o combinaciones con otros productos
+   - Pregunta si necesita más información o productos relacionados
+   - Mantén un tono amigable y útil
+7. PROHIBIDO ABSOLUTO en tu respuesta:
+   - Precio (ej: "49€", "Precio: 49€")
+   - Descripción técnica (ej: "Compatible con vasos y copas")
+   - SKU o categoría (ej: "SKU: 10/0046")
+   - Imagen o enlaces (ej: "![imagen]", "[Ver más]")
+   - Formato de lista con guiones (-)
+   - Encabezados con ### o ##
+8. OBLIGATORIO en tu respuesta:
+   - Beneficios del producto
+   - Casos de uso prácticos
+   - Sugerencias de productos relacionados
+   - Preguntas útiles para el cliente
+   - Solo texto conversacional en párrafos
 7. Si no encuentras información específica, di exactamente qué has buscado y qué información tienes disponible
 8. AL FINAL DE CADA RESPUESTA, el sistema añadirá automáticamente un disclaimer específico indicando las fuentes exactas de tu respuesta
 9. Mantén el tono: ${tone}
@@ -280,21 +294,42 @@ IMPORTANTE: Este es el PROMPT PRINCIPAL ÚNICO. Todas las instrucciones están a
                              message.toLowerCase().includes('muestra') ||
                              message.toLowerCase().includes('crea') ||
                              message.toLowerCase().includes('visual') ||
-                             message.toLowerCase().includes('card')
+                             message.toLowerCase().includes('card') ||
+                             message.toLowerCase().includes('tarjeta simple') ||
+                             message.toLowerCase().includes('tarjeta pequeña')
     
-    // Only generate product card if user explicitly requested it
-    if (userRequestedCard && products && products.length > 0) {
-      const mentionedProduct = products.find(p => {
+    // AUTOMÁTICO: Siempre generar tarjeta cuando se encuentre un producto
+    if (products && products.length > 0) {
+      // Buscar producto específico mencionado en el mensaje
+      const messageLower = message.toLowerCase()
+      
+      // Primero buscar coincidencia exacta del nombre del producto
+      let mentionedProduct = products.find(p => {
         const productName = p.name.toLowerCase()
-        const messageLower = message.toLowerCase()
-        return messageLower.includes(productName) || 
-               productName.split(' ').some(word => word.length > 3 && messageLower.includes(word))
+        return messageLower.includes(productName)
       })
       
+      // Si no encuentra coincidencia exacta, buscar por palabras clave
+      if (!mentionedProduct) {
+        // Extraer palabras clave del mensaje (excluyendo palabras comunes)
+        const commonWords = ['una', 'de', 'la', 'el', 'para', 'con', 'tarjeta', 'simple', 'muestra', 'crea', 'busco', 'quiero', 'necesito']
+        const messageWords = messageLower.split(' ').filter(word => 
+          word.length > 2 && !commonWords.includes(word)
+        )
+        
+        mentionedProduct = products.find(p => {
+          const productName = p.name.toLowerCase()
+          return messageWords.some(word => productName.includes(word))
+        })
+      }
+      
       if (mentionedProduct) {
-        const productCard = generateProductCard(mentionedProduct)
+        console.log('🎯 PRODUCTO ENCONTRADO PARA TARJETA AUTOMÁTICA:', mentionedProduct.name)
+        const productCard = generateSimpleProductCard(mentionedProduct)
         // Insert product card at the beginning of the response
         responseContent = productCard + '\n\n' + responseContent
+      } else {
+        console.log('❌ NO SE ENCONTRÓ PRODUCTO PARA TARJETA AUTOMÁTICA en mensaje:', message)
       }
     }
     
@@ -406,37 +441,32 @@ function getTonePrefix(tone: string): string {
   }
 }
 
-// Helper function to generate product card HTML
-function generateProductCard(product: Product): string {
-  // Mejorar la imagen - usar placeholder más atractivo
+// Helper function to generate simple product card HTML
+function generateSimpleProductCard(product: Product): string {
+  // Crear tarjeta simple y elegante que siga el estilo de la web
   const imageHtml = product.image_url 
-    ? `<img src="${product.image_url}" alt="${product.name}" style="width: 200px; height: 200px; object-fit: cover; border-radius: 8px; margin-bottom: 10px;">`
-    : `<div style="width: 200px; height: 200px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 10px; color: white; font-size: 48px;">📦</div>`
+    ? `<img src="${product.image_url}" alt="${product.name}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px; margin: 0 auto 12px; display: block;">`
+    : `<div style="width: 120px; height: 120px; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center; color: #6c757d; font-size: 24px;">📦</div>`
   
-  // Mejorar el botón - usar URL del sitio web si no hay external_id
+  // Botón simple y elegante
   const buyButtonHtml = product.external_id 
-    ? `<a href="${product.external_id}" target="_blank" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;">🛒 Comprar Producto</a>`
-    : `<a href="https://100x100chef.com/" target="_blank" style="background-color: #28a745; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block; margin-top: 10px;">🛒 Ver en Tienda</a>`
-  
-  // Añadir información adicional si está disponible
-  const additionalInfo = []
-  if (product.category) {
-    additionalInfo.push(`<p style="color: #888; font-size: 14px; margin: 5px 0;"><strong>Categoría:</strong> ${product.category}</p>`)
-  }
-  if (product.sku) {
-    additionalInfo.push(`<p style="color: #888; font-size: 14px; margin: 5px 0;"><strong>SKU:</strong> ${product.sku}</p>`)
-  }
-  if (product.stock_quantity !== undefined) {
-    additionalInfo.push(`<p style="color: #888; font-size: 14px; margin: 5px 0;"><strong>Stock:</strong> ${product.stock_quantity}</p>`)
-  }
+    ? `<a href="${product.external_id}" target="_blank" style="background: #007bff; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; transition: background-color 0.2s;">
+        <span>🛒</span> Comprar
+      </a>`
+    : `<a href="https://100x100chef.com/" target="_blank" style="background: #28a745; color: white; padding: 8px 16px; text-decoration: none; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500;">
+        <span>🛒</span> Ver en Tienda
+      </a>`
   
   return `
-<div style="border: 1px solid #ddd; border-radius: 10px; padding: 20px; margin: 20px 0; background-color: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.1); max-width: 400px;">
-  <h3 style="margin-top: 0; color: #333;">${product.name}</h3>
+<div style="background: white; border: 1px solid #e9ecef; border-radius: 12px; padding: 20px; margin: 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08); max-width: 280px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <h3 style="margin: 0 0 12px 0; font-size: 16px; font-weight: 600; color: #212529; line-height: 1.3;">${product.name}</h3>
   ${imageHtml}
-  <p style="font-size: 24px; font-weight: bold; color: #007bff; margin: 10px 0;">${product.price}€</p>
-  <p style="color: #666; margin: 10px 0;">${product.description || 'Sin descripción'}</p>
-  ${additionalInfo.join('')}
-  ${buyButtonHtml}
+  <div style="text-align: center; margin-bottom: 12px;">
+    <span style="font-size: 20px; font-weight: 700; color: #007bff;">${product.price}€</span>
+  </div>
+  <p style="margin: 0 0 12px 0; font-size: 13px; color: #6c757d; line-height: 1.4;">${product.description || 'Sin descripción'}</p>
+  <div style="text-align: center;">
+    ${buyButtonHtml}
+  </div>
 </div>`
 }

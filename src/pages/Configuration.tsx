@@ -115,8 +115,8 @@ export function Configuration({ onDuplicate }: ConfigurationProps) {
               className="resize-none font-mono text-sm"
             />
             <p className="text-xs text-muted-foreground">
-              Este es el ÚNICO prompt que seguirá OpenAI para todas las respuestas. 
-              Incluye aquí todas las instrucciones sobre cómo debe comportarse la IA.
+              Solo incluye información esencial de la empresa y nuevas instrucciones específicas. 
+              El sistema automáticamente maneja el formato, tono, catálogo y otras funcionalidades.
             </p>
           </div>
         </CardContent>

@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import { Upload, Link as LinkIcon, CheckCircle2, XCircle, Clock, RefreshCw, AlertCircle, Trash2 } from "lucide-react";
+import { Link as LinkIcon, CheckCircle2, XCircle, Clock, RefreshCw, AlertCircle, Trash2 } from "lucide-react";
 import { 
   getCatalogStats, 
-  uploadProductsFromCSV, 
   connectWooCommerce,
   getUpdateHistory,
   clearCSVProducts,
@@ -32,13 +31,11 @@ export function ProductCatalogCard() {
   const [updateHistory, setUpdateHistory] = useState<CatalogUpdate[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isUploading, setIsUploading] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [woocommerceUrl, setWooCommerceUrl] = useState('');
   const [consumerKey, setConsumerKey] = useState('');
   const [consumerSecret, setConsumerSecret] = useState('');
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Cargar datos al montar el componente
   useEffect(() => {
@@ -63,29 +60,6 @@ export function ProductCatalogCard() {
     }
   };
 
-  const handleCSVUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    try {
-      setIsUploading(true);
-      const result = await uploadProductsFromCSV(file);
-      
-      if (result.success) {
-        toast.success(`${result.productsCount} productos cargados desde CSV`);
-        await loadData(); // Recargar datos
-      } else {
-        toast.error(result.error || 'Error al subir CSV');
-      }
-    } catch (error) {
-      toast.error('Error inesperado: ' + (error instanceof Error ? error.message : 'Error desconocido'));
-    } finally {
-      setIsUploading(false);
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-    }
-  };
 
   const handleWooCommerceConnect = async () => {
     if (!woocommerceUrl || !consumerKey || !consumerSecret) {
@@ -235,46 +209,6 @@ export function ProductCatalogCard() {
         <CardDescription>Conecta tu base de datos de productos</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="space-y-2">
-          <Label>Subir CSV Manual</Label>
-          <div className="flex gap-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              onChange={handleCSVUpload}
-              className="hidden"
-            />
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isUploading}
-            >
-              {isUploading ? (
-                <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                  Subiendo...
-                </>
-              ) : (
-                <>
-                  <Upload className="mr-2 h-4 w-4" />
-                  Elegir Archivo CSV
-                </>
-              )}
-            </Button>
-          </div>
-          <p className="text-muted-foreground">Columnas: nombre, precio, descripción, categoría</p>
-        </div>
-        
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-border" />
-          </div>
-          <div className="relative flex justify-center uppercase">
-            <span className="bg-card px-2 text-muted-foreground">o</span>
-          </div>
-        </div>
         
         <div className="space-y-3">
           <Label htmlFor="woocommerce-url">URL de API WooCommerce</Label>
