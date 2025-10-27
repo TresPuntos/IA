@@ -43,3 +43,4 @@ echo "✅ Lista para desplegar"
 echo "⚠️  Necesita despliegue manual en Supabase"
 
 
+

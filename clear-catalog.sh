@@ -58,3 +58,4 @@ echo "📝 Nota: Este script borra los productos de la base de datos de Supabase
 echo "🔄 Para restaurar productos, puedes subir un nuevo archivo CSV desde el dashboard."
 
 
+

@@ -60,3 +60,4 @@ echo "3. Verifica que la Edge Function esté desplegada"
 echo "4. Verifica que la clave de Supabase sea válida"
 echo ""
 
+

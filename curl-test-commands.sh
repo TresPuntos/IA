@@ -8,7 +8,7 @@ echo "📋 INSTRUCCIONES DE PRUEBA:"
 echo ""
 echo "1. Primero configura las variables de entorno en Netlify:"
 echo "   - PRESTASHOP_BASE_URL = https://100x100chef.com/shop/api"
-echo "   - PRESTASHOP_API_KEY = E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ"
+echo "   - PRESTASHOP_API_KEY = [CONFIGURE_YOUR_PRESTASHOP_API_KEY]"
 echo ""
 echo "2. Haz redeploy del sitio"
 echo ""
@@ -62,5 +62,6 @@ echo "🎯 Proxy local funcionando"
 echo "🔧 Variables de entorno configuradas"
 echo "📊 Listo para usar"
 echo ""
+
 
 

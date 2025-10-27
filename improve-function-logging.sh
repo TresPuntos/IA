@@ -50,3 +50,4 @@ echo ""
 
 echo "✅ FUNCIÓN MEJORADA - MÁS FÁCIL DE DEBUGGEAR"
 
+

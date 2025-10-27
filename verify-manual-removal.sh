@@ -63,3 +63,4 @@ echo "4. Actualizada la descripción para mencionar solo CSV y ecommerce"
 echo "5. Eliminada la referencia a 'Gestión manual' en la lista de fuentes"
 
 
+

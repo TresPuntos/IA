@@ -29,3 +29,4 @@ fetch('/api/prestashop/categories?display=full&limit=10')
   .catch(err => console.error('Error:', err));
 
 
+

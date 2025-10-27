@@ -65,7 +65,7 @@ echo "   - Ve a tu panel de PrestaShop"
 echo "   - Navega a: Parámetros Avanzados > Webservice"
 echo "   - Habilita 'Activar el servicio web de PrestaShop'"
 echo "   - Genera una nueva API Key con permisos de lectura"
-echo "2. Usar la API Key: E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ"
+echo "2. Usar la API Key: [CONFIGURE_YOUR_PRESTASHOP_API_KEY]"
 echo "3. Configurar la URL: https://100x100chef.com/shop/api"
 echo ""
 
@@ -81,5 +81,6 @@ echo "- El problema es de caché del navegador/servidor"
 echo "- Usa una de las opciones de actualización forzada"
 echo "- O configura PrestaShop mientras tanto"
 echo ""
+
 
 

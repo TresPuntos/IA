@@ -56,7 +56,7 @@ echo "   - Ve a Netlify → Site settings → Environment variables"
 echo "   - Agrega TODAS estas variables:"
 echo ""
 echo "   PRESTASHOP_BASE_URL = https://100x100chef.com/shop/api"
-echo "   PRESTASHOP_API_KEY = E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ"
+echo "   PRESTASHOP_API_KEY = [CONFIGURE_YOUR_PRESTASHOP_API_KEY]"
 echo "   VITE_SUPABASE_PROJECT_ID = akwobmrcwqbbrdvzyiul"
 echo "   VITE_SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrd29ibXJjd3FiYnJkdnp5aXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1Nzk0MjUsImV4cCI6MjA3NjE1NTQyNX0.jShGYQkTaO7C0fEjsrsIbVUd0rTOmZvYHffhXJIW7SE"
 echo ""
@@ -97,5 +97,6 @@ echo "1. Haz commit y push del package.json actualizado"
 echo "2. Configura las variables de entorno en Netlify"
 echo "3. Haz redeploy del sitio"
 echo ""
+
 
 

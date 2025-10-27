@@ -58,3 +58,4 @@ echo "- Las interfaces TypeScript mantienen 'manual' como tipo de datos (necesar
 echo "- El dashboard ahora solo muestra CSV y Ecommerce"
 
 
+

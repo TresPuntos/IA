@@ -59,3 +59,4 @@ echo "- Todos los productos estarán disponibles para consultas"
 echo "- El sistema funcionará con el número real de productos"
 
 
+

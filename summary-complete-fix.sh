@@ -68,3 +68,4 @@ echo "- No habrá opciones de gestión manual"
 echo "- Todos los números serán consistentes y reales"
 
 
+

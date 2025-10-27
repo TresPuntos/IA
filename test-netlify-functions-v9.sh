@@ -62,7 +62,7 @@ echo "1. 📋 VARIABLES DE ENTORNO EN NETLIFY:"
 echo "   Ve a tu panel de Netlify → Site settings → Environment variables"
 echo "   Agrega:"
 echo "   - PRESTASHOP_BASE_URL = https://100x100chef.com/shop/api"
-echo "   - PRESTASHOP_API_KEY = E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ"
+echo "   - PRESTASHOP_API_KEY = [CONFIGURE_YOUR_PRESTASHOP_API_KEY]"
 echo ""
 echo "2. 🔄 REDEPLOY:"
 echo "   Después de agregar las variables, haz redeploy del sitio"
@@ -148,5 +148,6 @@ echo "4. Si funciona, el problema de CORS está completamente resuelto"
 echo ""
 echo "Esta es la solución más robusta y profesional para el problema de CORS."
 echo ""
+
 
 

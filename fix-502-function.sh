@@ -64,3 +64,4 @@ echo "✅ TODAS LAS CORRECCIONES APLICADAS"
 echo "Espera a que Netlify complete el deploy y prueba nuevamente"
 echo ""
 
+

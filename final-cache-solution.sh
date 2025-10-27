@@ -64,7 +64,7 @@ echo "1. Ve a tu panel de PrestaShop"
 echo "2. Navega a: Parámetros Avanzados > Webservice"
 echo "3. Habilita 'Activar el servicio web de PrestaShop'"
 echo "4. Genera una nueva API Key con permisos de lectura"
-echo "5. Usa la API Key: E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ"
+echo "5. Usa la API Key: [CONFIGURE_YOUR_PRESTASHOP_API_KEY]"
 echo "6. Configura la URL: https://100x100chef.com/shop/api"
 echo ""
 
@@ -93,5 +93,6 @@ echo "ls -la dist/assets/"
 echo ""
 echo "Deberías ver: index-BRU2tXxE.js (NO index-CpGJi2B0.js)"
 echo ""
+
 
 

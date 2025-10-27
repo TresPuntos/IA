@@ -56,3 +56,4 @@ echo "El problema principal es que Supabase tiene un límite por defecto de 1000
 echo "Con el límite explícito de 10000, deberíamos obtener todos los productos."
 
 
+

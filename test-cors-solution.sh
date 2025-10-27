@@ -126,3 +126,4 @@ echo "Esto es normal y no afecta la funcionalidad básica."
 echo ""
 
 
+

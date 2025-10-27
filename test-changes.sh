@@ -37,3 +37,4 @@ echo "- Ambos números ahora coinciden y son reales"
 echo "- La opción de subir CSV manualmente ha sido eliminada"
 
 
+

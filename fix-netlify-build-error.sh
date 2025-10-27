@@ -44,7 +44,7 @@ echo "3. 🔧 CONFIGURAR VARIABLES DE ENTORNO:"
 echo "   - Ve a Netlify → Site settings → Environment variables"
 echo "   - Agrega:"
 echo "     PRESTASHOP_BASE_URL = https://100x100chef.com/shop/api"
-echo "     PRESTASHOP_API_KEY = E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ"
+echo "     PRESTASHOP_API_KEY = [CONFIGURE_YOUR_PRESTASHOP_API_KEY]"
 echo "   - Haz redeploy después de agregar las variables"
 echo ""
 
@@ -85,5 +85,6 @@ echo ""
 echo "🚨 ACCIÓN REQUERIDA:"
 echo "Haz commit y push del package.json actualizado"
 echo ""
+
 
 
