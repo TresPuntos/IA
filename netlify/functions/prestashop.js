@@ -30,40 +30,46 @@ exports.handler = async (event, context) => {
       };
     }
     
-    // Construir URL completa para PrestaShop
-    // PrestaShop requiere: BASE_URL + /api/ + RESOURCE
-    let urlParts = apiUrl.replace(/\/$/, ''); // Quitar barra final si existe
+    // Construir URL completa para PrestaShop según documentación oficial
+    // Formato requerido: https://domain.com/api/RESOURCE?params
+    // apiUrl debe ser la URL base SIN /api al final
+    let baseUrl = apiUrl.replace(/\/$/, ''); // Quitar barra final
     
-    // Si la URL no termina en /api/ o /api, agregar /api/
-    if (!urlParts.includes('/api')) {
-      urlParts = `${urlParts}/api`;
-    } else if (urlParts.endsWith('/api')) {
-      // Ya tiene /api, perfecto
-    } else if (!urlParts.endsWith('/api/')) {
-      urlParts = urlParts.replace(/\/api\/?$/, '/api');
+    // Agregar /api/ si no está presente
+    if (!baseUrl.includes('/api')) {
+      baseUrl = `${baseUrl}/api`;
     }
     
-    // Obtener parámetros de query
+    // Extraer el recurso del path (products, categories, etc.)
+    const resourcePath = event.path.replace(/^\/?api\/prestashop\/?/, '') || 'products';
+    console.log('📦 Resource:', resourcePath);
+    
+    // Obtener parámetros de query y agregar output_format=JSON por defecto
     const queryParams = event.queryStringParameters || {};
+    const params = new URLSearchParams();
     
-    // Construir path del endpoint (solo el nombre del recurso, no /api/)
-    const path = event.path.replace(/^\/?api\/prestashop\/?/, '') || 'products';
+    // Agregar parámetros estándar de PrestaShop
+    if (queryParams.display) {
+      params.append('display', queryParams.display);
+    } else {
+      params.append('display', 'full'); // Por defecto obtener todos los campos
+    }
     
-    // PrestaShop usa parámetros como ?output_format=JSON&display=full&limit=10
-    const prestashopParams = new URLSearchParams();
-    if (queryParams.output_format) prestashopParams.append('output_format', queryParams.output_format);
-    if (queryParams.display) prestashopParams.append('display', queryParams.display);
-    if (queryParams.limit) prestashopParams.append('limit', queryParams.limit);
-    if (queryParams.offset) prestashopParams.append('offset', queryParams.offset);
+    if (queryParams.limit) {
+      params.append('limit', queryParams.limit);
+    }
     
-    const queryString = prestashopParams.toString();
+    if (queryParams.offset) {
+      params.append('offset', queryParams.offset);
+    }
     
-    // Construir la URL final: base + recurso + query params
-    // Ejemplo: https://100x100chef.com/shop/api/products?display=full&limit=10
-    const targetUrl = `${urlParts}/${path}${queryString ? '?' + queryString : ''}`;
+    const queryString = params.toString();
+    
+    // Construir la URL final
+    const targetUrl = `${baseUrl}/${resourcePath}${queryString ? '?' + queryString : ''}`;
     
     console.log('🌐 Target URL:', targetUrl);
-    console.log('📋 URL parts:', { urlParts, path, queryString });
+    console.log('📋 URL parts:', { baseUrl, resourcePath, queryString });
     
     // Preparar headers para autenticación básica
     const basicAuth = Buffer.from(`${apiKey}:`).toString('base64');
