@@ -8,13 +8,6 @@ import { Badge } from './ui/badge';
 import { Switch } from './ui/switch';
 import { Alert, AlertDescription } from './ui/alert';
 import { 
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from './ui/dialog';
-import { 
   ShoppingCart, 
   ExternalLink, 
   CheckCircle, 
@@ -315,6 +308,7 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
         // VERIFICACIÓN REAL: Probar realmente obtener productos
         let connectionSuccessful = false;
         let productsCount = 0;
+        let errorMessage = '';
         
         try {
           // Intentar con el endpoint de netlify functions
@@ -332,33 +326,22 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
           if (proxyResponse.ok) {
             const data = await proxyResponse.json();
             connectionSuccessful = true;
-            // Intentar obtener el conteo real de productos
-            const countResponse = await fetch(`/api/prestashop/products?display=[id]&limit=1`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                apiUrl: cleanUrl,
-                apiKey: connection.apiKey
-              })
-            });
-            
-            if (countResponse.ok) {
-              // Aquí podríamos obtener el conteo real si la API lo soporta
-              productsCount = data.products?.length || 0;
-            }
+            productsCount = 0; // No podemos contar fácilmente sin API completa
             console.log('✅ Conexión exitosa y API funcionando');
           } else if (proxyResponse.status === 401 || proxyResponse.status === 403) {
-            throw new Error('La API Key no es válida o no tiene permisos necesarios');
+            errorMessage = 'La API Key no es válida o no tiene permisos necesarios';
+            throw new Error(errorMessage);
           } else {
-            throw new Error(`Error de conexión: ${proxyResponse.status} ${proxyResponse.statusText}`);
+            errorMessage = `Error de conexión: ${proxyResponse.status} ${proxyResponse.statusText}`;
+            throw new Error(errorMessage);
           }
         } catch (error) {
           console.error('❌ Error verificando conexión:', error);
+          errorMessage = error instanceof Error ? error.message : 'Error desconocido';
           throw error;
         }
         
+        // Solo actualizar como conectado si realmente fue exitoso
         if (connectionSuccessful) {
           const updatedConnection = {
             ...connection,
@@ -370,6 +353,17 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
           console.log('✅ Actualizando conexión como conectada');
           handleConnectionUpdate(updatedConnection);
           toast.success(`✅ PrestaShop conectado exitosamente`);
+        } else {
+          // Si la conexión falló, asegurar que isConnected es false
+          const updatedConnection = {
+            ...connection,
+            isConnected: false,
+            lastSync: undefined,
+            productsCount: 0
+          };
+          
+          handleConnectionUpdate(updatedConnection);
+          toast.error(errorMessage || 'Error al conectar con PrestaShop');
         }
       } else {
         console.log('Probando conexión simulada para:', connection.platform);
@@ -777,27 +771,37 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
         ))}
       </div>
 
-      {/* Modal del escáner de Prestashop */}
+      {/* Escáner de Prestashop (mostrado inline sin Dialog) */}
       {showPrestashopScanner && (
-        <Dialog open={showPrestashopScanner} onOpenChange={setShowPrestashopScanner}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Escáner de Productos Prestashop
-              </DialogTitle>
-              <DialogDescription>
-                Escanea y revisa todos los productos de tu tienda Prestashop antes de importarlos
-              </DialogDescription>
-            </DialogHeader>
-            
+        <Card className="border-blue-200 bg-blue-50">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Escáner de Productos Prestashop
+                </CardTitle>
+                <CardDescription>
+                  Escanea todos los productos de tu tienda Prestashop
+                </CardDescription>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowPrestashopScanner(false)}
+              >
+                ✕
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
             <PrestashopScanner
               onImportComplete={handlePrestashopImportComplete}
               initialApiUrl={connections.find(c => c.platform === 'prestashop')?.url || ''}
               initialApiKey={connections.find(c => c.platform === 'prestashop')?.apiKey || ''}
             />
-          </DialogContent>
-        </Dialog>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
