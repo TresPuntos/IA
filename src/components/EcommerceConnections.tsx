@@ -705,7 +705,10 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
               {connection.platform === 'prestashop' && connection.url && connection.apiKey && (
                 <Button 
                   variant="secondary"
-                  onClick={() => setShowPrestashopScanner(true)}
+                  onClick={() => {
+                    // Prevenir el error de Shadow DOM
+                    setTimeout(() => setShowPrestashopScanner(true), 100);
+                  }}
                   className="flex items-center gap-2"
                 >
                   <Scan className="h-4 w-4" />
@@ -775,25 +778,27 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
       </div>
 
       {/* Modal del escáner de Prestashop */}
-      <Dialog open={showPrestashopScanner} onOpenChange={setShowPrestashopScanner}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Escáner de Productos Prestashop
-            </DialogTitle>
-            <DialogDescription>
-              Escanea y revisa todos los productos de tu tienda Prestashop antes de importarlos
-            </DialogDescription>
-          </DialogHeader>
-          
-          <PrestashopScanner
-            onImportComplete={handlePrestashopImportComplete}
-            initialApiUrl={connections.find(c => c.platform === 'prestashop')?.url || ''}
-            initialApiKey={connections.find(c => c.platform === 'prestashop')?.apiKey || ''}
-          />
-        </DialogContent>
-      </Dialog>
+      {showPrestashopScanner && (
+        <Dialog open={showPrestashopScanner} onOpenChange={setShowPrestashopScanner}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5" />
+                Escáner de Productos Prestashop
+              </DialogTitle>
+              <DialogDescription>
+                Escanea y revisa todos los productos de tu tienda Prestashop antes de importarlos
+              </DialogDescription>
+            </DialogHeader>
+            
+            <PrestashopScanner
+              onImportComplete={handlePrestashopImportComplete}
+              initialApiUrl={connections.find(c => c.platform === 'prestashop')?.url || ''}
+              initialApiKey={connections.find(c => c.platform === 'prestashop')?.apiKey || ''}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
