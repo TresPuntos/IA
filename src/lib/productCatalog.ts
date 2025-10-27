@@ -667,21 +667,46 @@ const fetchWooCommerceProducts = async (
   consumerKey: string,
   consumerSecret: string
 ): Promise<WooCommerceProduct[]> => {
-  const url = `${apiUrl}/products?per_page=100`;
-  const auth = btoa(`${consumerKey}:${consumerSecret}`);
+  const allProducts: WooCommerceProduct[] = [];
+  let page = 1;
+  const perPage = 100;
+  let hasMore = true;
   
-  const response = await fetch(url, {
-    headers: {
-      'Authorization': `Basic ${auth}`,
-      'Content-Type': 'application/json'
+  console.log('Fetching WooCommerce products with pagination');
+  
+  while (hasMore) {
+    const url = `${apiUrl}/products?per_page=${perPage}&page=${page}`;
+    console.log(`Fetching page ${page}...`);
+    
+    const auth = btoa(`${consumerKey}:${consumerSecret}`);
+    const response = await fetch(url, {
+      headers: {
+        'Authorization': `Basic ${auth}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error de WooCommerce API: ${response.status} ${response.statusText}`);
     }
-  });
 
-  if (!response.ok) {
-    throw new Error(`Error de WooCommerce API: ${response.status} ${response.statusText}`);
+    const products = await response.json();
+    console.log(`✅ Obtained ${products.length} products from page ${page}`);
+    
+    if (Array.isArray(products)) {
+      allProducts.push(...products);
+    }
+    
+    // Si obtuvimos menos productos que perPage, hemos terminado
+    if (products.length < perPage) {
+      hasMore = false;
+    } else {
+      page++;
+    }
   }
-
-  return await response.json();
+  
+  console.log(`✅ Total WooCommerce productos obtenidos: ${allProducts.length}`);
+  return allProducts;
 };
 
 // Eliminar un producto individual
@@ -855,46 +880,68 @@ const fetchPrestashopProducts = async (
   apiUrl: string,
   apiKey: string
 ): Promise<PrestashopProduct[]> => {
-  // Usar el proxy de Netlify en lugar de llamar directamente
-  const proxyUrl = `/api/prestashop/products?display=full&limit=1000`;
-  console.log('Fetching Prestashop products via proxy:', proxyUrl);
-  console.log('API URL:', apiUrl);
+  console.log('Fetching Prestashop products:', apiUrl);
   console.log('API Key:', apiKey ? '***' : 'undefined');
   
-  const response = await fetch(proxyUrl, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      apiUrl,
-      apiKey
-    })
-  });
+  const allProducts: PrestashopProduct[] = [];
+  let limit = 1000; // Intentar obtener muchos productos de una vez
+  let offset = 0;
+  let hasMore = true;
+  
+  while (hasMore) {
+    const proxyUrl = `/api/prestashop/products?display=full&limit=${limit}&offset=${offset}`;
+    console.log(`Fetching batch: offset=${offset}, limit=${limit}`);
+    
+    const response = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        apiUrl,
+        apiKey
+      })
+    });
 
-  console.log('Response status:', response.status);
-  console.log('Response headers:', response.headers.get('content-type'));
-  
-  if (!response.ok) {
-    const errorText = await response.text();
-    console.error('Error response:', errorText);
-    throw new Error(`Error de Prestashop API: ${response.status} ${response.statusText}`);
-  }
+    console.log('Response status:', response.status);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Error response:', errorText);
+      throw new Error(`Error de Prestashop API: ${response.status} ${response.statusText}`);
+    }
 
-  const contentType = response.headers.get('content-type') || '';
-  console.log('Content type:', contentType);
-  
-  let data;
-  if (contentType.includes('xml')) {
-    // Si es XML, retornar array vacío por ahora (requeriría parseo)
-    console.log('⚠️ PrestaShop devolvió XML, no JSON');
-    return [];
-  } else {
-    data = await response.json();
-    console.log('Response data:', data);
+    const contentType = response.headers.get('content-type') || '';
+    console.log('Content type:', contentType);
+    
+    let data;
+    if (contentType.includes('xml')) {
+      console.log('⚠️ PrestaShop devolvió XML, no JSON');
+      break;
+    } else {
+      data = await response.json();
+    }
+    
+    const products = data.products || data || [];
+    console.log(`✅ Obtained ${products.length} products in this batch`);
+    
+    if (Array.isArray(products)) {
+      allProducts.push(...products);
+    } else if (products && typeof products === 'object') {
+      // Si es un objeto único, convertirlo a array
+      allProducts.push(products);
+    }
+    
+    // Si obtuvimos menos productos que el límite, hemos terminado
+    if (products.length < limit || products.length === 0) {
+      hasMore = false;
+    } else {
+      offset += limit;
+    }
   }
   
-  return data.products || [];
+  console.log(`✅ Total productos obtenidos: ${allProducts.length}`);
+  return allProducts;
 };
 
 // Función para obtener combinaciones de un producto
