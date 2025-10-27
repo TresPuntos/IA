@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import { Badge } from "../components/ui/badge";
 import { CSVUploader } from "../components/CSVUploader";
 import { EcommerceConnections } from "../components/EcommerceConnections";
 import { ProductStats } from "../components/ProductStats";
@@ -302,85 +303,116 @@ export function Catalog() {
   const activeProducts = products.filter(p => p.isActive).length;
   const connectedEcommerce = ecommerceConnections.filter(c => c.isConnected).length;
 
+  // Calcular productos por fuente
+  const csvProducts = products.filter(p => p.source === 'csv');
+  const ecommerceProducts = products.filter(p => p.source === 'prestashop' || p.source === 'woocommerce' || p.source === 'shopify');
+
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="tracking-tight mb-2">Gestión de Catálogo</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-2">Catálogo de Productos</h1>
         <p className="text-muted-foreground">
-          Administra tu catálogo de productos desde múltiples fuentes: CSV y ecommerce
+          Gestiona tu catálogo de productos desde CSV y conexiones ecommerce
         </p>
       </div>
 
-      {/* Estadísticas generales */}
-      <ProductStats
-        totalProducts={products.length}
-        activeProducts={activeProducts}
-        csvFiles={csvFiles.length}
-        ecommerceConnections={connectedEcommerce}
-        lastSync={lastSync}
-        syncStatus={syncStatus}
-        onDeleteCSV={handleDeleteCSVProducts}
-        onClearAll={handleDebugCleanup}
-      />
+      {/* Estadísticas simplificadas */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold">{products.length}</div>
+            <div className="text-sm text-muted-foreground">Total Productos</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold">{csvProducts.length}</div>
+            <div className="text-sm text-muted-foreground">Productos CSV</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <div className="text-2xl font-bold">{ecommerceProducts.length}</div>
+            <div className="text-sm text-muted-foreground">Productos Ecommerce</div>
+          </CardContent>
+        </Card>
+      </div>
 
-      {/* Tabs para diferentes funcionalidades */}
-      <Tabs defaultValue="upload" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="upload">Subir CSV</TabsTrigger>
-          <TabsTrigger value="ecommerce">Conexiones Ecommerce</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="upload" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Importar Catálogo desde CSV</CardTitle>
-              <CardDescription>
-                Sube archivos CSV con tu catálogo de productos. El archivo debe contener las columnas: name, price, category, description
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <CSVUploader
-                onFileUploaded={handleCSVUploaded}
-                onFileDeleted={handleCSVDeleted}
-              />
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="ecommerce" className="space-y-4">
-          <EcommerceConnections onConnectionUpdate={handleConnectionUpdate} />
-        </TabsContent>
-      </Tabs>
-
-      {/* Información adicional */}
+      {/* Subir CSV */}
       <Card>
         <CardHeader>
-          <CardTitle>Información del Sistema</CardTitle>
+          <CardTitle>1. Subir Catálogo CSV</CardTitle>
+          <CardDescription>
+            Importa tus productos desde un archivo CSV con las columnas: name, price, category, description
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-            <div>
-              <h4 className="font-medium mb-2">Fuentes de Datos Soportadas:</h4>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• Archivos CSV con productos</li>
-                <li>• WooCommerce (WordPress)</li>
-                <li>• PrestaShop</li>
-                <li>• Shopify</li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-medium mb-2">Funcionalidades:</h4>
-              <ul className="space-y-1 text-muted-foreground">
-                <li>• Sincronización automática</li>
-                <li>• Activar/desactivar productos</li>
-                <li>• Gestión por categorías</li>
-                <li>• Integración con AI</li>
-                <li>• Respaldos automáticos</li>
-              </ul>
-            </div>
-          </div>
+          <CSVUploader
+            onFileUploaded={handleCSVUploaded}
+            onFileDeleted={handleCSVDeleted}
+          />
         </CardContent>
       </Card>
+
+      {/* Conexiones Ecommerce */}
+      <Card>
+        <CardHeader>
+          <CardTitle>2. Conectar Ecommerce</CardTitle>
+          <CardDescription>
+            Conecta tu tienda online para sincronizar productos automáticamente
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <EcommerceConnections onConnectionUpdate={handleConnectionUpdate} />
+        </CardContent>
+      </Card>
+
+      {/* Lista de productos */}
+      {products.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>3. Productos del Catálogo</CardTitle>
+            <CardDescription>
+              Productos importados: {csvProducts.length} desde CSV, {ecommerceProducts.length} desde Ecommerce
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {products.slice(0, 20).map((product) => (
+                <div
+                  key={product.id}
+                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium">{product.name}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {product.source === 'csv' && '📄 CSV'}
+                        {product.source === 'prestashop' && '🛍️ PrestaShop'}
+                        {product.source === 'woocommerce' && '🛒 WooCommerce'}
+                        {product.source === 'shopify' && '🏪 Shopify'}
+                        {!product.source && '📝 Manual'}
+                      </Badge>
+                      {!product.isActive && (
+                        <Badge variant="secondary">Inactivo</Badge>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {product.category && `${product.category} • `}
+                      Precio: ${product.price} • Stock: {product.stock_quantity}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {products.length > 20 && (
+                <p className="text-sm text-muted-foreground text-center py-2">
+                  ... y {products.length - 20} productos más
+                </p>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

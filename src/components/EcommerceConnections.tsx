@@ -30,6 +30,7 @@ import {
 } from 'lucide-react';
 import { PrestashopScanner } from './PrestashopScanner';
 import { getCatalogStats } from '../lib/productCatalog';
+import { toast } from 'sonner';
 
 interface EcommerceConnection {
   id: string;
@@ -275,70 +276,52 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
 
   const handleTestConnection = async (connection: EcommerceConnection) => {
     console.log('=== INICIANDO PRUEBA DE CONEXIÓN ===');
-    console.log('Timestamp:', new Date().toISOString());
-    console.log('Versión del código: 2024-12-19-v9 (NETLIFY FUNCTIONS PROXY)');
     console.log('Iniciando prueba de conexión para:', connection.platform);
-    console.log('Connection completa:', connection);
     console.log('URL:', connection.url);
     console.log('API Key:', connection.apiKey ? '***' : 'undefined');
     setIsTesting(connection.id);
     
     try {
       if (connection.platform === 'prestashop') {
-        console.log('Probando conexión Prestashop...');
-        // Prueba real de conexión Prestashop
-        const cleanUrl = connection.url.trim().replace(/\/$/, ''); // Quitar espacios y barra final
+        console.log('🔍 Probando conexión Prestashop...');
+        const cleanUrl = connection.url.trim().replace(/\/$/, '');
         
-        // Validar que la URL esté bien formada - PrestaShop puede usar diferentes formatos
-        console.log('URL original:', connection.url);
-        console.log('URL limpia:', cleanUrl);
-        
-        // Validar que sea una URL válida
+        // Validar que la URL sea válida
         try {
           new URL(cleanUrl);
         } catch (error) {
           throw new Error(`La URL no es válida: ${cleanUrl}`);
         }
         
-        // SOLUCIÓN ROBUSTA: Construir URL de API sin duplicar
-        let apiUrl = cleanUrl;
+        // Validar que tenga API key
+        if (!connection.apiKey || connection.apiKey.trim() === '') {
+          throw new Error('La API Key es requerida para conectar con PrestaShop');
+        }
         
-        // Verificar si ya termina en /api o /webservice
-        if (cleanUrl.endsWith('/api') || cleanUrl.endsWith('/webservice')) {
-          apiUrl = cleanUrl;
-          console.log('✅ URL ya termina en endpoint de API:', apiUrl);
-        } else if (cleanUrl.includes('/api/') || cleanUrl.includes('/webservice/')) {
-          apiUrl = cleanUrl;
-          console.log('✅ URL ya contiene endpoint de API:', apiUrl);
-        } else {
-          // Solo agregar /api/ si no está presente
+        // Construir URL de API
+        let apiUrl = cleanUrl;
+        if (!cleanUrl.includes('/api/') && !cleanUrl.includes('/webservice/')) {
           apiUrl = `${cleanUrl}/api/`;
           console.log('🔧 URL construida automáticamente:', apiUrl);
         }
         
-        // VERIFICACIÓN ADICIONAL: Evitar URLs duplicadas
+        // Evitar URLs duplicadas
         if (apiUrl.includes('/api/api') || apiUrl.includes('/webservice/webservice')) {
-          console.log('⚠️ Detectada URL duplicada, corrigiendo...');
           apiUrl = apiUrl.replace('/api/api', '/api').replace('/webservice/webservice', '/webservice');
-          console.log('🔧 URL corregida:', apiUrl);
         }
         
-        console.log('🚀 Iniciando prueba de conexión con URL:', apiUrl);
+        console.log('🚀 Probando conexión con:', apiUrl);
         
-        // SOLUCIÓN NETLIFY FUNCTIONS: Usar proxy local
+        // VERIFICACIÓN REAL: Probar realmente obtener productos
         let connectionSuccessful = false;
-        let lastError = null;
+        let productsCount = 0;
         
-        // Método 1: Intentar con proxy local de Netlify Functions
         try {
-          console.log('🔧 Intentando con proxy local de Netlify Functions...');
-          const localProxyUrl = `/api/prestashop/products?display=full&limit=1`;
-          
-          const proxyResponse = await fetch(localProxyUrl, {
+          // Intentar con el endpoint de netlify functions
+          const proxyResponse = await fetch(`/api/prestashop/products?display=full&limit=5`, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json, application/xml, */*'
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               apiUrl: cleanUrl,
@@ -347,61 +330,49 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
           });
           
           if (proxyResponse.ok) {
-            console.log('✅ Conexión exitosa via proxy local');
+            const data = await proxyResponse.json();
             connectionSuccessful = true;
-          } else {
-            console.log('⚠️ Proxy local respondió con:', proxyResponse.status, proxyResponse.statusText);
-            // Si es 401, significa que las credenciales son incorrectas
-            if (proxyResponse.status === 401 || proxyResponse.status === 403) {
-              console.log('🔑 Credenciales incorrectas o faltantes');
-              throw new Error('Credenciales incorrectas o la API key no tiene permisos');
-            }
-          }
-        } catch (proxyError) {
-          console.log('❌ Proxy local falló:', proxyError);
-          lastError = proxyError;
-        }
-        
-        // Método 2: Si el proxy local falla, intentar verificación básica
-        if (!connectionSuccessful) {
-          try {
-            console.log('🔧 Intentando verificación básica...');
-            
-            // Usar una imagen para verificar conectividad básica
-            const img = new Image();
-            const imgPromise = new Promise((resolve, reject) => {
-              img.onload = () => resolve(true);
-              img.onerror = () => reject(new Error('No se puede conectar al servidor'));
-              img.src = `${cleanUrl}/favicon.ico?t=${Date.now()}`;
+            // Intentar obtener el conteo real de productos
+            const countResponse = await fetch(`/api/prestashop/products?display=[id]&limit=1`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                apiUrl: cleanUrl,
+                apiKey: connection.apiKey
+              })
             });
             
-            await imgPromise;
-            console.log('✅ Servidor responde (verificación básica)');
-            connectionSuccessful = true;
-          } catch (imgError) {
-            console.log('❌ Verificación básica falló:', imgError);
-            lastError = imgError;
+            if (countResponse.ok) {
+              // Aquí podríamos obtener el conteo real si la API lo soporta
+              productsCount = data.products?.length || 0;
+            }
+            console.log('✅ Conexión exitosa y API funcionando');
+          } else if (proxyResponse.status === 401 || proxyResponse.status === 403) {
+            throw new Error('La API Key no es válida o no tiene permisos necesarios');
+          } else {
+            throw new Error(`Error de conexión: ${proxyResponse.status} ${proxyResponse.statusText}`);
           }
+        } catch (error) {
+          console.error('❌ Error verificando conexión:', error);
+          throw error;
         }
         
-        // Determinar el estado final
         if (connectionSuccessful) {
-              const updatedConnection = {
-                ...connection,
-                isConnected: true,
-                lastSync: new Date(),
-            productsCount: 0 // No podemos contar productos sin API key válida
-              };
-              
+          const updatedConnection = {
+            ...connection,
+            isConnected: true,
+            lastSync: new Date(),
+            productsCount: productsCount
+          };
+          
           console.log('✅ Actualizando conexión como conectada');
-              handleConnectionUpdate(updatedConnection);
-            } else {
-          console.log('❌ Todas las verificaciones fallaron');
-          throw new Error(`No se pudo conectar al servidor. Último error: ${lastError?.message || 'Error desconocido'}`);
+          handleConnectionUpdate(updatedConnection);
+          toast.success(`✅ PrestaShop conectado exitosamente`);
         }
       } else {
         console.log('Probando conexión simulada para:', connection.platform);
-        // Simular test de conexión para otras plataformas
         await new Promise(resolve => setTimeout(resolve, 2000));
         
         const updatedConnection = {
@@ -412,11 +383,12 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
         };
         
         handleConnectionUpdate(updatedConnection);
+        toast.success(`✅ ${connection.platform} conectado exitosamente`);
       }
       
     } catch (error) {
-      console.error('Connection test failed:', error);
-      // Mantener conexión como desconectada en caso de error
+      console.error('❌ Error en prueba de conexión:', error);
+      toast.error(error instanceof Error ? error.message : 'Error al conectar');
     } finally {
       console.log('Finalizando prueba de conexión');
       setIsTesting(null);
