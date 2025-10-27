@@ -31,16 +31,25 @@ exports.handler = async (event, context) => {
     }
     
     // Construir URL completa para PrestaShop
-    const urlParts = apiUrl.replace(/\/$/, ''); // Quitar barra final si existe
+    // PrestaShop requiere: BASE_URL + /api/ + RESOURCE
+    let urlParts = apiUrl.replace(/\/$/, ''); // Quitar barra final si existe
+    
+    // Si la URL no termina en /api/ o /api, agregar /api/
+    if (!urlParts.includes('/api')) {
+      urlParts = `${urlParts}/api`;
+    } else if (urlParts.endsWith('/api')) {
+      // Ya tiene /api, perfecto
+    } else if (!urlParts.endsWith('/api/')) {
+      urlParts = urlParts.replace(/\/api\/?$/, '/api');
+    }
     
     // Obtener parámetros de query
     const queryParams = event.queryStringParameters || {};
     
-    // Construir path del endpoint
+    // Construir path del endpoint (solo el nombre del recurso, no /api/)
     const path = event.path.replace(/^\/?api\/prestashop\/?/, '') || 'products';
     
     // PrestaShop usa parámetros como ?output_format=JSON&display=full&limit=10
-    // Pero los query params vienen como queryStringParameters
     const prestashopParams = new URLSearchParams();
     if (queryParams.output_format) prestashopParams.append('output_format', queryParams.output_format);
     if (queryParams.display) prestashopParams.append('display', queryParams.display);
@@ -48,9 +57,13 @@ exports.handler = async (event, context) => {
     if (queryParams.offset) prestashopParams.append('offset', queryParams.offset);
     
     const queryString = prestashopParams.toString();
+    
+    // Construir la URL final: base + recurso + query params
+    // Ejemplo: https://100x100chef.com/shop/api/products?display=full&limit=10
     const targetUrl = `${urlParts}/${path}${queryString ? '?' + queryString : ''}`;
     
     console.log('🌐 Target URL:', targetUrl);
+    console.log('📋 URL parts:', { urlParts, path, queryString });
     
     // Preparar headers para autenticación básica
     const basicAuth = Buffer.from(`${apiKey}:`).toString('base64');
