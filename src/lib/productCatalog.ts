@@ -799,16 +799,14 @@ export const scanPrestashopProducts = async (
   try {
     console.log('Iniciando escaneo Prestashop:', { apiUrl, apiKey: apiKey ? '***' : 'undefined' });
     
-    // SOLUCIÓN SIMPLE: Construir automáticamente la URL de API
-    let finalApiUrl = apiUrl;
+    // Asegurar que la URL NO termine en /api/
+    // La función de Netlify agregará /api/ automáticamente
+    let finalApiUrl = apiUrl.trim().replace(/\/$/, '');
     
-    // Si la URL no contiene /api/ o /webservice/, agregar /api/ automáticamente
-    if (!apiUrl.includes('/api/') && !apiUrl.includes('/webservice/')) {
-      finalApiUrl = `${apiUrl}/api/`;
-      console.log('🔧 URL construida automáticamente:', finalApiUrl);
-    } else {
-      console.log('✅ URL ya contiene endpoint de API:', apiUrl);
-    }
+    // Quitar /api/ o /api si ya existe
+    finalApiUrl = finalApiUrl.replace(/\/api\/?$/, '');
+    
+    console.log('🔧 URL base que se enviará a Netlify:', finalApiUrl);
 
     onProgress?.(10);
 

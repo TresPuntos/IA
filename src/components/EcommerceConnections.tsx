@@ -291,19 +291,14 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
           throw new Error('La API Key es requerida para conectar con PrestaShop');
         }
         
-        // Construir URL de API
-        let apiUrl = cleanUrl;
-        if (!cleanUrl.includes('/api/') && !cleanUrl.includes('/webservice/')) {
-          apiUrl = `${cleanUrl}/api/`;
-          console.log('🔧 URL construida automáticamente:', apiUrl);
-        }
+        // Construir URL de API SIN /api/ al final
+        // La función de Netlify agregará /api/ automáticamente
+        let apiUrlToSend = cleanUrl;
         
-        // Evitar URLs duplicadas
-        if (apiUrl.includes('/api/api') || apiUrl.includes('/webservice/webservice')) {
-          apiUrl = apiUrl.replace('/api/api', '/api').replace('/webservice/webservice', '/webservice');
-        }
+        // Quitar /api/ o /api si ya existe, para que Netlify lo maneje correctamente
+        apiUrlToSend = apiUrlToSend.replace(/\/api\/?$/, '');
         
-        console.log('🚀 Probando conexión con:', apiUrl);
+        console.log('🚀 API URL que se enviará a Netlify:', apiUrlToSend);
         
         // VERIFICACIÓN REAL: Probar realmente obtener productos
         let connectionSuccessful = false;
@@ -318,7 +313,7 @@ export function EcommerceConnections({ onConnectionUpdate }: EcommerceConnection
               'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-              apiUrl: cleanUrl,
+              apiUrl: apiUrlToSend,
               apiKey: connection.apiKey
             })
           });
