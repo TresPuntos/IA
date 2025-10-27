@@ -5,19 +5,26 @@ const http = require('http');
 exports.handler = async (event, context) => {
   try {
     console.log('🔍 Prestashop function called');
-    console.log('Event:', JSON.stringify(event, null, 2));
+    console.log('Event path:', event.path);
+    console.log('Event queryStringParameters:', event.queryStringParameters);
     
     // Parse body
     let body = {};
     try {
       body = event.body ? JSON.parse(event.body) : {};
     } catch (e) {
+      console.error('Error parsing body:', e);
       body = {};
     }
     
     const { apiUrl, apiKey } = body;
     
-    console.log('📥 Received:', { apiUrl, apiKey: apiKey ? 'PRESENT' : 'MISSING' });
+    console.log('📥 Received:', { 
+      apiUrl, 
+      apiKey: apiKey ? 'PRESENT' : 'MISSING',
+      eventPath: event.path,
+      queryParams: event.queryStringParameters
+    });
     
     if (!apiUrl || !apiKey) {
       return {
@@ -31,29 +38,26 @@ exports.handler = async (event, context) => {
     }
     
     // Construir URL completa para PrestaShop según documentación oficial
-    // Formato requerido: https://domain.com/api/RESOURCE?params
-    // apiUrl debe ser la URL base SIN /api al final
+    // apiUrl viene sin /api, ejemplo: https://100x100chef.com/shop
     let baseUrl = apiUrl.replace(/\/$/, ''); // Quitar barra final
     
-    // Agregar /api/ si no está presente
-    if (!baseUrl.includes('/api')) {
+    // Agregar /api si no está presente
+    if (!baseUrl.endsWith('/api')) {
       baseUrl = `${baseUrl}/api`;
     }
     
-    // Extraer el recurso del path (products, categories, etc.)
-    const resourcePath = event.path.replace(/^\/?api\/prestashop\/?/, '') || 'products';
-    console.log('📦 Resource:', resourcePath);
+    // Extraer el recurso del path
+    // event.path = "/api/prestashop/products" -> extraer "products"
+    const pathMatch = event.path.match(/\/api\/prestashop\/(.+)/);
+    const resourcePath = pathMatch ? pathMatch[1] : 'products';
+    console.log('📦 Resource Path:', resourcePath);
     
-    // Obtener parámetros de query y agregar output_format=JSON por defecto
+    // Obtener parámetros de query
     const queryParams = event.queryStringParameters || {};
     const params = new URLSearchParams();
     
     // Agregar parámetros estándar de PrestaShop
-    if (queryParams.display) {
-      params.append('display', queryParams.display);
-    } else {
-      params.append('display', 'full'); // Por defecto obtener todos los campos
-    }
+    params.append('display', queryParams.display || 'full');
     
     if (queryParams.limit) {
       params.append('limit', queryParams.limit);
@@ -65,11 +69,12 @@ exports.handler = async (event, context) => {
     
     const queryString = params.toString();
     
-    // Construir la URL final
+    // Construir la URL final: base + recurso + query params
+    // Ejemplo: https://100x100chef.com/shop/api/products?display=full&limit=10
     const targetUrl = `${baseUrl}/${resourcePath}${queryString ? '?' + queryString : ''}`;
     
     console.log('🌐 Target URL:', targetUrl);
-    console.log('📋 URL parts:', { baseUrl, resourcePath, queryString });
+    console.log('📋 URL breakdown:', { baseUrl, resourcePath, queryString });
     
     // Preparar headers para autenticación básica
     const basicAuth = Buffer.from(`${apiKey}:`).toString('base64');
