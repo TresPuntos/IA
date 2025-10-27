@@ -366,53 +366,6 @@ export function Catalog() {
           <EcommerceConnections onConnectionUpdate={handleConnectionUpdate} />
         </CardContent>
       </Card>
-
-      {/* Lista de productos */}
-      {products.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>3. Productos del Catálogo</CardTitle>
-            <CardDescription>
-              Productos importados: {csvProducts.length} desde CSV, {ecommerceProducts.length} desde Ecommerce
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-h-96 overflow-y-auto">
-              {products.slice(0, 20).map((product) => (
-                <div
-                  key={product.id}
-                  className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50"
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">{product.name}</span>
-                      <Badge variant="outline" className="text-xs">
-                        {product.source === 'csv' && '📄 CSV'}
-                        {product.source === 'prestashop' && '🛍️ PrestaShop'}
-                        {product.source === 'woocommerce' && '🛒 WooCommerce'}
-                        {product.source === 'shopify' && '🏪 Shopify'}
-                        {!product.source && '📝 Manual'}
-                      </Badge>
-                      {!product.isActive && (
-                        <Badge variant="secondary">Inactivo</Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {product.category && `${product.category} • `}
-                      Precio: ${product.price} • Stock: {product.stock_quantity}
-                    </p>
-                  </div>
-                </div>
-              ))}
-              {products.length > 20 && (
-                <p className="text-sm text-muted-foreground text-center py-2">
-                  ... y {products.length - 20} productos más
-                </p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
