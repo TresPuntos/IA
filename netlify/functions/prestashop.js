@@ -30,15 +30,24 @@ exports.handler = async (event, context) => {
       };
     }
     
-    // Construir URL completa
-    const urlParts = apiUrl.replace(/\/$/, '');
-    const queryParams = event.queryStringParameters || {};
-    const queryString = Object.keys(queryParams)
-      .map(key => `${key}=${encodeURIComponent(queryParams[key])}`)
-      .join('&');
+    // Construir URL completa para PrestaShop
+    const urlParts = apiUrl.replace(/\/$/, ''); // Quitar barra final si existe
     
-    // Determinar el endpoint del path
+    // Obtener parámetros de query
+    const queryParams = event.queryStringParameters || {};
+    
+    // Construir path del endpoint
     const path = event.path.replace(/^\/?api\/prestashop\/?/, '') || 'products';
+    
+    // PrestaShop usa parámetros como ?output_format=JSON&display=full&limit=10
+    // Pero los query params vienen como queryStringParameters
+    const prestashopParams = new URLSearchParams();
+    if (queryParams.output_format) prestashopParams.append('output_format', queryParams.output_format);
+    if (queryParams.display) prestashopParams.append('display', queryParams.display);
+    if (queryParams.limit) prestashopParams.append('limit', queryParams.limit);
+    if (queryParams.offset) prestashopParams.append('offset', queryParams.offset);
+    
+    const queryString = prestashopParams.toString();
     const targetUrl = `${urlParts}/${path}${queryString ? '?' + queryString : ''}`;
     
     console.log('🌐 Target URL:', targetUrl);
