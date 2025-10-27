@@ -6,13 +6,6 @@ import { Label } from './ui/label';
 import { Progress } from './ui/progress';
 import { Alert, AlertDescription } from './ui/alert';
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogHeader, 
-  DialogTitle 
-} from './ui/dialog';
-import { 
   Package, 
   Search, 
   CheckCircle, 
@@ -120,124 +113,114 @@ export function PrestashopScanner({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
-            Escáner de Productos Prestashop
-          </CardTitle>
-          <CardDescription>
-            Escanea todos los productos y combinaciones de tu tienda Prestashop antes de importarlos
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="api-url">URL de la API</Label>
-            <Input
-              id="api-url"
-              type="url"
-              placeholder="https://100x100chef.com/shop/api/"
-              value={apiUrl}
-              onChange={(e) => setApiUrl(e.target.value)}
-              disabled={isScanning || isImporting}
-            />
-            <p className="text-sm text-muted-foreground">
-              La URL debe terminar en /api/ para ser válida
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="api-key">API Key</Label>
-            <Input
-              id="api-key"
-              type="password"
-              placeholder="Insert API Key here"
-              value={apiKey}
-              onChange={(e) => setApiKey(e.target.value)}
-              disabled={isScanning || isImporting}
-            />
-            <p className="text-sm text-muted-foreground">
-              Genera tu API Key en PrestaShop &gt; Web Service
-            </p>
-          </div>
-
-          {/* Botones de acción */}
-          <div className="flex gap-3">
-            <Button 
-              onClick={handleScan}
-              disabled={isScanning || isImporting || !apiUrl || !apiKey}
-              className="flex items-center gap-2"
-            >
-              {isScanning ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Escaneando...
-                </>
-              ) : (
-                <>
-                  <Search className="h-4 w-4" />
-                  Escanear Productos
-                </>
-              )}
-            </Button>
-            
-            {(apiUrl || apiKey) && (
-              <Button 
-                variant="outline" 
-                onClick={resetForm}
-                disabled={isScanning || isImporting}
-              >
-                Limpiar
-              </Button>
-            )}
-          </div>
-
-          {/* Barra de progreso */}
-          {isScanning && (
+      {!showPreview ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Escáner de Productos Prestashop
+            </CardTitle>
+            <CardDescription>
+              Escanea todos los productos y combinaciones de tu tienda Prestashop antes de importarlos
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="space-y-2">
-              <div className="flex justify-between text-sm">
-                <span>Escaneando productos...</span>
-                <span>{Math.round(scanProgress)}%</span>
-              </div>
-              <Progress value={scanProgress} className="w-full" />
+              <Label htmlFor="api-url">URL de la API</Label>
+              <Input
+                id="api-url"
+                type="url"
+                placeholder="https://100x100chef.com/shop/api/"
+                value={apiUrl}
+                onChange={(e) => setApiUrl(e.target.value)}
+                disabled={isScanning || isImporting}
+              />
+              <p className="text-sm text-muted-foreground">
+                La URL debe terminar en /api/ para ser válida
+              </p>
             </div>
-          )}
 
-          {/* Alertas */}
-          {error && (
-            <Alert variant="destructive">
-              <XCircle className="h-4 w-4" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
+            <div className="space-y-2">
+              <Label htmlFor="api-key">API Key</Label>
+              <Input
+                id="api-key"
+                type="password"
+                placeholder="Insert API Key here"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                disabled={isScanning || isImporting}
+              />
+              <p className="text-sm text-muted-foreground">
+                Genera tu API Key en PrestaShop &gt; Web Service
+              </p>
+            </div>
 
-          {success && (
-            <Alert>
-              <CheckCircle className="h-4 w-4" />
-              <AlertDescription>{success}</AlertDescription>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
+            {/* Botones de acción */}
+            <div className="flex gap-3">
+              <Button 
+                onClick={handleScan}
+                disabled={isScanning || isImporting || !apiUrl || !apiKey}
+                className="flex items-center gap-2"
+              >
+                {isScanning ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Escaneando...
+                  </>
+                ) : (
+                  <>
+                    <Search className="h-4 w-4" />
+                    Escanear Productos
+                  </>
+                )}
+              </Button>
+              
+              {(apiUrl || apiKey) && (
+                <Button 
+                  variant="outline" 
+                  onClick={resetForm}
+                  disabled={isScanning || isImporting}
+                >
+                  Limpiar
+                </Button>
+              )}
+            </div>
 
-      {/* Modal de preview */}
-      <Dialog open={showPreview} onOpenChange={setShowPreview}>
-        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Vista Previa de Productos</DialogTitle>
-            <DialogDescription>
-              Revisa los productos encontrados antes de importarlos
-            </DialogDescription>
-          </DialogHeader>
-          
-          <PrestashopPreview
-            products={scannedProducts}
-            onConfirm={handleConfirmImport}
-            onCancel={handleCancel}
-            isImporting={isImporting}
-          />
-        </DialogContent>
-      </Dialog>
+            {/* Barra de progreso */}
+            {isScanning && (
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span>Escaneando productos...</span>
+                  <span>{Math.round(scanProgress)}%</span>
+                </div>
+                <Progress value={scanProgress} className="w-full" />
+              </div>
+            )}
+
+            {/* Alertas */}
+            {error && (
+              <Alert variant="destructive">
+                <XCircle className="h-4 w-4" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+
+            {success && (
+              <Alert>
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>{success}</AlertDescription>
+              </Alert>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <PrestashopPreview
+          products={scannedProducts}
+          onConfirm={handleConfirmImport}
+          onCancel={handleCancel}
+          isImporting={isImporting}
+        />
+      )}
     </div>
   );
 }
