@@ -5,8 +5,13 @@ const http = require('http');
 exports.handler = async (event, context) => {
   try {
     console.log('🔍 Prestashop function called');
-    console.log('Event path:', event.path);
-    console.log('Event queryStringParameters:', event.queryStringParameters);
+    console.log('📋 Full Event:', JSON.stringify({
+      path: event.path,
+      httpMethod: event.httpMethod,
+      queryStringParameters: event.queryStringParameters,
+      pathParameters: event.pathParameters,
+      headers: event.headers
+    }, null, 2));
     
     // Parse body
     let body = {};

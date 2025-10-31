@@ -18,5 +18,12 @@
     server: {
       port: 3000,
       open: true,
+      proxy: {
+        '/api/prestashop': {
+          target: 'http://localhost:8888',
+          changeOrigin: true,
+          secure: false,
+        },
+      },
     },
   });
