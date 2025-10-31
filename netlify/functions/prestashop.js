@@ -3,6 +3,19 @@ const https = require('https');
 const http = require('http');
 
 exports.handler = async (event, context) => {
+  // Manejar CORS preflight
+  if (event.httpMethod === 'OPTIONS') {
+    return {
+      statusCode: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Allow-Methods': 'POST, OPTIONS'
+      },
+      body: ''
+    };
+  }
+
   try {
     console.log('🔍 Prestashop function called');
     console.log('📋 Full Event:', JSON.stringify({
@@ -10,13 +23,13 @@ exports.handler = async (event, context) => {
       httpMethod: event.httpMethod,
       queryStringParameters: event.queryStringParameters,
       pathParameters: event.pathParameters,
-      headers: event.headers
+      multiValueQueryStringParameters: event.multiValueQueryStringParameters
     }, null, 2));
     
     // Parse body
     let body = {};
     try {
-      body = event.body ? JSON.parse(event.body) : {};
+      body = event.body ? (typeof event.body === 'string' ? JSON.parse(event.body) : event.body) : {};
     } catch (e) {
       console.error('Error parsing body:', e);
       body = {};
@@ -28,7 +41,8 @@ exports.handler = async (event, context) => {
       apiUrl, 
       apiKey: apiKey ? 'PRESENT' : 'MISSING',
       eventPath: event.path,
-      queryParams: event.queryStringParameters
+      queryParams: event.queryStringParameters,
+      pathParams: event.pathParameters
     });
     
     if (!apiUrl || !apiKey) {
@@ -36,7 +50,8 @@ exports.handler = async (event, context) => {
         statusCode: 400,
         headers: { 
           "Content-Type": "application/json", 
-          "Access-Control-Allow-Origin": "*" 
+          "Access-Control-Allow-Origin": "*",
+          "Access-Control-Allow-Methods": "POST, OPTIONS"
         },
         body: JSON.stringify({ error: 'Missing apiUrl or apiKey' })
       };
@@ -204,7 +219,8 @@ exports.handler = async (event, context) => {
             statusCode: res.statusCode,
             headers: { 
               "Content-Type": "application/json", 
-              "Access-Control-Allow-Origin": "*" 
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "POST, OPTIONS"
             },
             body: JSON.stringify(responseBody)
           });
