@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
@@ -188,7 +189,14 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
   };
 
   return (
-    <div className="space-y-6">
+    <Card>
+      <CardHeader>
+        <CardTitle>Importar desde PrestaShop</CardTitle>
+        <CardDescription>
+          Conecta tu tienda PrestaShop e importa productos automáticamente
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
         {/* Paso 1: Configuración de conexión */}
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -369,6 +377,7 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
             </div>
           </div>
         )}
-    </div>
+      </CardContent>
+    </Card>
   );
 }

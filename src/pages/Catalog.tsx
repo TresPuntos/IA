@@ -4,8 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../co
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { Badge } from "../components/ui/badge";
 import { CSVUploader } from "../components/CSVUploader";
-import { EcommerceConnections } from "../components/EcommerceConnections";
-import { ProductStats } from "../components/ProductStats";
+import { SimplePrestashopConnection } from "../components/SimplePrestashopConnection";
 import { useCatalog } from "../lib/CatalogContext";
 import { Product, ProductCategory } from "../lib/catalog";
 import { clearCSVProducts, clearWooCommerceProducts, clearCatalog, clearAllProducts, clearAllUpdateHistory, saveCSVProducts, loadProductsFromSupabase } from "../lib/productCatalog";
@@ -28,9 +27,6 @@ export function Catalog() {
   } = useCatalog();
 
   const [csvFiles, setCsvFiles] = useState<any[]>([]);
-  const [ecommerceConnections, setEcommerceConnections] = useState<any[]>([]);
-  const [lastSync, setLastSync] = useState<Date | undefined>();
-  const [syncStatus, setSyncStatus] = useState<'success' | 'error' | 'pending' | 'idle'>('idle');
 
   // Cargar datos desde localStorage y Supabase - SOLO UNA VEZ
   useEffect(() => {
@@ -40,17 +36,9 @@ export function Catalog() {
       try {
         // Cargar datos de localStorage
         const savedCsvFiles = localStorage.getItem('catalog-csv-files');
-        const savedConnections = localStorage.getItem('catalog-ecommerce-connections');
-        const savedLastSync = localStorage.getItem('catalog-last-sync');
 
         if (savedCsvFiles && isMounted) {
           setCsvFiles(JSON.parse(savedCsvFiles));
-        }
-        if (savedConnections && isMounted) {
-          setEcommerceConnections(JSON.parse(savedConnections));
-        }
-        if (savedLastSync && isMounted) {
-          setLastSync(new Date(savedLastSync));
         }
 
         // Cargar productos desde Supabase SOLO si no hay productos ya cargados
@@ -107,7 +95,6 @@ export function Catalog() {
       console.log('- Productos CSV:', products.filter(p => p.id.startsWith('csv-product-')).length);
       console.log('- Productos manuales:', products.filter(p => !p.id.startsWith('csv-product-')).length);
       console.log('- Archivos CSV:', csvFiles.length);
-      console.log('- Conexiones ecommerce:', ecommerceConnections.length);
       
       // Mostrar algunos productos de ejemplo
       if (products.length > 0) {
@@ -120,7 +107,7 @@ export function Catalog() {
     }, 500); // Debounce de 500ms
 
     return () => clearTimeout(timeoutId);
-  }, [products, csvFiles, ecommerceConnections]);
+  }, [products, csvFiles]);
   // useEffect(() => {
   //   const performAutoCleanup = () => {
   //     console.log('🗑️ Ejecutando limpieza automática...');
@@ -199,10 +186,6 @@ export function Catalog() {
         setCsvFiles(updatedFiles);
         localStorage.setItem('catalog-csv-files', JSON.stringify(updatedFiles));
 
-        // Actualizar estado de sincronización
-        setLastSync(new Date());
-        setSyncStatus('success');
-        localStorage.setItem('catalog-last-sync', new Date().toISOString());
         
       } else {
         console.error('❌ Error al guardar productos en Supabase:', saveResult.error);
@@ -268,44 +251,14 @@ export function Catalog() {
     localStorage.removeItem('catalog-last-sync');
     
     setCsvFiles([]);
-    setEcommerceConnections([]);
-    setLastSync(undefined);
-    setSyncStatus('idle');
     
     console.log('✅ Limpieza completa realizada');
     toast.success('✅ Limpieza completa realizada - Revisa la consola para ver los números');
   };
 
-  const handleConnectionUpdate = (connection: any) => {
-    const updatedConnections = ecommerceConnections.map(c => 
-      c.id === connection.id ? connection : c
-    );
-    
-    // Si es una nueva conexión, añadirla
-    if (!ecommerceConnections.find(c => c.id === connection.id)) {
-      updatedConnections.push(connection);
-    }
-    
-    setEcommerceConnections(updatedConnections);
-    localStorage.setItem('catalog-ecommerce-connections', JSON.stringify(updatedConnections));
-
-    // Simular sincronización
-    if (connection.isConnected) {
-      setSyncStatus('pending');
-      setTimeout(() => {
-        setSyncStatus('success');
-        setLastSync(new Date());
-        localStorage.setItem('catalog-last-sync', new Date().toISOString());
-      }, 2000);
-    }
-  };
-
-  const activeProducts = products.filter(p => p.isActive).length;
-  const connectedEcommerce = ecommerceConnections.filter(c => c.isConnected).length;
-
   // Calcular productos por fuente
   const csvProducts = products.filter(p => p.source === 'csv');
-  const ecommerceProducts = products.filter(p => p.source === 'prestashop' || p.source === 'woocommerce' || p.source === 'shopify');
+  const prestashopProducts = products.filter(p => p.source === 'prestashop');
 
   return (
     <div className="space-y-6">
@@ -332,8 +285,8 @@ export function Catalog() {
         </Card>
         <Card>
           <CardContent className="p-6">
-            <div className="text-2xl font-bold">{ecommerceProducts.length}</div>
-            <div className="text-sm text-muted-foreground">Productos Ecommerce</div>
+            <div className="text-2xl font-bold">{prestashopProducts.length}</div>
+            <div className="text-sm text-muted-foreground">Productos PrestaShop</div>
           </CardContent>
         </Card>
       </div>
@@ -354,18 +307,14 @@ export function Catalog() {
         </CardContent>
       </Card>
 
-      {/* Conexiones Ecommerce */}
-      <Card>
-        <CardHeader>
-          <CardTitle>2. Conectar Ecommerce</CardTitle>
-          <CardDescription>
-            Conecta tu tienda online para sincronizar productos automáticamente
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <EcommerceConnections onConnectionUpdate={handleConnectionUpdate} />
-        </CardContent>
-      </Card>
+      {/* Conexión PrestaShop - Todo en un solo componente Card */}
+      <SimplePrestashopConnection 
+        onImportComplete={(count) => {
+          toast.success(`✅ ${count} productos importados desde PrestaShop`);
+          // Recargar página para actualizar estadísticas
+          setTimeout(() => window.location.reload(), 1000);
+        }} 
+      />
     </div>
   );
 }
