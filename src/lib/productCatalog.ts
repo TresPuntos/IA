@@ -1067,14 +1067,29 @@ const fetchPrestashopProducts = async (
         estimatedTotal = Math.max(estimatedTotal, offset + limit * 2);
       }
       
+      // Si obtuvimos menos productos que el límite, hemos terminado
+      const isLastBatch = products.length < limit || products.length === 0;
+      
+      if (isLastBatch) {
+        hasMore = false;
+        // Actualizar el total real
+        estimatedTotal = allProducts.length;
+      } else {
+        offset += limit;
+        // Aumentar estimación si seguimos obteniendo productos completos
+        if (products.length === limit && offset > estimatedTotal) {
+          estimatedTotal = offset + limit * 2; // Estimación conservadora
+        }
+      }
+      
       // Calcular progreso estimado (10% inicial + hasta 40% durante obtención)
       // Usamos una estimación progresiva: mientras más productos obtenemos, más seguro estamos del total
       const baseProgress = 10; // Ya tenemos 10% inicial
       const maxProgressDuringFetch = 50; // Queremos llegar al 50% al terminar
       const progressRange = maxProgressDuringFetch - baseProgress; // 40% de rango
       
-      // Si ya no hay más productos, estamos en el 50%
-      if (!hasMore && products.length < limit) {
+      // Si es el último batch, llegar directamente al 50%
+      if (isLastBatch) {
         onProgress?.(maxProgressDuringFetch);
       } else {
         // Calcular progreso: basado en productos obtenidos vs estimación
@@ -1085,19 +1100,6 @@ const fetchPrestashopProducts = async (
         );
         
         onProgress?.(Math.round(currentProgress));
-      }
-      
-      // Si obtuvimos menos productos que el límite, hemos terminado
-      if (products.length < limit || products.length === 0) {
-        hasMore = false;
-        // Actualizar el total real
-        estimatedTotal = allProducts.length;
-      } else {
-        offset += limit;
-        // Aumentar estimación si seguimos obteniendo productos completos
-        if (products.length === limit && offset > estimatedTotal) {
-          estimatedTotal = offset + limit * 2; // Estimación conservadora
-        }
       }
       
       // Pequeña pausa entre requests para no sobrecargar el servidor
