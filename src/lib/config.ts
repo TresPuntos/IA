@@ -21,8 +21,6 @@ export interface ChatConfig {
   
   // Additional settings
   versionTag: string;
-   prestashopUrl?: string;
-  prestashopApiKey?: string;
 }
 
 // Configuración por defecto

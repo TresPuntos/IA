@@ -1,8 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
-
-const supabaseUrl = `https://${projectId}.supabase.co`;
-const supabase = createClient(supabaseUrl, publicAnonKey);
+import { supabase } from './supabaseClient';
 
 export interface Product {
   id: string;
@@ -738,10 +734,12 @@ export const deleteProduct = async (productId: string): Promise<{ success: boole
 // Interfaces para Prestashop
 export interface PrestashopProduct {
   id: number;
-  name: string;
+  id_default_image?: number;
+  name: string | Array<{ value: string }>;
+  link_rewrite?: string | Array<{ value: string }>;
   price: string;
-  description?: string;
-  description_short?: string;
+  description?: string | Array<{ value: string }>;
+  description_short?: string | Array<{ value: string }>;
   categories?: Array<{ name: string }>;
   reference?: string;
   ean13?: string;
@@ -775,6 +773,7 @@ export interface PrestashopScannedProduct {
   sku?: string;
   stock_quantity: number;
   image_url?: string;
+  external_id?: string; // URL del producto en PrestaShop
   combinations: PrestashopScannedCombination[];
   isActive: boolean;
 }
@@ -823,6 +822,10 @@ export const scanPrestashopProducts = async (
       };
     }
 
+    // Extraer BASE_URL (sin /api/) - como en PHP
+    let baseUrl = finalApiUrl.trim().replace(/\/$/, '');
+    baseUrl = baseUrl.replace(/\/api\/?$/, ''); // Quitar /api si existe
+    
     // Procesar productos y combinaciones
     const scannedProducts: PrestashopScannedProduct[] = [];
     
@@ -834,15 +837,55 @@ export const scanPrestashopProducts = async (
       // Obtener combinaciones del producto
       const combinations = await fetchPrestashopCombinations(finalApiUrl, apiKey, product.id);
       
+      // Procesar name y link_rewrite (pueden ser array o string, como en PHP)
+      const productName = Array.isArray(product.name) 
+        ? product.name[0]?.value || product.name[0] || ''
+        : product.name || '';
+      
+      const linkRewrite = Array.isArray(product.link_rewrite)
+        ? product.link_rewrite[0]?.value || product.link_rewrite[0] || ''
+        : product.link_rewrite || '';
+      
+      // Construir URL de imagen según formato PHP: BASE_URL . "{$image_id}-{$image_type}/{$link_rewrite}.jpg"
+      let imageUrl = '';
+      if (product.id_default_image && linkRewrite) {
+        const imageType = 'medium_default'; // como en PHP
+        imageUrl = `${baseUrl}/${product.id_default_image}-${imageType}/${linkRewrite}.jpg`;
+      } else if (product.images && product.images.length > 0) {
+        // Fallback a la URL de la API si no podemos construirla
+        imageUrl = product.images[0].url;
+      }
+      
+      // Construir URL del producto según formato PHP: BASE_URL . "{$category_path}/{$product['id']}-{$link_rewrite}" + ean13 si existe + ".html"
+      let productUrl = '';
+      if (linkRewrite) {
+        const categoryPath = 'inicio'; // Categoría fija como en PHP (o puedes usar la primera categoría si existe)
+        productUrl = `${baseUrl}/${categoryPath}/${product.id}-${linkRewrite}`;
+        if (product.ean13) {
+          productUrl += `-${product.ean13}`;
+        }
+        productUrl += '.html';
+      }
+      
+      // Procesar descripción (puede ser array o string)
+      const description = Array.isArray(product.description) 
+        ? product.description[0]?.value || product.description[0] || ''
+        : product.description || '';
+      
+      const descriptionShort = Array.isArray(product.description_short)
+        ? product.description_short[0]?.value || product.description_short[0] || ''
+        : product.description_short || '';
+      
       const scannedProduct: PrestashopScannedProduct = {
         id: product.id,
-        name: product.name,
+        name: productName,
         price: parseFloat(product.price) || 0,
-        description: product.description || product.description_short,
+        description: description || descriptionShort,
         category: product.categories?.[0]?.name,
         sku: product.reference || product.ean13 || product.upc,
         stock_quantity: product.quantity || 0,
-        image_url: product.images?.[0]?.url,
+        image_url: imageUrl,
+        external_id: productUrl,
         combinations: combinations.map(combo => ({
           id: combo.id,
           reference: combo.reference,
@@ -873,7 +916,7 @@ export const scanPrestashopProducts = async (
   }
 };
 
-// Función para obtener productos de Prestashop
+// Función para obtener productos de Prestashop con retry logic
 const fetchPrestashopProducts = async (
   apiUrl: string,
   apiKey: string
@@ -882,59 +925,184 @@ const fetchPrestashopProducts = async (
   console.log('API Key:', apiKey ? '***' : 'undefined');
   
   const allProducts: PrestashopProduct[] = [];
-  let limit = 1000; // Intentar obtener muchos productos de una vez
+  let limit = 10; // Reducir MÁS el límite para evitar exceder el tamaño de payload
   let offset = 0;
   let hasMore = true;
+  let consecutiveErrors = 0;
+  const maxRetries = 3;
+  const retryDelay = 2000; // 2 segundos entre intentos
+  
+  // Helper function para retry con backoff exponencial y mejor manejo de errores
+  const fetchWithRetry = async (url: string, options: RequestInit, retryCount = 0): Promise<Response> => {
+    try {
+      console.log(`🔄 Attempt ${retryCount + 1}/${maxRetries} to fetch:`, url);
+      const response = await fetch(url, {
+        ...options,
+        signal: AbortSignal.timeout(30000) // Timeout de 30 segundos
+      });
+      
+      console.log(`📊 Response status: ${response.status} ${response.statusText}`);
+      
+      // Si es un error del servidor (5xx), lanzar error
+      if (!response.ok && response.status >= 500) {
+        console.error(`❌ Server error detected: ${response.status}`);
+        throw new Error(`Server error: ${response.status}`);
+      }
+      
+      // Si es un error del cliente (4xx), no retry, solo lanzar
+      if (!response.ok && response.status >= 400 && response.status < 500) {
+        const errorText = await response.text();
+        console.error(`❌ Client error: ${response.status}`, errorText);
+        throw new Error(`Client error: ${response.status} - ${errorText}`);
+      }
+      
+      return response;
+    } catch (error) {
+      console.error(`❌ Error in fetchWithRetry (attempt ${retryCount + 1}):`, error);
+      
+      if (retryCount < maxRetries) {
+        const delay = retryDelay * Math.pow(2, retryCount); // Backoff exponencial
+        console.log(`⏳ Retrying in ${delay}ms (attempt ${retryCount + 1}/${maxRetries})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return fetchWithRetry(url, options, retryCount + 1);
+      }
+      
+      console.error(`❌ Max retries reached. Final error:`, error);
+      throw error;
+    }
+  };
   
   while (hasMore) {
-    const proxyUrl = `/api/prestashop/products?display=full&limit=${limit}&offset=${offset}`;
-    console.log(`Fetching batch: offset=${offset}, limit=${limit}`);
+    // Según la guía de Prestashop, el formato correcto es limit=offset,cantidad
+    const prestashopLimit = `${offset},${limit}`;
+    console.log(`📥 Fetching batch (PrestaShop format): offset=${offset}, limit=${limit}, format=limit=offset,cantidad`);
     
-    const response = await fetch(proxyUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        apiUrl,
-        apiKey
-      })
-    });
+    try {
+      // Usar Netlify Function para evitar problemas de Egress en Supabase
+      // URL relativa que funciona tanto en desarrollo como en producción
+      const proxyUrl = `/api/prestashop/products?display=full&limit=${prestashopLimit}`;
+      
+      const response = await fetchWithRetry(proxyUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          apiUrl,
+          apiKey
+        })
+      });
 
-    console.log('Response status:', response.status);
-    
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Error response:', errorText);
-      throw new Error(`Error de Prestashop API: ${response.status} ${response.statusText}`);
-    }
+      console.log('Response status:', response.status);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Error response:', errorText);
+        
+        // Si es un error 502 o 503, intentar con un límite más pequeño
+        if (response.status === 502 || response.status === 503 || response.status === 504) {
+          consecutiveErrors++;
+          
+          // Obtener más detalles del error
+          let errorDetails = '';
+          try {
+            const errorText = await response.text();
+            errorDetails = errorText;
+            console.log(`⚠️ Error response details:`, errorDetails);
+            
+            // Detectar si es un error de tamaño de payload
+            if (errorDetails.includes('ResponseSizeTooLarge') || errorDetails.includes('payload size')) {
+              console.log(`🚨 PAYLOAD TOO LARGE DETECTED! Reducing batch size aggressively...`);
+            }
+          } catch (e) {
+            console.log('Could not read error response');
+          }
+          
+          console.log(`⚠️ Server error detected (${response.status}). Reducing batch size...`);
+          
+          if (limit > 5) {
+            limit = Math.max(5, Math.floor(limit / 2));
+            console.log(`🔄 Retrying with smaller limit: ${limit}`);
+            await new Promise(resolve => setTimeout(resolve, retryDelay));
+            continue;
+          } else if (consecutiveErrors >= 3) {
+            console.error('❌ Too many consecutive errors. Stopping fetch.');
+            break;
+          }
+        } else {
+          throw new Error(`Error de Prestashop API: ${response.status} ${response.statusText}`);
+        }
+      } else {
+        consecutiveErrors = 0; // Resetear contador de errores
+      }
 
-    const contentType = response.headers.get('content-type') || '';
-    console.log('Content type:', contentType);
-    
-    let data;
-    if (contentType.includes('xml')) {
-      console.log('⚠️ PrestaShop devolvió XML, no JSON');
-      break;
-    } else {
-      data = await response.json();
-    }
-    
-    const products = data.products || data || [];
-    console.log(`✅ Obtained ${products.length} products in this batch`);
-    
-    if (Array.isArray(products)) {
-      allProducts.push(...products);
-    } else if (products && typeof products === 'object') {
-      // Si es un objeto único, convertirlo a array
-      allProducts.push(products);
-    }
-    
-    // Si obtuvimos menos productos que el límite, hemos terminado
-    if (products.length < limit || products.length === 0) {
-      hasMore = false;
-    } else {
-      offset += limit;
+      const contentType = response.headers.get('content-type') || '';
+      console.log('Content type:', contentType);
+      
+      let data;
+      if (contentType.includes('xml')) {
+        console.log('⚠️ PrestaShop devolvió XML, no JSON');
+        break;
+      } else {
+        data = await response.json();
+      }
+      
+      const products = data.products || data || [];
+      console.log(`✅ Obtained ${products.length} products in this batch`);
+      
+      if (Array.isArray(products)) {
+        allProducts.push(...products);
+      } else if (products && typeof products === 'object') {
+        // Si es un objeto único, convertirlo a array
+        allProducts.push(products);
+      }
+      
+      // Si obtuvimos menos productos que el límite, hemos terminado
+      if (products.length < limit || products.length === 0) {
+        hasMore = false;
+      } else {
+        offset += limit;
+      }
+      
+      // Pequeña pausa entre requests para no sobrecargar el servidor
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+    } catch (error) {
+      console.error('❌ Error fetching batch:', error);
+      console.error('Error details:', {
+        offset,
+        limit,
+        consecutiveErrors,
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        errorStack: error instanceof Error ? error.stack : undefined
+      });
+      
+      consecutiveErrors++;
+      console.log(`⚠️ Consecutive errors: ${consecutiveErrors}/3`);
+      
+      if (consecutiveErrors >= 3) {
+        console.error('❌ Too many consecutive errors. Stopping fetch.');
+        console.error('Last error:', error);
+        
+        // Proporcionar un mensaje de error más informativo
+        const finalError = error instanceof Error 
+          ? new Error(`Error persistente al escanear Prestashop. Último error: ${error.message}. Intentó ${consecutiveErrors} veces con diferentes tamaños de batch.`)
+          : new Error('Error desconocido al escanear Prestashop');
+        
+        throw finalError;
+      }
+      
+      // Reducir límite y continuar
+      if (limit > 5) {
+        limit = Math.max(5, Math.floor(limit / 2));
+        console.log(`🔄 Reducing limit from ${limit * 2} to ${limit} due to error`);
+      } else {
+        console.log(`⚠️ Limit already at minimum (${limit}). Will retry with same size.`);
+      }
+      
+      // Esperar antes de retry
+      console.log('⏳ Waiting before retry...');
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
   }
   
@@ -949,14 +1117,21 @@ const fetchPrestashopCombinations = async (
   productId: number
 ): Promise<PrestashopCombination[]> => {
   try {
-    const cleanUrl = apiUrl.trim().replace(/\/$/, ''); // Quitar espacios y barra final
-    const url = `${cleanUrl}/products/${productId}/combinations?display=full`;
+    // Usar Netlify Function para evitar problemas de Egress en Supabase
+    const cleanUrlWithoutApi = apiUrl.trim().replace(/\/$/, '').replace(/\/api\/?$/, '');
     
-    const response = await fetch(url, {
+    // URL relativa que funciona tanto en desarrollo como en producción
+    const proxyUrl = `/api/prestashop/products/${productId}/combinations?display=full`;
+    
+    const response = await fetch(proxyUrl, {
+      method: 'POST',
       headers: {
-        'Authorization': `Basic ${btoa(`${apiKey}:`)}`,
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        apiUrl: cleanUrlWithoutApi,
+        apiKey
+      })
     });
 
     if (!response.ok) {
@@ -964,13 +1139,15 @@ const fetchPrestashopCombinations = async (
       if (response.status === 404) {
         return [];
       }
-      throw new Error(`Error de Prestashop API: ${response.status} ${response.statusText}`);
+      console.warn(`⚠️ Error obteniendo combinaciones para producto ${productId}: ${response.status}`);
+      return [];
     }
 
     const data = await response.json();
     return data.combinations || [];
   } catch (error) {
     // Si hay error, devolver array vacío (producto sin combinaciones)
+    console.warn(`⚠️ Error obteniendo combinaciones para producto ${productId}:`, error);
     return [];
   }
 };
@@ -1008,8 +1185,8 @@ export const confirmPrestashopImport = async (
       sku: product.sku,
       stock_quantity: product.stock_quantity,
       image_url: product.image_url,
+      external_id: product.external_id || product.id.toString(), // URL del producto o ID como fallback
       source: 'prestashop',
-      external_id: product.id.toString(),
       status: product.isActive ? 'active' : 'inactive'
     }));
 

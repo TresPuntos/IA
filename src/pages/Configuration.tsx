@@ -121,41 +121,6 @@ export function Configuration({ onDuplicate }: ConfigurationProps) {
           </div>
         </CardContent>
       </Card>
-      
- <Card>
- <CardHeader>
- <CardTitle>Configuración PrestaShop</CardTitle>
- <CardDescription>Credenciales para conectar tu tienda PrestaShop</CardDescription>
- </CardHeader>
- <CardContent className="space-y-4">
- <div className="space-y-2">
- <Label htmlFor="prestashop-url">URL de la API PrestaShop</Label>
- <Input 
- id="prestashop-url" 
- type="url"
- value={config.prestashopUrl || ''}
- onChange={(e) => updateConfig({ prestashopUrl: e.target.value })}
- placeholder="https://tu-tienda.com/api/"
- />
- <p className="text-sm text-muted-foreground">
- La URL debe terminar en /api/ para ser válida
- </p>
- </div>
- <div className="space-y-2">
- <Label htmlFor="prestashop-key">PrestaShop API Key</Label>
- <Input 
- id="prestashop-key" 
- type="password"
- value={config.prestashopApiKey || ''}
- onChange={(e) => updateConfig({ prestashopApiKey: e.target.value })}
- placeholder="Tu API Key aquí"
- />
-<p className="text-sm text-muted-foreground">
-Genera tu API Key en PrestaShop &gt; Avanzado &gt; Web service
-</p>
- </div>
- </CardContent>
- </Card>
     </div>
   );
 }
