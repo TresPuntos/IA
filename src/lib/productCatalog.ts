@@ -809,9 +809,9 @@ export const scanPrestashopProducts = async (
 
     onProgress?.(10);
 
-    // Obtener productos
+    // Obtener productos (pasamos el callback para actualizar progreso durante la obtención)
     console.log('Obteniendo productos...');
-    const products = await fetchPrestashopProducts(finalApiUrl, apiKey);
+    const products = await fetchPrestashopProducts(finalApiUrl, apiKey, onProgress);
     console.log('Productos obtenidos:', products.length);
     onProgress?.(50);
 
@@ -919,7 +919,8 @@ export const scanPrestashopProducts = async (
 // Función para obtener productos de Prestashop con retry logic
 const fetchPrestashopProducts = async (
   apiUrl: string,
-  apiKey: string
+  apiKey: string,
+  onProgress?: (progress: number) => void
 ): Promise<PrestashopProduct[]> => {
   console.log('Fetching Prestashop products:', apiUrl);
   console.log('API Key:', apiKey ? '***' : 'undefined');
@@ -931,6 +932,9 @@ const fetchPrestashopProducts = async (
   let consecutiveErrors = 0;
   const maxRetries = 3;
   const retryDelay = 2000; // 2 segundos entre intentos
+  
+  // Estimar total basado en el primer batch (ajustaremos después)
+  let estimatedTotal = 100; // Estimación inicial conservadora
   
   // Helper function para retry con backoff exponencial y mejor manejo de errores
   const fetchWithRetry = async (url: string, options: RequestInit, retryCount = 0): Promise<Response> => {
@@ -1057,11 +1061,43 @@ const fetchPrestashopProducts = async (
         allProducts.push(products);
       }
       
+      // Actualizar estimación del total si es el primer batch
+      if (offset === 0 && products.length === limit) {
+        // Si obtuvimos un batch completo, estimar que hay más
+        estimatedTotal = Math.max(estimatedTotal, offset + limit * 2);
+      }
+      
+      // Calcular progreso estimado (10% inicial + hasta 40% durante obtención)
+      // Usamos una estimación progresiva: mientras más productos obtenemos, más seguro estamos del total
+      const baseProgress = 10; // Ya tenemos 10% inicial
+      const maxProgressDuringFetch = 50; // Queremos llegar al 50% al terminar
+      const progressRange = maxProgressDuringFetch - baseProgress; // 40% de rango
+      
+      // Si ya no hay más productos, estamos en el 50%
+      if (!hasMore && products.length < limit) {
+        onProgress?.(maxProgressDuringFetch);
+      } else {
+        // Calcular progreso: basado en productos obtenidos vs estimación
+        // Usamos una función más suave que progrese gradualmente
+        const currentProgress = Math.min(
+          baseProgress + (allProducts.length / Math.max(estimatedTotal, allProducts.length + limit * 2)) * progressRange,
+          maxProgressDuringFetch - 2 // Dejar un pequeño margen
+        );
+        
+        onProgress?.(Math.round(currentProgress));
+      }
+      
       // Si obtuvimos menos productos que el límite, hemos terminado
       if (products.length < limit || products.length === 0) {
         hasMore = false;
+        // Actualizar el total real
+        estimatedTotal = allProducts.length;
       } else {
         offset += limit;
+        // Aumentar estimación si seguimos obteniendo productos completos
+        if (products.length === limit && offset > estimatedTotal) {
+          estimatedTotal = offset + limit * 2; // Estimación conservadora
+        }
       }
       
       // Pequeña pausa entre requests para no sobrecargar el servidor
