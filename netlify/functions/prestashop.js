@@ -94,49 +94,34 @@ exports.handler = async (event, context) => {
     console.log('📦 Final Resource Path:', resourcePath);
     console.log('📦 Base URL:', baseUrl);
     
-    // Obtener parámetros de query
-    const queryParams = event.queryStringParameters || {};
-    const params = new URLSearchParams();
-    
-    // Agregar parámetros estándar de PrestaShop
-    params.append('display', queryParams.display || 'full');
-    
-    if (queryParams.limit) {
-      params.append('limit', queryParams.limit);
-    }
-    
-    if (queryParams.offset) {
-      params.append('offset', queryParams.offset);
-    }
-    
-    // Agregar language si está presente (importante para PrestaShop)
-    if (queryParams.language) {
-      params.append('language', queryParams.language);
-    }
-    
-    // Agregar output_format=JSON explícitamente
-    if (queryParams.output_format) {
-      params.append('output_format', queryParams.output_format);
-    }
-    
-    const queryString = params.toString();
-    
-    // Construir la URL final exactamente como en PHP
+    // Construir la URL final EXACTAMENTE como en PHP
     // PHP: PRESTASHOP_URL . "products/$id_producto?language=$current_lang_code&output_format=JSON&ws_key=" . API_KEY
+    // PRESTASHOP_URL = 'https://100x100chef.com/shop/api/' (con barra final)
     // baseUrl ya tiene barra final: "https://100x100chef.com/shop/api/"
     // resourcePath puede ser "products/1" o "products"
     // No agregar barra adicional porque baseUrl ya termina en /
     let targetUrl = `${baseUrl}${resourcePath}`;
     
-    // Construir query string como en PHP (language primero, luego output_format, luego ws_key)
+    // Obtener parámetros de query (exactamente como en PHP)
+    const queryParams = event.queryStringParameters || {};
+    
+    // Construir query string EXACTAMENTE como en PHP:
+    // ?language=$current_lang_code&output_format=JSON&ws_key=API_KEY
+    // Orden: language, output_format, ws_key (sin display ni otros parámetros adicionales para esta petición básica)
     const queryParts = [];
+    
+    // 1. language (si está presente)
     if (queryParams.language) {
       queryParts.push(`language=${queryParams.language}`);
     }
+    
+    // 2. output_format=JSON (siempre presente)
     queryParts.push('output_format=JSON');
+    
+    // 3. ws_key (siempre presente)
     queryParts.push(`ws_key=${apiKey}`);
     
-    // Agregar otros parámetros si existen
+    // Agregar otros parámetros solo si existen y son necesarios (para compatibilidad)
     if (queryParams.display) {
       queryParts.push(`display=${queryParams.display}`);
     }
@@ -144,12 +129,18 @@ exports.handler = async (event, context) => {
       queryParts.push(`limit=${queryParams.limit}`);
     }
     
+    // Construir URL final con query string
     if (queryParts.length > 0) {
       targetUrl += `?${queryParts.join('&')}`;
     }
     
-    console.log('🌐 Target URL:', targetUrl);
-    console.log('📋 URL breakdown:', { baseUrl, resourcePath, queryString });
+    console.log('🌐 Target URL:', targetUrl.replace(apiKey, '***'));
+    console.log('📋 URL breakdown:', { 
+      baseUrl, 
+      resourcePath, 
+      finalUrl: targetUrl.replace(apiKey, '***'),
+      queryParts: queryParts.map(p => p.replace(apiKey, '***'))
+    });
     
     // Preparar headers para autenticación básica (como en PHP)
     const basicAuth = Buffer.from(`${apiKey}:`).toString('base64');
