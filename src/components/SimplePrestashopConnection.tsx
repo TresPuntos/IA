@@ -58,9 +58,18 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
       }
       
       // Probar con el producto 1 (como en PHP)
-      const proxyUrl = `/api/prestashop/products/1?language=1&output_format=JSON`;
+      // Usar URL absoluta si estamos en producción de Netlify, relativa si es desarrollo
+      const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+      const baseUrl = isProduction ? '' : '';
+      const proxyUrl = `${baseUrl}/api/prestashop/products/1?language=1&output_format=JSON`;
       
-      console.log('🔍 Testing connection:', { cleanUrl, proxyUrl });
+      console.log('🔍 Testing connection:', { 
+        cleanUrl, 
+        proxyUrl, 
+        isProduction,
+        hostname: window.location.hostname,
+        fullUrl: window.location.href
+      });
       
       const response = await fetch(proxyUrl, {
         method: 'POST',
@@ -72,6 +81,23 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
           apiKey
         })
       });
+      
+      console.log('📊 Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        ok: response.ok,
+        url: response.url
+      });
+      
+      // Si es 404, mostrar más detalles
+      if (response.status === 404) {
+        const errorText = await response.text().catch(() => 'No response body');
+        console.error('❌ 404 Error Details:', {
+          proxyUrl,
+          errorText,
+          headers: Object.fromEntries(response.headers.entries())
+        });
+      }
 
       if (response.ok) {
         const data = await response.json();
