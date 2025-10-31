@@ -23,6 +23,9 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
   const [scannedProducts, setScannedProducts] = useState<any[]>([]);
   const [showConfirm, setShowConfirm] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [productsObtained, setProductsObtained] = useState(0);
+  const [currentProductIndex, setCurrentProductIndex] = useState(0);
+  const [totalProductsEstimate, setTotalProductsEstimate] = useState(0);
 
   // Cargar credenciales guardadas
   React.useEffect(() => {
@@ -136,12 +139,28 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
     setScanProgress(0);
     setShowConfirm(false);
     setScannedProductsCount(0);
+    setProductsObtained(0);
+    setCurrentProductIndex(0);
+    setTotalProductsEstimate(0);
 
     try {
       const result = await scanPrestashopProducts(
         url,
         apiKey,
-        (progress) => setScanProgress(progress)
+        (progress, info) => {
+          setScanProgress(progress);
+          if (info) {
+            if (info.productsObtained !== undefined) {
+              setProductsObtained(info.productsObtained);
+            }
+            if (info.productsTotal !== undefined) {
+              setTotalProductsEstimate(info.productsTotal);
+            }
+            if (info.currentProduct !== undefined) {
+              setCurrentProductIndex(info.currentProduct);
+            }
+          }
+        }
       );
 
       if (result.success && result.products) {
@@ -285,7 +304,17 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
       {isScanning && (
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
-            <span>Escaneando productos...</span>
+            <span>
+              Escaneando productos...
+              {productsObtained > 0 && (
+                <span className="ml-2 text-muted-foreground">
+                  {productsObtained} {totalProductsEstimate > 0 && totalProductsEstimate !== productsObtained ? `de ~${totalProductsEstimate}` : ''} obtenidos
+                  {currentProductIndex > 0 && currentProductIndex <= productsObtained && (
+                    <span className="ml-2">(procesando {currentProductIndex}/{productsObtained})</span>
+                  )}
+                </span>
+              )}
+            </span>
             <span>{Math.round(scanProgress)}%</span>
           </div>
           <Progress value={scanProgress} />

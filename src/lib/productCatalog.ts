@@ -789,11 +789,14 @@ export interface PrestashopScannedCombination {
   }>;
 }
 
+// Tipo para el callback de progreso con información adicional
+export type ProgressCallback = (progress: number, info?: { productsObtained?: number; productsTotal?: number; currentProduct?: number }) => void;
+
 // Función para escanear productos de Prestashop
 export const scanPrestashopProducts = async (
   apiUrl: string,
   apiKey: string,
-  onProgress?: (progress: number) => void
+  onProgress?: ProgressCallback
 ): Promise<{ success: boolean; error?: string; products?: PrestashopScannedProduct[] }> => {
   try {
     console.log('Iniciando escaneo Prestashop:', { apiUrl, apiKey: apiKey ? '***' : 'undefined' });
@@ -807,13 +810,17 @@ export const scanPrestashopProducts = async (
     
     console.log('🔧 URL base que se enviará a Netlify:', finalApiUrl);
 
-    onProgress?.(10);
+    onProgress?.(10, { productsObtained: 0 });
 
     // Obtener productos (pasamos el callback para actualizar progreso durante la obtención)
     console.log('Obteniendo productos...');
-    const products = await fetchPrestashopProducts(finalApiUrl, apiKey, onProgress);
+    let productsObtainedCount = 0;
+    const products = await fetchPrestashopProducts(finalApiUrl, apiKey, (progress, info) => {
+      productsObtainedCount = info?.productsObtained || productsObtainedCount;
+      onProgress?.(progress, { ...info, productsObtained: productsObtainedCount });
+    });
     console.log('Productos obtenidos:', products.length);
-    onProgress?.(50);
+    onProgress?.(50, { productsObtained: products.length, productsTotal: products.length });
 
     if (products.length === 0) {
       return {
@@ -832,7 +839,11 @@ export const scanPrestashopProducts = async (
     for (let i = 0; i < products.length; i++) {
       const product = products[i];
       const progress = 50 + (i / products.length) * 40;
-      onProgress?.(progress);
+      onProgress?.(progress, { 
+        productsObtained: products.length, 
+        productsTotal: products.length, 
+        currentProduct: i + 1 
+      });
 
       // Obtener combinaciones del producto
       const combinations = await fetchPrestashopCombinations(finalApiUrl, apiKey, product.id);
@@ -920,7 +931,7 @@ export const scanPrestashopProducts = async (
 const fetchPrestashopProducts = async (
   apiUrl: string,
   apiKey: string,
-  onProgress?: (progress: number) => void
+  onProgress?: ProgressCallback
 ): Promise<PrestashopProduct[]> => {
   console.log('Fetching Prestashop products:', apiUrl);
   console.log('API Key:', apiKey ? '***' : 'undefined');
@@ -1090,7 +1101,10 @@ const fetchPrestashopProducts = async (
       
       // Si es el último batch, llegar directamente al 50%
       if (isLastBatch) {
-        onProgress?.(maxProgressDuringFetch);
+        onProgress?.(maxProgressDuringFetch, { 
+          productsObtained: allProducts.length, 
+          productsTotal: allProducts.length 
+        });
       } else {
         // Calcular progreso: basado en productos obtenidos vs estimación
         // Usamos una función más suave que progrese gradualmente
@@ -1099,7 +1113,10 @@ const fetchPrestashopProducts = async (
           maxProgressDuringFetch - 2 // Dejar un pequeño margen
         );
         
-        onProgress?.(Math.round(currentProgress));
+        onProgress?.(Math.round(currentProgress), { 
+          productsObtained: allProducts.length, 
+          productsTotal: estimatedTotal 
+        });
       }
       
       // Pequeña pausa entre requests para no sobrecargar el servidor
