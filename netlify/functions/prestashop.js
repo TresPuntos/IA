@@ -52,10 +52,26 @@ exports.handler = async (event, context) => {
     }
     
     // Extraer el recurso del path
-    // event.path = "/api/prestashop/products/1" -> extraer "products/1"
-    const pathMatch = event.path.match(/\/api\/prestashop\/(.+)/);
-    const resourcePath = pathMatch ? pathMatch[1] : 'products';
-    console.log('📦 Resource Path:', resourcePath);
+    // Netlify redirect con :splat puede venir como:
+    // - "/api/prestashop/products/1" (directo)
+    // - "/.netlify/functions/prestashop/products/1" (después del redirect)
+    // - O el path puede estar en event.pathParameters.splat
+    let resourcePath = 'products';
+    
+    // Intentar obtener desde pathParameters.splat (Netlify lo inyecta con :splat)
+    if (event.pathParameters && event.pathParameters.splat) {
+      resourcePath = event.pathParameters.splat;
+      console.log('📦 Resource Path from splat:', resourcePath);
+    } else {
+      // Fallback: extraer del path manualmente
+      const pathMatch = event.path.match(/(?:api\/prestashop|\.netlify\/functions\/prestashop)\/(.+)/);
+      if (pathMatch) {
+        resourcePath = pathMatch[1];
+      }
+      console.log('📦 Resource Path from path:', resourcePath);
+    }
+    
+    console.log('📦 Final Resource Path:', resourcePath);
     console.log('📦 Base URL:', baseUrl);
     
     // Obtener parámetros de query
