@@ -37,20 +37,26 @@ exports.handler = async (event, context) => {
       };
     }
     
-    // Construir URL completa para PrestaShop según documentación oficial
+    // Construir URL completa para PrestaShop según PHP
+    // PHP usa: PRESTASHOP_URL = 'https://100x100chef.com/shop/api/'
     // apiUrl viene sin /api, ejemplo: https://100x100chef.com/shop
     let baseUrl = apiUrl.replace(/\/$/, ''); // Quitar barra final
     
-    // Agregar /api si no está presente
+    // Agregar /api/ con barra final (como en PHP)
     if (!baseUrl.endsWith('/api')) {
       baseUrl = `${baseUrl}/api`;
     }
+    // Asegurar barra final después de /api (como en PHP)
+    if (!baseUrl.endsWith('/api/')) {
+      baseUrl = `${baseUrl}/`;
+    }
     
     // Extraer el recurso del path
-    // event.path = "/api/prestashop/products" -> extraer "products"
+    // event.path = "/api/prestashop/products/1" -> extraer "products/1"
     const pathMatch = event.path.match(/\/api\/prestashop\/(.+)/);
     const resourcePath = pathMatch ? pathMatch[1] : 'products';
     console.log('📦 Resource Path:', resourcePath);
+    console.log('📦 Base URL:', baseUrl);
     
     // Obtener parámetros de query
     const queryParams = event.queryStringParameters || {};
@@ -79,19 +85,31 @@ exports.handler = async (event, context) => {
     
     const queryString = params.toString();
     
-    // Construir la URL final: base + recurso + query params + ws_key
-    // Formato como en PHP: "products/$id_producto?language=$current_lang_code&output_format=JSON&ws_key=" . API_KEY
-    // Asegurar que ws_key esté en la URL además de Basic Auth
-    // Asegurar que output_format=JSON esté presente
-    const separator = queryString ? '&' : '?';
-    let targetUrl = `${baseUrl}/${resourcePath}${queryString ? '?' + queryString : ''}`;
+    // Construir la URL final exactamente como en PHP
+    // PHP: PRESTASHOP_URL . "products/$id_producto?language=$current_lang_code&output_format=JSON&ws_key=" . API_KEY
+    // baseUrl ya tiene barra final: "https://100x100chef.com/shop/api/"
+    // resourcePath puede ser "products/1" o "products"
+    // No agregar barra adicional porque baseUrl ya termina en /
+    let targetUrl = `${baseUrl}${resourcePath}`;
     
-    // Añadir ws_key y output_format si no están ya presentes
-    if (!targetUrl.includes('ws_key=')) {
-      targetUrl += `${separator}ws_key=${apiKey}`;
+    // Construir query string como en PHP (language primero, luego output_format, luego ws_key)
+    const queryParts = [];
+    if (queryParams.language) {
+      queryParts.push(`language=${queryParams.language}`);
     }
-    if (!targetUrl.includes('output_format=')) {
-      targetUrl += `${targetUrl.includes('?') ? '&' : '?'}output_format=JSON`;
+    queryParts.push('output_format=JSON');
+    queryParts.push(`ws_key=${apiKey}`);
+    
+    // Agregar otros parámetros si existen
+    if (queryParams.display) {
+      queryParts.push(`display=${queryParams.display}`);
+    }
+    if (queryParams.limit) {
+      queryParts.push(`limit=${queryParams.limit}`);
+    }
+    
+    if (queryParts.length > 0) {
+      targetUrl += `?${queryParts.join('&')}`;
     }
     
     console.log('🌐 Target URL:', targetUrl);

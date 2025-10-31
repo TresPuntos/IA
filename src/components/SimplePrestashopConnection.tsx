@@ -48,8 +48,19 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
     setIsConnected(false);
 
     try {
-      const cleanUrl = url.trim().replace(/\/$/, '').replace(/\/api\/?$/, '');
+      // Según el PHP: PRESTASHOP_URL = 'https://100x100chef.com/shop/api/'
+      // La URL debe terminar en /api/ pero sin la barra final en la base
+      let cleanUrl = url.trim().replace(/\/$/, '');
+      // Asegurar que termine en /api (sin barra final, la función de Netlify agregará la barra)
+      if (!cleanUrl.endsWith('/api')) {
+        // Si ya tiene /api/, quitar la barra final
+        cleanUrl = cleanUrl.replace(/\/api\/?$/, '');
+      }
+      
+      // Probar con el producto 1 (como en PHP)
       const proxyUrl = `/api/prestashop/products/1?language=1&output_format=JSON`;
+      
+      console.log('🔍 Testing connection:', { cleanUrl, proxyUrl });
       
       const response = await fetch(proxyUrl, {
         method: 'POST',
