@@ -71,28 +71,40 @@ exports.handler = async (event, context) => {
       baseUrl = `${baseUrl}/`;
     }
     
-    // Extraer el recurso del path
-    // Netlify redirect con :splat puede venir como:
-    // - "/api/prestashop/products/1" (directo)
-    // - "/.netlify/functions/prestashop/products/1" (después del redirect)
-    // - O el path puede estar en event.pathParameters.splat
+    // Extraer el recurso del path EXACTAMENTE como funciona en Netlify
+    // Netlify redirect con :splat inyecta el valor en pathParameters.splat
+    // Ejemplo: /api/prestashop/products/1 -> pathParameters.splat = "products/1"
+    // También puede venir directamente si se accede a: /.netlify/functions/prestashop/products/1
     let resourcePath = 'products';
     
-    // Intentar obtener desde pathParameters.splat (Netlify lo inyecta con :splat)
+    // Método 1: pathParameters.splat (más confiable con redirects)
     if (event.pathParameters && event.pathParameters.splat) {
       resourcePath = event.pathParameters.splat;
       console.log('📦 Resource Path from splat:', resourcePath);
-    } else {
-      // Fallback: extraer del path manualmente
-      const pathMatch = event.path.match(/(?:api\/prestashop|\.netlify\/functions\/prestashop)\/(.+)/);
-      if (pathMatch) {
-        resourcePath = pathMatch[1];
+    }
+    // Método 2: Extraer del path directamente (si splat no está disponible)
+    else if (event.path) {
+      // Intentar diferentes patrones de path
+      const patterns = [
+        /\/api\/prestashop\/(.+)/,           // /api/prestashop/products/1
+        /\/\.netlify\/functions\/prestashop\/(.+)/,  // /.netlify/functions/prestashop/products/1
+        /prestashop\/(.+)/                    // prestashop/products/1
+      ];
+      
+      for (const pattern of patterns) {
+        const match = event.path.match(pattern);
+        if (match && match[1]) {
+          resourcePath = match[1];
+          console.log('📦 Resource Path from path pattern:', resourcePath, 'pattern:', pattern);
+          break;
+        }
       }
-      console.log('📦 Resource Path from path:', resourcePath);
     }
     
     console.log('📦 Final Resource Path:', resourcePath);
     console.log('📦 Base URL:', baseUrl);
+    console.log('📦 Event path:', event.path);
+    console.log('📦 Event pathParameters:', JSON.stringify(event.pathParameters));
     
     // Construir la URL final EXACTAMENTE como en PHP
     // PHP: PRESTASHOP_URL . "products/$id_producto?language=$current_lang_code&output_format=JSON&ws_key=" . API_KEY

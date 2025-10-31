@@ -58,10 +58,15 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
       }
       
       // Probar con el producto 1 (como en PHP)
-      // Usar URL absoluta si estamos en producción de Netlify, relativa si es desarrollo
+      // Intentar primero con el redirect /api/prestashop/*, si falla usar directamente /.netlify/functions/prestashop
       const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-      const baseUrl = isProduction ? '' : '';
-      const proxyUrl = `${baseUrl}/api/prestashop/products/1?language=1&output_format=JSON`;
+      
+      // Opción 1: Usar redirect (puede no funcionar si la función no está desplegada)
+      let proxyUrl = `/api/prestashop/products/1?language=1&output_format=JSON`;
+      
+      // Si estamos en producción de Netlify, también intentar la ruta directa como fallback
+      // Netlify Functions accesibles directamente en: /.netlify/functions/prestashop
+      // Pero el path completo se pasa en el body, no en la URL de la función
       
       console.log('🔍 Testing connection:', { 
         cleanUrl, 
@@ -71,16 +76,38 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
         fullUrl: window.location.href
       });
       
-      const response = await fetch(proxyUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          apiUrl: cleanUrl,
-          apiKey
-        })
-      });
+      let response;
+      try {
+        response = await fetch(proxyUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            apiUrl: cleanUrl,
+            apiKey
+          })
+        });
+        
+        // Si el redirect falla con 404, intentar la ruta directa de Netlify
+        if (response.status === 404 && isProduction) {
+          console.log('⚠️ Redirect falló, intentando ruta directa de Netlify...');
+          const directUrl = `/.netlify/functions/prestashop/products/1?language=1&output_format=JSON`;
+          response = await fetch(directUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              apiUrl: cleanUrl,
+              apiKey
+            })
+          });
+        }
+      } catch (fetchError) {
+        console.error('❌ Error en fetch:', fetchError);
+        throw fetchError;
+      }
       
       console.log('📊 Response:', {
         status: response.status,
