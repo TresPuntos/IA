@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from './ui/alert';
 import { CheckCircle, XCircle, Scan, Loader2, Save, Download } from 'lucide-react';
 import { scanPrestashopProducts, confirmPrestashopImport } from '../lib/productCatalog';
 import { toast } from 'sonner';
+import { savePrestashopCredentials, loadPrestashopCredentials, isLocalStorageAvailable } from '../lib/prestashopStorage';
 
 interface SimplePrestashopConnectionProps {
   onImportComplete?: (count: number) => void;
@@ -29,13 +30,46 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
 
   // Cargar credenciales guardadas
   React.useEffect(() => {
-    const savedUrl = localStorage.getItem('prestashop-url');
-    const savedApiKey = localStorage.getItem('prestashop-api-key');
-    const savedConnected = localStorage.getItem('prestashop-connected') === 'true';
+    const loadSavedCredentials = () => {
+      // Verificar si localStorage está disponible
+      if (!isLocalStorageAvailable()) {
+        console.warn('⚠️ localStorage no está disponible');
+        toast.error('⚠️ localStorage no disponible. Las credenciales no se guardarán automáticamente.');
+        return;
+      }
+
+      const credentials = loadPrestashopCredentials();
+      
+      if (credentials) {
+        if (credentials.url) {
+          setUrl(credentials.url);
+          console.log('✅ URL cargada:', credentials.url);
+        }
+        if (credentials.apiKey) {
+          setApiKey(credentials.apiKey);
+          console.log('✅ API Key cargada');
+        }
+        if (credentials.isConnected) {
+          setIsConnected(credentials.isConnected);
+          console.log('✅ Estado de conexión cargado:', credentials.isConnected);
+        }
+      } else {
+        console.log('📭 No hay credenciales guardadas');
+      }
+    };
     
-    if (savedUrl) setUrl(savedUrl);
-    if (savedApiKey) setApiKey(savedApiKey);
-    if (savedConnected) setIsConnected(savedConnected);
+    loadSavedCredentials();
+    
+    // También cargar cuando la ventana recupera el foco (por si se borró)
+    window.addEventListener('focus', loadSavedCredentials);
+    
+    // También intentar cargar después de un pequeño delay (por si hay problemas de timing)
+    const timeoutId = setTimeout(loadSavedCredentials, 500);
+    
+    return () => {
+      window.removeEventListener('focus', loadSavedCredentials);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const handleTestConnection = async () => {
@@ -131,10 +165,13 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
         
         if (data.product || data.products) {
           setIsConnected(true);
-          localStorage.setItem('prestashop-url', url);
-          localStorage.setItem('prestashop-api-key', apiKey);
-          localStorage.setItem('prestashop-connected', 'true');
-          toast.success('✅ Conexión exitosa con PrestaShop');
+          
+          const saved = savePrestashopCredentials(url, apiKey, true);
+          if (saved) {
+            toast.success('✅ Conexión exitosa con PrestaShop');
+          } else {
+            toast.error('⚠️ Conexión exitosa, pero no se pudieron guardar las credenciales');
+          }
           
           // Resetear productos escaneados cuando se conecta
           setScannedProducts([]);
@@ -144,7 +181,7 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
         }
       } else {
         setIsConnected(false);
-        localStorage.setItem('prestashop-connected', 'false');
+        savePrestashopCredentials(url, apiKey, false);
         
         let errorMessage = `Error ${response.status}`;
         if (response.status === 401) {
@@ -159,7 +196,7 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
       }
     } catch (error) {
       setIsConnected(false);
-      localStorage.setItem('prestashop-connected', 'false');
+      savePrestashopCredentials(url, apiKey, false);
       
       let errorMessage = 'Error desconocido';
       if (error instanceof TypeError && error.message.includes('fetch')) {
@@ -272,9 +309,16 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
                 placeholder="https://100x100chef.com/shop"
                 value={url}
                 onChange={(e) => {
-                  setUrl(e.target.value);
+                  const newUrl = e.target.value;
+                  setUrl(newUrl);
                   setIsConnected(false);
-                  localStorage.setItem('prestashop-url', e.target.value);
+                  
+                  if (newUrl.trim()) {
+                    const saved = savePrestashopCredentials(newUrl, apiKey, false);
+                    if (!saved) {
+                      toast.error('⚠️ No se pudo guardar la URL. Verifica permisos del navegador.');
+                    }
+                  }
                 }}
                 disabled={isScanning || isImporting || isTestingConnection}
               />
@@ -288,9 +332,16 @@ export function SimplePrestashopConnection({ onImportComplete }: SimplePrestasho
                 placeholder="Tu API Key de PrestaShop"
                 value={apiKey}
                 onChange={(e) => {
-                  setApiKey(e.target.value);
+                  const newApiKey = e.target.value;
+                  setApiKey(newApiKey);
                   setIsConnected(false);
-                  localStorage.setItem('prestashop-api-key', e.target.value);
+                  
+                  if (newApiKey.trim()) {
+                    const saved = savePrestashopCredentials(url, newApiKey, false);
+                    if (!saved) {
+                      toast.error('⚠️ No se pudo guardar la API Key. Verifica permisos del navegador.');
+                    }
+                  }
                 }}
                 disabled={isScanning || isImporting || isTestingConnection}
               />
