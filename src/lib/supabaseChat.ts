@@ -1,12 +1,8 @@
 // src/lib/supabaseChat.ts
-import { createClient } from '@supabase/supabase-js';
-import { projectId, publicAnonKey } from '../utils/supabase/info';
+import { supabase } from './supabaseClient';
 import { loadConfig } from './configStorage';
 import { generateFinalPrompt } from './config';
 import { generateCatalogPrompt } from './catalog';
-
-const supabaseUrl = `https://${projectId}.supabase.co`;
-const supabase = createClient(supabaseUrl, publicAnonKey);
 
 export interface ChatResponse {
   answer: string;

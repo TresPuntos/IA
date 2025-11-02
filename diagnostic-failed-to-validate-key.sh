@@ -61,3 +61,9 @@ echo "4. Verifica que la clave de Supabase sea válida"
 echo ""
 
 
+
+
+
+
+
+

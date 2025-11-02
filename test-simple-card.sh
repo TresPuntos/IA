@@ -40,3 +40,9 @@ echo "🚀 Si ves 'null', necesitas desplegar la Edge Function actualizada"
 
 
 
+
+
+
+
+
+
