@@ -23,7 +23,8 @@ export function ModelParamsCard() {
     const checkConnection = async () => {
       try {
         // Verificar si la Edge Function está disponible
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID || 'akwobmrcwqbbrdvzyiul'}.supabase.co`;
+        const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || '';
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || (projectId ? `https://${projectId}.supabase.co` : '');
         const response = await fetch(`${supabaseUrl}/functions/v1/openai-chat`, {
           method: 'POST',
           headers: {
