@@ -1,6 +1,12 @@
 [build]
   functions = "netlify/functions"
 
+[build.environment]
+  # Whitelist claves públicas de Supabase (anon keys son públicas por diseño)
+  # Estas claves están destinadas a ser expuestas en el cliente y no son secretas
+  # Solo whitelisteamos si NO están hardcodeadas en el código (usamos variables de entorno)
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_ANON_KEY,VITE_SUPABASE_PROJECT_ID"
+
 [[redirects]]
   from = "/api/prestashop/*"
   to = "/.netlify/functions/prestashop/:splat"

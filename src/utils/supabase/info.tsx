@@ -1,3 +1,4 @@
 // Configuración de Supabase usando variables de entorno
 export const projectId = import.meta.env.VITE_SUPABASE_PROJECT_ID || "akwobmrcwqbbrdvzyiul"
-export const publicAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrd29ibXJjd3FiYnJkdnp5aXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1Nzk0MjUsImV4cCI6MjA3NjE1NTQyNX0.jShGYQkTaO7C0fEjsrsIbVUd0rTOmZvYHffhXJIW7SE"
+// La clave anon debe venir de variables de entorno - no hardcodear aquí
+export const publicAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || ""

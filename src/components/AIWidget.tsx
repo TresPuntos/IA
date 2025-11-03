@@ -14,8 +14,13 @@ import { toast } from "sonner";
 import { createClient } from '@supabase/supabase-js';
 
 // Configuración de Supabase (deberías mover esto a variables de entorno)
-const SUPABASE_URL = 'https://akwobmrcwqbbrdvzyiul.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrd29ibXJjd3FiYnJkdnp5aXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzE5MzQ4NzMsImV4cCI6MjA0NzUxMDg3M30.8Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q7Q';
+// Usar variables de entorno - no hardcodear claves
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || `https://${import.meta.env.VITE_SUPABASE_PROJECT_ID || ''}.supabase.co`;
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+
+if (!SUPABASE_ANON_KEY) {
+  console.warn('⚠️ VITE_SUPABASE_ANON_KEY no está configurado');
+}
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
