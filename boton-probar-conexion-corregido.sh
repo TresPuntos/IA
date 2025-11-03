@@ -44,3 +44,4 @@ echo "1. La consola del navegador (F12) para ver los logs"
 echo "2. Los toast notifications para feedback"
 echo "3. El estado de conexión actualizado"
 
+

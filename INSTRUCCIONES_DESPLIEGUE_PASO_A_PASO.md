@@ -84,3 +84,4 @@ supabase/functions/prestashop-proxy/index.ts
 
 O puedes leerlo en: `DESPLEGAR_PRESASHOP_PROXY.md`
 
+

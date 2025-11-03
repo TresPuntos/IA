@@ -63,3 +63,4 @@ echo "4. Debería funcionar sin error 502"
 echo ""
 echo "✅ LISTO PARA DESPLEGAR"
 
+

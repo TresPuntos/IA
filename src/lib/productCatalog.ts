@@ -848,14 +848,28 @@ export const scanPrestashopProducts = async (
       // Obtener combinaciones del producto
       const combinations = await fetchPrestashopCombinations(finalApiUrl, apiKey, product.id);
       
-      // Procesar name y link_rewrite (pueden ser array o string, como en PHP)
-      const productName = Array.isArray(product.name) 
-        ? product.name[0]?.value || product.name[0] || ''
-        : product.name || '';
+      // Procesar name y link_rewrite EXACTAMENTE como en PHP (función extraer_valor_multilenguaje, líneas 111-133)
+      // PHP maneja: string, array con [0]['value'], array con ['value'], o primer elemento del array
+      const extractMultilangValue = (field: any): string => {
+        if (typeof field === 'string') {
+          return field;
+        }
+        if (Array.isArray(field)) {
+          if (field.length > 0 && field[0] && typeof field[0] === 'object' && 'value' in field[0]) {
+            return field[0].value || '';
+          }
+          if (field.length > 0) {
+            return String(field[0]);
+          }
+        }
+        if (field && typeof field === 'object' && 'value' in field) {
+          return field.value || '';
+        }
+        return '';
+      };
       
-      const linkRewrite = Array.isArray(product.link_rewrite)
-        ? product.link_rewrite[0]?.value || product.link_rewrite[0] || ''
-        : product.link_rewrite || '';
+      const productName = extractMultilangValue(product.name);
+      const linkRewrite = extractMultilangValue(product.link_rewrite);
       
       // Construir URL de imagen según formato PHP: BASE_URL . "{$image_id}-{$image_type}/{$link_rewrite}.jpg"
       let imageUrl = '';
@@ -878,14 +892,11 @@ export const scanPrestashopProducts = async (
         productUrl += '.html';
       }
       
-      // Procesar descripción (puede ser array o string)
-      const description = Array.isArray(product.description) 
-        ? product.description[0]?.value || product.description[0] || ''
-        : product.description || '';
+      // Procesar descripción usando la misma función (como en PHP línea 194)
+      const descriptionShort = extractMultilangValue(product.description_short || '');
       
-      const descriptionShort = Array.isArray(product.description_short)
-        ? product.description_short[0]?.value || product.description_short[0] || ''
-        : product.description_short || '';
+      // Descripción completa no está en el display, pero la corta sí
+      const description = descriptionShort;
       
       const scannedProduct: PrestashopScannedProduct = {
         id: product.id,
@@ -937,7 +948,8 @@ const fetchPrestashopProducts = async (
   console.log('API Key:', apiKey ? '***' : 'undefined');
   
   const allProducts: PrestashopProduct[] = [];
-  let limit = 10; // Reducir MÁS el límite para evitar exceder el tamaño de payload
+  // Usar chunk de 150 como en PHP (línea 247)
+  let chunk = 150;
   let offset = 0;
   let hasMore = true;
   let consecutiveErrors = 0;
@@ -946,6 +958,9 @@ const fetchPrestashopProducts = async (
   
   // Estimar total basado en el primer batch (ajustaremos después)
   let estimatedTotal = 100; // Estimación inicial conservadora
+  
+  // Campos específicos a obtener (como en PHP línea 270)
+  const displayFields = '[id,id_default_image,name,price,reference,link_rewrite,ean13,id_category_default,description_short]';
   
   // Helper function para retry con backoff exponencial y mejor manejo de errores
   const fetchWithRetry = async (url: string, options: RequestInit, retryCount = 0): Promise<Response> => {
@@ -988,14 +1003,19 @@ const fetchPrestashopProducts = async (
   };
   
   while (hasMore) {
-    // Según la guía de Prestashop, el formato correcto es limit=offset,cantidad
-    const prestashopLimit = `${offset},${limit}`;
-    console.log(`📥 Fetching batch (PrestaShop format): offset=${offset}, limit=${limit}, format=limit=offset,cantidad`);
+    // Según PHP línea 269: limit = 'offset,cantidad' (ej: "0,150")
+    const prestashopLimit = `${offset},${chunk}`;
+    console.log(`📥 Fetching batch (PrestaShop format): offset=${offset}, chunk=${chunk}, format=limit=offset,cantidad`);
     
     try {
       // Usar Netlify Function para evitar problemas de Egress en Supabase
       // URL relativa que funciona tanto en desarrollo como en producción
-      const proxyUrl = `/api/prestashop/products?display=full&limit=${prestashopLimit}`;
+      // Parámetros EXACTOS como en PHP:
+      // - language=1 (línea 268) - usar 1 por defecto (español)
+      // - limit=offset,cantidad (línea 269)
+      // - display=... (línea 270)
+      // - sort=id_ASC (línea 271)
+      const proxyUrl = `/api/prestashop/products?language=1&limit=${prestashopLimit}&display=${encodeURIComponent(displayFields)}&sort=id_ASC`;
       
       const response = await fetchWithRetry(proxyUrl, {
         method: 'POST',
@@ -1035,9 +1055,9 @@ const fetchPrestashopProducts = async (
           
           console.log(`⚠️ Server error detected (${response.status}). Reducing batch size...`);
           
-          if (limit > 5) {
-            limit = Math.max(5, Math.floor(limit / 2));
-            console.log(`🔄 Retrying with smaller limit: ${limit}`);
+          if (chunk > 50) {
+            chunk = Math.max(50, Math.floor(chunk / 2));
+            console.log(`🔄 Retrying with smaller chunk: ${chunk}`);
             await new Promise(resolve => setTimeout(resolve, retryDelay));
             continue;
           } else if (consecutiveErrors >= 3) {
@@ -1073,23 +1093,24 @@ const fetchPrestashopProducts = async (
       }
       
       // Actualizar estimación del total si es el primer batch
-      if (offset === 0 && products.length === limit) {
+      if (offset === 0 && products.length === chunk) {
         // Si obtuvimos un batch completo, estimar que hay más
-        estimatedTotal = Math.max(estimatedTotal, offset + limit * 2);
+        estimatedTotal = Math.max(estimatedTotal, offset + chunk * 2);
       }
       
-      // Si obtuvimos menos productos que el límite, hemos terminado
-      const isLastBatch = products.length < limit || products.length === 0;
+      // Si obtuvimos menos productos que el chunk, hemos terminado (como en PHP línea 293)
+      const isLastBatch = products.length < chunk || products.length === 0;
       
       if (isLastBatch) {
         hasMore = false;
         // Actualizar el total real
         estimatedTotal = allProducts.length;
       } else {
-        offset += limit;
+        // Actualizar offset según la cantidad obtenida (como en PHP línea 297)
+        offset += products.length;
         // Aumentar estimación si seguimos obteniendo productos completos
-        if (products.length === limit && offset > estimatedTotal) {
-          estimatedTotal = offset + limit * 2; // Estimación conservadora
+        if (products.length === chunk && offset > estimatedTotal) {
+          estimatedTotal = offset + chunk * 2; // Estimación conservadora
         }
       }
       
@@ -1109,7 +1130,7 @@ const fetchPrestashopProducts = async (
         // Calcular progreso: basado en productos obtenidos vs estimación
         // Usamos una función más suave que progrese gradualmente
         const currentProgress = Math.min(
-          baseProgress + (allProducts.length / Math.max(estimatedTotal, allProducts.length + limit * 2)) * progressRange,
+          baseProgress + (allProducts.length / Math.max(estimatedTotal, allProducts.length + chunk * 2)) * progressRange,
           maxProgressDuringFetch - 2 // Dejar un pequeño margen
         );
         
@@ -1126,7 +1147,7 @@ const fetchPrestashopProducts = async (
       console.error('❌ Error fetching batch:', error);
       console.error('Error details:', {
         offset,
-        limit,
+        chunk,
         consecutiveErrors,
         errorMessage: error instanceof Error ? error.message : 'Unknown error',
         errorStack: error instanceof Error ? error.stack : undefined
@@ -1147,12 +1168,12 @@ const fetchPrestashopProducts = async (
         throw finalError;
       }
       
-      // Reducir límite y continuar
-      if (limit > 5) {
-        limit = Math.max(5, Math.floor(limit / 2));
-        console.log(`🔄 Reducing limit from ${limit * 2} to ${limit} due to error`);
+      // Reducir chunk y continuar
+      if (chunk > 50) {
+        chunk = Math.max(50, Math.floor(chunk / 2));
+        console.log(`🔄 Reducing chunk from ${chunk * 2} to ${chunk} due to error`);
       } else {
-        console.log(`⚠️ Limit already at minimum (${limit}). Will retry with same size.`);
+        console.log(`⚠️ Chunk already at minimum (${chunk}). Will retry with same size.`);
       }
       
       // Esperar antes de retry

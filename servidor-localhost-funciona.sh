@@ -51,3 +51,4 @@ echo "  2. Inicia de nuevo: npm run dev"
 echo ""
 echo "• Limpia la caché del navegador (Ctrl+Shift+R o Cmd+Shift+R)"
 
+

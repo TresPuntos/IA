@@ -43,3 +43,4 @@ echo "✅ Evita: Errores de CORS"
 echo "✅ Mantiene: Misma lógica que el PHP"
 echo "✅ Funciona: Desde el servidor (sin restricciones)"
 
+

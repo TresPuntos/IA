@@ -118,27 +118,35 @@ exports.handler = async (event, context) => {
     const queryParams = event.queryStringParameters || {};
     
     // Construir query string EXACTAMENTE como en PHP:
-    // ?language=$current_lang_code&output_format=JSON&ws_key=API_KEY
-    // Orden: language, output_format, ws_key (sin display ni otros parámetros adicionales para esta petición básica)
+    // PHP: $query['ws_key'] = API_KEY; $query['output_format'] = 'JSON';
+    // PHP luego agrega otros parámetros con urlencode
+    // Orden según PHP: primero ws_key, luego output_format, luego los demás
     const queryParts = [];
     
-    // 1. language (si está presente)
-    if (queryParams.language) {
-      queryParts.push(`language=${queryParams.language}`);
-    }
+    // 1. ws_key (PRIMERO, como en PHP línea 49)
+    queryParts.push(`ws_key=${encodeURIComponent(apiKey)}`);
     
-    // 2. output_format=JSON (siempre presente)
+    // 2. output_format=JSON (siempre presente, línea 50)
     queryParts.push('output_format=JSON');
     
-    // 3. ws_key (siempre presente)
-    queryParts.push(`ws_key=${apiKey}`);
-    
-    // Agregar otros parámetros solo si existen y son necesarios (para compatibilidad)
-    if (queryParams.display) {
-      queryParts.push(`display=${queryParams.display}`);
+    // 3. language (si está presente, como en PHP línea 268)
+    if (queryParams.language) {
+      queryParts.push(`language=${encodeURIComponent(queryParams.language)}`);
     }
+    
+    // 4. display (si está presente, como en PHP línea 270)
+    if (queryParams.display) {
+      queryParts.push(`display=${encodeURIComponent(queryParams.display)}`);
+    }
+    
+    // 5. limit (si está presente, como en PHP línea 269 - formato: "offset,cantidad")
     if (queryParams.limit) {
-      queryParts.push(`limit=${queryParams.limit}`);
+      queryParts.push(`limit=${encodeURIComponent(queryParams.limit)}`);
+    }
+    
+    // 6. sort (si está presente, como en PHP línea 271)
+    if (queryParams.sort) {
+      queryParts.push(`sort=${encodeURIComponent(queryParams.sort)}`);
     }
     
     // Construir URL final con query string
@@ -171,8 +179,9 @@ exports.handler = async (event, context) => {
           'Authorization': `Basic ${basicAuth}`,
           'Accept': 'application/json',
           'Io-Format': 'JSON',
-          'User-Agent': 'PrestaShop Client'
+          'User-Agent': 'Mozilla/5.0 (compatible; PrestaShopProductGrid/1.0; +https://100x100chef.com)' // Igual que PHP línea 64
         },
+        auth: `${apiKey}:`, // Autenticación básica adicional como en PHP línea 71 (CURLOPT_USERPWD)
         timeout: 25000 // Timeout de 25 segundos (Netlify tiene límite de 26s)
       };
       

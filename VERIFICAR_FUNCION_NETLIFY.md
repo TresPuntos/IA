@@ -101,3 +101,4 @@ fetch('/.netlify/functions/prestashop/products/1?language=1&output_format=JSON',
 
 Si funciona, verás los datos del producto. Si da 404, la función aún no está desplegada.
 
+

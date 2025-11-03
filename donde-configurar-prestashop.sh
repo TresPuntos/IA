@@ -46,3 +46,4 @@ echo ""
 echo "✅ USA: CATÁLOGO para importar productos"
 echo "ℹ️  Configuración: Opcional, solo referencia"
 
+

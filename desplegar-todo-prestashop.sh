@@ -41,3 +41,4 @@ echo ""
 echo "✅ Servidor de desarrollo reiniciado"
 echo "   Abre: http://localhost:3000/catalog"
 
+

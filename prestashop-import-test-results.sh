@@ -41,3 +41,4 @@ echo "5. Verifica que los productos se importen correctamente"
 echo ""
 echo "✅ TODO LISTO PARA USAR"
 
+

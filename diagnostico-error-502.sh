@@ -37,3 +37,4 @@ echo ""
 echo "¿Quieres que cree una Edge Function en Supabase?"
 echo "Esto sería más rápido y no necesitarías Netlify."
 
+

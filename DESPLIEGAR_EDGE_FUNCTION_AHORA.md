@@ -267,3 +267,4 @@ Una vez desplegada:
 
 Los errores de `chrome-extension://` que ves son de una extensión de Chrome y **NO afectan** tu aplicación. Puedes ignorarlos.
 
+

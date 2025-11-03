@@ -86,3 +86,4 @@ try {
 3. **Verifica las políticas del sitio** (algunos sitios bloquean localStorage)
 4. **Prueba en otro navegador** para descartar problemas específicos del navegador
 
+

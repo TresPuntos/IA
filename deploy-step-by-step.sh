@@ -50,3 +50,4 @@ echo "⚠️  Necesita despliegue manual en Supabase"
 
 
 
+

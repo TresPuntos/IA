@@ -10,3 +10,4 @@ export const supabase = createClient(supabaseUrl, publicAnonKey);
 // Exportar también la URL y key por si se necesitan
 export { projectId, publicAnonKey, supabaseUrl };
 
+

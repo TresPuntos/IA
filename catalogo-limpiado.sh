@@ -52,3 +52,4 @@ echo "2. Ve a la página de Catálogo"
 echo "3. Verifica que solo aparezca el nuevo componente simple"
 echo "4. Prueba el flujo completo de importación"
 
+

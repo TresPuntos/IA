@@ -101,3 +101,4 @@ Si después de desplegar sigue dando 404:
 3. Verifica que no hay errores en el build de Netlify
 4. Intenta un redeploy manual desde el dashboard
 
+

@@ -67,3 +67,4 @@ echo "2. Verifica si aparece 'prestashop' en la lista"
 echo "3. Si NO aparece, haz un redeploy manual"
 echo "4. Espera 2-3 minutos y prueba de nuevo"
 
+

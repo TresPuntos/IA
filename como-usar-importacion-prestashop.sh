@@ -45,3 +45,4 @@ echo ""
 echo "✅ UBICACIÓN EXACTA:"
 echo "   Página: Catálogo > Sección: 'Conectar Ecommerce'"
 
+

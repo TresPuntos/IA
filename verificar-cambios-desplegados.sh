@@ -49,3 +49,4 @@ echo "4. Abre: http://localhost:3000/catalog"
 echo ""
 echo "✅ Verificación completada"
 
+

@@ -38,3 +38,4 @@ echo "supabase/functions/prestashop-proxy/index.ts"
 echo ""
 echo "✅ Después del despliegue, el error 404 desaparecerá"
 
+

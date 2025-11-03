@@ -224,3 +224,4 @@ Revisa los logs de la Edge Function en Supabase Dashboard:
 2. Verifica qué errores aparecen
 3. Comparte los logs si necesitas ayuda
 
+

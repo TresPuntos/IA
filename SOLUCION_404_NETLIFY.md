@@ -106,3 +106,4 @@ fetch('/.netlify/functions/prestashop/products/1?language=1&output_format=JSON',
 
 **Nota:** He hecho un commit vacío para forzar un redeploy. Netlify debería detectarlo automáticamente y hacer un nuevo build completo en los próximos minutos.
 
+

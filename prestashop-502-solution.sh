@@ -70,3 +70,4 @@ echo "3. Verificar que el escaneo funciona correctamente"
 
 
 
+

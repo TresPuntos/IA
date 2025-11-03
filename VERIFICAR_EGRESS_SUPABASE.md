@@ -94,3 +94,4 @@ fetch('/.netlify/functions/prestashop/products/1?language=1&output_format=JSON',
 }).then(console.log).catch(console.error);
 ```
 
+

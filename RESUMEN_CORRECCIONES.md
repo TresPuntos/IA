@@ -81,3 +81,4 @@ Una vez desplegada la Edge Function:
 - ✅ No habrá errores 404
 - ✅ Podrás escanear e importar productos de PrestaShop
 
+

@@ -33,3 +33,4 @@ echo "4. Despliega"
 echo ""
 echo "✅ Warnings de Supabase corregidos"
 
+
