@@ -56,7 +56,7 @@ https://supabase.com/dashboard/project/akwobmrcwqbbrdvzyiul/functions
 2. Recarga la página (Ctrl+R o Cmd+R)
 3. Ingresa:
    - **URL:** `https://100x100chef.com/shop`
-   - **API Key:** `E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ`
+   - **API Key:** `TU_PRESTASHOP_API_KEY_AQUI` (reemplazar con tu API Key real)
 4. Haz clic en **"Probar Conexión"**
 5. Ya NO debería aparecer error 404
 

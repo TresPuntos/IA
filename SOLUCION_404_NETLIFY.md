@@ -78,7 +78,7 @@ fetch('/.netlify/functions/prestashop/products/1?language=1&output_format=JSON',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({
     apiUrl: 'https://100x100chef.com/shop',
-    apiKey: 'E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ'
+    apiKey: 'TU_PRESTASHOP_API_KEY_AQUI' // Reemplazar con tu API Key real
   })
 }).then(r => r.json()).then(console.log).catch(console.error);
 ```

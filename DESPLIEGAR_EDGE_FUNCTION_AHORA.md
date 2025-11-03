@@ -67,7 +67,7 @@ El código completo está al final de este documento (líneas 87-261)
 1. Recarga tu aplicación: http://localhost:3000/catalog
 2. Ingresa:
    - **URL:** `https://100x100chef.com/shop`
-   - **API Key:** `E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ`
+   - **API Key:** `TU_PRESTASHOP_API_KEY_AQUI` (reemplazar con tu API Key real)
 3. Haz clic en **"Probar Conexión"**
 4. ✅ Ya NO debería aparecer error 404
 

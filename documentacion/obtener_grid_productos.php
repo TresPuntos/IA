@@ -17,7 +17,7 @@ function obtener_grid_productos($id_productos) {
     $ids_array = explode(',', $id_productos);
 
     // Configuración de la API de PrestaShop
-    define('API_KEY', 'E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ');
+    define('API_KEY', 'TU_PRESTASHOP_API_KEY_AQUI'); // Reemplazar con tu API Key real
     define('PRESTASHOP_URL', 'https://100x100chef.com/shop/api/');
     define('BASE_URL', 'https://100x100chef.com/shop/'); // URL base de la tienda
 

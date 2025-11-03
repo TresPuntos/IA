@@ -9,7 +9,7 @@ const https = require('https');
 const http = require('http');
 
 // Credenciales desde obtener_grid_productos.php
-const API_KEY = 'E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ';
+const API_KEY = process.env.PRESTASHOP_API_KEY || 'TU_PRESTASHOP_API_KEY_AQUI'; // Usar variable de entorno o reemplazar con tu API Key real
 const PRESTASHOP_URL = 'https://100x100chef.com/shop/api/';
 const BASE_URL = 'https://100x100chef.com/shop/';
 

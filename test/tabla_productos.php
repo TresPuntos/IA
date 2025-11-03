@@ -7,7 +7,7 @@
 
 // Configuración de la API de PrestaShop.
 if (!defined('API_KEY')) {
-    define('API_KEY', 'E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ');
+    define('API_KEY', 'TU_PRESTASHOP_API_KEY_AQUI'); // Reemplazar con tu API Key real
 }
 
 if (!defined('PRESTASHOP_URL')) {
