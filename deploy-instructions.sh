@@ -27,7 +27,7 @@ echo "   Variable: VITE_SUPABASE_PROJECT_ID"
 echo "   Valor: akwobmrcwqbbrdvzyiul"
 echo ""
 echo "   Variable: VITE_SUPABASE_ANON_KEY"
-echo "   Valor: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFrd29ibXJjd3FiYnJkdnp5aXVsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA1Nzk0MjUsImV4cCI6MjA3NjE1NTQyNX0.jShGYQkTaO7C0fEjsrsIbVUd0rTOmZvYHffhXJIW7SE"
+echo "   Valor: [CONFIGURE_YOUR_SUPABASE_ANON_KEY_IN_NETLIFY]"
 echo ""
 
 echo "🔄 PROCESO DE DEPLOY AUTOMÁTICO:"

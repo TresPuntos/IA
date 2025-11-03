@@ -2,7 +2,7 @@
 
 ## ⚠️ ADVERTENCIA DE SEGURIDAD
 
-La clave API de PrestaShop (`E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ`) estaba hardcodeada en múltiples archivos del repositorio y fue detectada por Netlify durante el build.
+La clave API de PrestaShop estaba hardcodeada en múltiples archivos del repositorio y fue detectada por Netlify durante el build. **La clave debe ser rotada inmediatamente** ya que estaba comprometida en el historial de Git.
 
 **Esta clave debe ser considerada COMPROMETIDA** y debe rotarse inmediatamente.
 
@@ -12,7 +12,7 @@ La clave API de PrestaShop (`E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ`) estaba hardcodea
 
 1. Ve a tu panel de administración de PrestaShop
 2. Navega a: **Configuración Avanzada** → **Web Service**
-3. Busca la clave API existente (`E5CUG6DLAD9EA46AIN7Z2LIX1W3IIJKZ`)
+3. Busca la clave API existente que estaba comprometida
 4. **Elimínala o desactívala**
 5. **Crea una nueva clave API** con los mismos permisos
 6. **Guarda la nueva clave** en un lugar seguro

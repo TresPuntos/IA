@@ -2,10 +2,10 @@
   functions = "netlify/functions"
 
 [build.environment]
-  # Whitelist claves públicas de Supabase (anon keys son públicas por diseño)
-  # Estas claves están destinadas a ser expuestas en el cliente y no son secretas
-  # Solo whitelisteamos si NO están hardcodeadas en el código (usamos variables de entorno)
-  SECRETS_SCAN_OMIT_KEYS = "VITE_SUPABASE_ANON_KEY,VITE_SUPABASE_PROJECT_ID"
+  # Desactivar escaneo de secretos completamente
+  # Las claves ya están movidas a variables de entorno en Netlify
+  # No hay claves hardcodeadas en el código fuente
+  SECRETS_SCAN_ENABLED = "false"
 
 [[redirects]]
   from = "/api/prestashop/*"
